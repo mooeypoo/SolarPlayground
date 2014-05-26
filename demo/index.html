@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html class="no-js">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <!-- Libraries -->
+        <script src="../lib/jquery-1.11.1.min.js"></script>
+        <script src="../lib/oojs/dist/oojs.js"></script>
+
+        <!-- OOJS-UI -->
+        <!-- script src="../lib/oojs-ui/dist/oojs-ui.js"></script>
+        <link rel="stylesheet" href="../lib/oojs-ui/dist/oojs-ui.svg.css">
+        <link rel="stylesheet" href="../lib/oojs-ui/dist/oojs-ui-apex.css" -->
+
+        <!-- Celestial Playground files -->
+        <script src="../dist/SolarPlayground.dist.min.js"></script>
+        <link rel="stylesheet" href="../src/styles/sp.System.css" -->
+    </head>
+    <body>
+        <script type="text/javascript">
+            $( document ).ready( function() {
+                playground = new sp.System( {} );
+
+                playground.load( 'example' );
+            } );
+        </script>
+
+        <h1>Celestial Playground Demo</h1>
+
+        <div id="solarSystem"></div>
+    </body>
+</html>
