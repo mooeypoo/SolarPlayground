@@ -11,7 +11,7 @@ sp.System = function SpSystemInitialize( config ) {
 	defaultConfig = {
 		container: '#solarSystem',
 		scenario_dir: 'scenarios', // Current directory unless otherwise specified
-		directory_sep: '\\',
+		directory_sep: '/',
 		width: $( window ).width() - 100,
 		height: $( window ).height() - 100
 	};

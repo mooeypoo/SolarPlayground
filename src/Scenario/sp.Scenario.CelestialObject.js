@@ -11,6 +11,7 @@ sp.Scenario.CelestialObject = function SpScenarioCelestialObject( config ) {
 	// Attributes
 	this.name = config.name || '';
 	this.description = config.description || '';
+	this.view = config.graphic || {};
 
 	this.vars = config.vars;
 	this.initial_position = config.initial_position || { 'x': 0, 'y': 0 };
@@ -36,11 +37,11 @@ sp.Scenario.CelestialObject.prototype.updateCoordinates = function SpScenarioCel
 		// 1AU = 149 597 870 700 meters
 		G =  6.67 * Math.pow( 10, -11 );
 		// M = Mass of the object at the center of orbit
-		// p^2 = (4*Math.PI * 149597870700) / G*M
+		// p^2 = (4*Math.PI * 149597870700)*a^3 / G*M
 		M = this.orbiting.getMass();
 		if ( M ) {
 			this.vars.p = Math.sqrt(
-				( 4 * Math.PI * 149597870700 ) /
+				( 4 * Math.PI * 149597870700 * Math.pow( this.vars.a, 3 ) ) /
 				( G * M )
 			);
 		}
@@ -111,3 +112,7 @@ sp.Scenario.CelestialObject.prototype.setDescription = function SpScenarioCelest
 sp.Scenario.CelestialObject.prototype.getMass = function SpScenarioCelestialObjectGetMass() {
 	return this.vars.m;
 };
+
+sp.Scenario.CelestialObject.prototype.getView = function SpScenarioCelestialObjectGetView() {
+	return this.view;
+}

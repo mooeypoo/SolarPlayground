@@ -117,17 +117,16 @@ window.requestNextAnimationFrame = ( function () {
 		window.mozRequestAnimationFrame ||
 		window.oRequestAnimationFrame ||
 		window.msRequestAnimationFrame ||
+		function ( callback, element ) {
+			var start,
+				finish;
 
-	function ( callback, element ) {
-		var start,
-			finish;
+			window.setTimeout( function () {
+				start += new Date();
+				callback( start );
+				finish += new Date();
 
-		window.setTimeout( function () {
-			start += new Date();
-			callback( start );
-			finish += new Date();
-
-			self.timeout = 1000 / 60 - ( finish - start );
-		}, self.timeout );
-	};
+				self.timeout = 1000 / 60 - ( finish - start );
+			}, self.timeout );
+		};
 } ) ();
