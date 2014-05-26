@@ -11,7 +11,7 @@ sp.System = function SpSystemInitialize( config ) {
 	defaultConfig = {
 		container: '#solarSystem',
 		scenario_dir: 'scenarios', // Current directory unless otherwise specified
-		directory_sep: '\\',
+		directory_sep: '/',
 		width: $( window ).width() - 100,
 		height: $( window ).height() - 100
 	};
@@ -69,12 +69,31 @@ sp.System.prototype.load = function SpSystemLoad( scenarioName ) {
 		} );
 };
 
+/**
+ * Load and run a scenario
+ * @param {Object} scenarioObject Scenario configuration object
+ */
 sp.System.prototype.loadScenario = function SpSystemLoadScenario( scenarioObject ) {
 	scenarioObject = scenarioObject || {};
 
 	this.scenario = new sp.Scenario( this.$canvas, scenarioObject );
 
 	this.scenario.run();
+};
+
+/**
+ * Toggle between pause and resume the scenario
+ * @param {boolean} [isPause] Optional. If supplied, pauses or resumes the scenario
+ */
+sp.System.prototype.togglePaused = function SpSystemTogglePaused( isPause ) {
+	this.scenario.togglePaused( isPause );
+};
+
+/**
+ * Check whether the scenario is paused
+ */
+sp.System.prototype.isPaused = function SpSystemIsPaused() {
+	return this.scenario.isPaused();
 };
 
 /**

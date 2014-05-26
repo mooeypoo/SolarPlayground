@@ -117,19 +117,18 @@ window.requestNextAnimationFrame = ( function () {
 		window.mozRequestAnimationFrame ||
 		window.oRequestAnimationFrame ||
 		window.msRequestAnimationFrame ||
+		function ( callback, element ) {
+			var start,
+				finish;
 
-	function ( callback, element ) {
-		var start,
-			finish;
+			window.setTimeout( function () {
+				start += new Date();
+				callback( start );
+				finish += new Date();
 
-		window.setTimeout( function () {
-			start += new Date();
-			callback( start );
-			finish += new Date();
-
-			self.timeout = 1000 / 60 - ( finish - start );
-		}, self.timeout );
-	};
+				self.timeout = 1000 / 60 - ( finish - start );
+			}, self.timeout );
+		};
 } ) ();
 
 /**
@@ -150,13 +149,19 @@ sp.Scenario = function SpScenario( $canvas, scenario ) {
 	this.paused = false;
 	this.objects = {};
 
-	this.translateFactor = 0.000000004;
 	this.centerPoint = {
 		x: this.$canvas.width() / 2,
 		y: this.$canvas.height() / 2
 	};
 	// Prepare general configuration
 	this.config = scenario.config || {};
+
+	this.config.speed = this.config.speed || 1;
+	this.config.orbit_scale = this.config.orbit_scale || 0.5 * Math.pow( 10, -5 );
+	this.config.planet_scale = this.config.planet_scale || 1 * Math.pow( 10, -9 );
+	this.config.zoomFactor = this.config.zoom || 1;
+
+	this.time = this.config.start_time || 0;
 
 	// Prepare the objects
 	this.processObjects( scenario.objects || {} );
@@ -191,42 +196,79 @@ sp.Scenario.prototype.processObjects = function SpScenarioProcessObjects( scenar
  * @param {number} time Time
  */
 sp.Scenario.prototype.draw = function SpScenarioUpdateObjects( time ) {
-	var o, coords;
+	var o, coords, view;
 
 	for ( o in this.objects ) {
-		coords = this.objects[o].updateCoordinates( time );
+		coords = this.objects[o].getSpaceCoordinates( time );
 		// Translate coordinates to canvas
 		coords = this.translateCoodinates( coords );
 		// Draw
+		view = this.objects[o].getView();
 
 		this.context.save();
 		this.context.beginPath();
-		this.context.arc( coords.x, coords.y, 10, 0, 2 * Math.PI, false );
-		this.context.fillStyle = 'green';
+		this.context.arc( coords.x, coords.y, view.radius || 10, 0, 2 * Math.PI, false );
+		this.context.fillStyle = view.color || 'teal';
 		this.context.fill();
 		this.context.restore();
 		sp.log( 'drawing "' + this.objects[o].getName() + '" at ' + coords.x + ':' + coords.y, 'notice' );
 	}
 };
 
-sp.Scenario.prototype.run = function SpScenarioAnimate( time ) {
+sp.Scenario.prototype.run = function SpScenarioRun() {
 	if ( !this.paused ) {
 		// Clear canvas
 		this.context.clearRect( 0, 0, this.$canvas.width(), this.$canvas.height() );
 
 		// Draw canvas
-		this.draw( time );
+		this.draw( this.time );
+		this.time += this.config.speed;
 
-		$.proxy( window.requestNextAnimationFrame, this, this.run, time++ );
+		window.requestNextAnimationFrame( $.proxy( this.run, this ) );
 	}
 }
 
 sp.Scenario.prototype.translateCoodinates = function SpScenarioAnimate( coords ) {
+	var transform = Math.sqrt( this.config.orbit_scale * this.config.zoomFactor );
+
 	coords = coords || { x: 0, y: 0 };
 
-	coords.x = coords.x * this.translateFactor + this.centerPoint.x,
-	coords.y = coords.y * this.translateFactor + this.centerPoint.y;
+	coords.x = transform * ( coords.x - this.centerPoint.x );
+	coords.y = transform * ( coords.y - this.centerPoint.y );
+
 	return coords;
+};
+
+/**
+ * Toggle between pause and resume the scenario
+ * @param {boolean} [isPause] Optional. If supplied, pauses or resumes the scenario
+ */
+sp.Scenario.prototype.togglePaused = function SpScenarioTogglePaused( isPause ) {
+	isPause = !!isPause || !this.paused;
+	this.paused = isPause;
+	this.run();
+};
+
+/**
+ * Check whether the scenario is paused
+ */
+sp.Scenario.prototype.isPaused = function SpScenarioTogglePaused() {
+	return this.paused;
+};
+
+/**
+ * Pause the scenario
+ */
+sp.Scenario.prototype.pause = function SpScenarioPause() {
+	this.paused = true;
+};
+
+/**
+ * Resume the scenario
+ */
+sp.Scenario.prototype.resume = function SpScenarioResume() {
+	this.paused = false;
+	this.run();
 };
 
 /**
@@ -242,7 +284,7 @@ sp.System = function SpSystemInitialize( config ) {
 	defaultConfig = {
 		container: '#solarSystem',
 		scenario_dir: 'scenarios', // Current directory unless otherwise specified
-		directory_sep: '\\',
+		directory_sep: '/',
 		width: $( window ).width() - 100,
 		height: $( window ).height() - 100
 	};
@@ -300,12 +342,31 @@ sp.System.prototype.load = function SpSystemLoad( scenarioName ) {
 		} );
 };
 
+/**
+ * Load and run a scenario
+ * @param {Object} scenarioObject Scenario configuration object
+ */
 sp.System.prototype.loadScenario = function SpSystemLoadScenario( scenarioObject ) {
 	scenarioObject = scenarioObject || {};
 
 	this.scenario = new sp.Scenario( this.$canvas, scenarioObject );
 
 	this.scenario.run();
+};
+
+/**
+ * Toggle between pause and resume the scenario
+ * @param {boolean} [isPause] Optional. If supplied, pauses or resumes the scenario
+ */
+sp.System.prototype.togglePaused = function SpSystemTogglePaused( isPause ) {
+	this.scenario.togglePaused( isPause );
+};
+
+/**
+ * Check whether the scenario is paused
+ */
+sp.System.prototype.isPaused = function SpSystemIsPaused() {
+	return this.scenario.isPaused();
 };
 
 /**
@@ -406,8 +467,10 @@ sp.Scenario.CelestialObject = function SpScenarioCelestialObject( config ) {
 	// Attributes
 	this.name = config.name || '';
 	this.description = config.description || '';
+	this.view = config.graphic || {};
 
 	this.vars = config.vars;
+
 	this.initial_position = config.initial_position || { 'x': 0, 'y': 0 };
 
 	// Link to the object it is orbiting
@@ -418,10 +481,10 @@ sp.Scenario.CelestialObject = function SpScenarioCelestialObject( config ) {
 OO.mixinClass( sp.Scenario.CelestialObject, OO.EventEmitter );
 
 /**
- * Update coordinates for time.
+ * Get space coordinates per time.
  * @param {number} time Time unit
  */
-sp.Scenario.CelestialObject.prototype.updateCoordinates = function SpScenarioCelestialObjectUpdateCoordinates( time ) {
+sp.Scenario.CelestialObject.prototype.getSpaceCoordinates = function SpScenarioCelestialObjectUpdateCoordinates( time ) {
 	var dest, M, G;
 
 	time = time || 0;
@@ -431,13 +494,9 @@ sp.Scenario.CelestialObject.prototype.updateCoordinates = function SpScenarioCel
 		// 1AU = 149 597 870 700 meters
 		G =  6.67 * Math.pow( 10, -11 );
 		// M = Mass of the object at the center of orbit
-		// p^2 = (4*Math.PI * 149597870700) / G*M
 		M = this.orbiting.getMass();
 		if ( M ) {
-			this.vars.p = Math.sqrt(
-				( 4 * Math.PI * 149597870700 ) /
-				( G * M )
-			);
+			this.vars.p = 2 * Math.PI * Math.sqrt( Math.pow( this.vars.a, 3 ) / ( G * M) );
 		}
 	}
 
@@ -448,10 +507,6 @@ sp.Scenario.CelestialObject.prototype.updateCoordinates = function SpScenarioCel
 		time
 	);
 
-	return this.coordinates;
-};
-
-sp.Scenario.CelestialObject.prototype.getCoordinates = function SpScenarioCelestialObjectGetCoordinates() {
 	return this.coordinates;
 };
 
@@ -506,3 +561,7 @@ sp.Scenario.CelestialObject.prototype.setDescription = function SpScenarioCelest
 sp.Scenario.CelestialObject.prototype.getMass = function SpScenarioCelestialObjectGetMass() {
 	return this.vars.m;
 };
+
+sp.Scenario.CelestialObject.prototype.getView = function SpScenarioCelestialObjectGetView() {
+	return this.view;
+}

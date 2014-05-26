@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title></title>
+        <title>Solar Playground >> Moriel Schottlender</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -17,19 +17,32 @@
         <link rel="stylesheet" href="../lib/oojs-ui/dist/oojs-ui-apex.css" -->
 
         <!-- Celestial Playground files -->
-        <script src="../dist/SolarPlayground.dist.min.js"></script>
+        <script src="../dist/SolarPlayground.dist.js"></script>
         <link rel="stylesheet" href="../src/styles/sp.System.css" -->
     </head>
     <body>
         <script type="text/javascript">
             $( document ).ready( function() {
-                playground = new sp.System( {} );
+                var paused = false;
 
+                playground = new sp.System( {} );
                 playground.load( 'example' );
+
+                $( '#pause' ).click( function() {
+                    playground.togglePaused( paused );
+
+                    if ( playground.isPaused() ) {
+                        $( this ).text( 'Resume' );
+                    } else {
+                        $( this ).text( 'Pause' );
+                    }
+                } );
             } );
+
         </script>
 
-        <h1>Celestial Playground Demo</h1>
+        <h1>Solar Playground Demo</h1>
+        <button id="pause">Pause</button><br />
 
         <div id="solarSystem"></div>
     </body>
