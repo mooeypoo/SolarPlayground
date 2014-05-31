@@ -16,12 +16,16 @@ sp.Scenario = function SpScenario( $canvas, scenario ) {
 	this.paused = false;
 	this.objects = {};
 
+	this.translateFactor = 0.1;//0.000000004;
+
 	this.centerPoint = {
 		x: this.$canvas.width() / 2,
 		y: this.$canvas.height() / 2
 	};
 	// Prepare general configuration
 	this.config = scenario.config || {};
+	this.config.speed = this.config.speed || 1.1;
+	this.time = this.config.start_time || 0;
 
 	this.config.speed = this.config.speed || 1;
 	this.config.orbit_scale = this.config.orbit_scale || 0.5 * Math.pow( 10, -5 );
