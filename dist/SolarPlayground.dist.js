@@ -156,7 +156,7 @@ sp.Scenario = function SpScenario( $canvas, scenario ) {
 
 	// TODO: Create camera controller
 	this.camera = {
-		'yaw': 10,
+		'yaw': 0,
 		'pitch': 0
 	};
 
@@ -175,6 +175,7 @@ sp.Scenario = function SpScenario( $canvas, scenario ) {
 
 	this.date = this.config.start_time || { day: 1, month: 1, year: 2000 };
 	this.time = 0;
+
 	// Prepare the objects
 	this.processObjects( scenario.objects || {} );
 };
