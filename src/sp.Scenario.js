@@ -16,24 +16,39 @@ sp.Scenario = function SpScenario( $canvas, scenario ) {
 	this.paused = false;
 	this.objects = {};
 
-	this.translateFactor = 0.1;//0.000000004;
-
 	this.centerPoint = {
 		x: this.$canvas.width() / 2,
 		y: this.$canvas.height() / 2
 	};
+
+	// TODO: Create camera controller
+	this.camera = {
+		'yaw': 0,
+		'pitch': 0
+	};
+
 	// Prepare general configuration
 	this.config = scenario.config || {};
-	this.config.speed = this.config.speed || 1.1;
-	this.time = this.config.start_time || 0;
+	this.config.speed = this.config.speed || 1;
+
+	this.init_pov = this.config.init_pov;
+	this.pov_object = null;
+	this.pov = null;
 
 	this.config.speed = this.config.speed || 1;
 	this.config.orbit_scale = this.config.orbit_scale || 0.5 * Math.pow( 10, -5 );
 	this.config.planet_scale = this.config.planet_scale || 1 * Math.pow( 10, -9 );
-	this.config.zoomFactor = this.config.zoom || 1;
+	this.config.zoom = this.config.init_zoom || 1;
 
-	this.time = this.config.start_time || 0;
-
+	this.date = this.config.start_time || { day: 1, month: 1, year: 2000 };
+	this.time = 0; /*sp.Scenario.Calculator.getJDNTime(
+		this.date.year || 2000,
+		this.date.month || 1,
+		this.date.day || 1,
+		this.date.hours || 0,
+		this.date.minutes || 0,
+		this.date.seconds || 0
+	);*/
 	// Prepare the objects
 	this.processObjects( scenario.objects || {} );
 };
@@ -60,6 +75,11 @@ sp.Scenario.prototype.processObjects = function SpScenarioProcessObjects( scenar
 			this.objects[co].setOrbit( this.objects[scenarioObjects[co].orbiting] );
 		}
 	}
+
+	// Set initial POV
+	if ( this.init_pov && this.objects[this.init_pov] ) {
+		this.pov_object = this.objects[this.init_pov];
+	}
 };
 
 /**
@@ -67,22 +87,28 @@ sp.Scenario.prototype.processObjects = function SpScenarioProcessObjects( scenar
  * @param {number} time Time
  */
 sp.Scenario.prototype.draw = function SpScenarioUpdateObjects( time ) {
-	var o, coords, view;
+	var o, coords, translatedCoords, view;
 
 	for ( o in this.objects ) {
 		coords = this.objects[o].getSpaceCoordinates( time );
+
+		// Update POV coordinates
+		if ( o === this.pov_object ) {
+			this.pov = coords;
+		}
 		// Translate coordinates to canvas
-		coords = this.translateCoodinates( coords );
+		translatedCoords = this.translateScreenCoodinates( coords );
+
 		// Draw
 		view = this.objects[o].getView();
 
 		this.context.save();
 		this.context.beginPath();
-		this.context.arc( coords.x, coords.y, view.radius || 10, 0, 2 * Math.PI, false );
-		this.context.fillStyle = view.color || 'teal';
+		this.context.arc( translatedCoords.x, translatedCoords.y, view.radius || 10, 0, 2 * Math.PI, false );
+		this.context.fillStyle = view.color || 'white';
 		this.context.fill();
 		this.context.restore();
-		sp.log( 'drawing "' + this.objects[o].getName() + '" at ' + coords.x + ':' + coords.y, 'notice' );
+		sp.log( 'Notice', 'drawing "' + this.objects[o].getName() + '" at ' + coords.x + ':' + coords.y );
 	}
 };
 
@@ -93,21 +119,36 @@ sp.Scenario.prototype.run = function SpScenarioRun() {
 
 		// Draw canvas
 		this.draw( this.time );
-		this.time += this.config.speed;
+
+		// Increase time
+		this.time += 0.0000000001;
 
 		window.requestNextAnimationFrame( $.proxy( this.run, this ) );
 	}
 }
 
-sp.Scenario.prototype.translateCoodinates = function SpScenarioAnimate( coords ) {
-	var transform = Math.sqrt( this.config.orbit_scale * this.config.zoomFactor );
+sp.Scenario.prototype.translateScreenCoodinates = function SpScenarioAnimate( coords ) {
+	var pov = this.pov || { x: 0, y: 0 },
+		ca = Math.cos( this.camera.yaw ),
+		sa = Math.sin( this.camera.yaw ),
+		cb = Math.cos( this.camera.pitch ),
+		sb = Math.sin( this.camera.pitch ),
+		dx = this.centerPoint.x,
+		dy = this.centerPoint.y,
+		scale = 100; //Math.sqrt( this.config.orbit_scale * this.config.zoom );
 
-	coords = coords || { x: 0, y: 0 };
+	// TODO: Work out scale
+	x = ( coords.x - pov.x ) * scale;
+	y = ( coords.y - pov.y ) * scale;
+	z = ( coords.z - pov.z ) * scale;
 
-	coords.x = transform * coords.x + this.centerPoint.x;
-	coords.y = transform * coords.y + this.centerPoint.y;
-
-	return coords;
+	destination = {
+		'x': x * ca - y * sa + dx,
+		'y': x * sa + y * ca
+	};
+	destination.z = destination.y * sb;
+	destination.y = destination.y * cb + dy
+	return destination;
 };
 
 /**

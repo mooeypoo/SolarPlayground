@@ -14,14 +14,14 @@
 	 * General method to produce logs into the console
 	 * or some files.
 	 *
-	 * @param {String} msg Log message
 	 * @param {String} type Message type: LOG, ERROR
+	 * @param {String} msg Log message
 	 */
-	solarPlayground.log = function ( msg, type ) {
+	solarPlayground.log = function ( type, msg ) {
 		type = type || 'LOG';
 		// TODO: Condition the console logging only on debug mode
 		// otherwise output logs to a file
-		window.console.log( type + ':\n' + msg );
+		window.console.log( '[' + type + '] ' + msg );
 	};
 
 	// Add to the global namespace
@@ -149,24 +149,39 @@ sp.Scenario = function SpScenario( $canvas, scenario ) {
 	this.paused = false;
 	this.objects = {};
 
-	this.translateFactor = 0.1;//0.000000004;
-
 	this.centerPoint = {
 		x: this.$canvas.width() / 2,
 		y: this.$canvas.height() / 2
 	};
+
+	// TODO: Create camera controller
+	this.camera = {
+		'yaw': 0,
+		'pitch': 0
+	};
+
 	// Prepare general configuration
 	this.config = scenario.config || {};
-	this.config.speed = this.config.speed || 1.1;
-	this.time = this.config.start_time || 0;
+	this.config.speed = this.config.speed || 1;
+
+	this.init_pov = this.config.init_pov;
+	this.pov_object = null;
+	this.pov = null;
 
 	this.config.speed = this.config.speed || 1;
 	this.config.orbit_scale = this.config.orbit_scale || 0.5 * Math.pow( 10, -5 );
 	this.config.planet_scale = this.config.planet_scale || 1 * Math.pow( 10, -9 );
-	this.config.zoomFactor = this.config.zoom || 1;
+	this.config.zoom = this.config.init_zoom || 1;
 
-	this.time = this.config.start_time || 0;
-
+	this.date = this.config.start_time || { day: 1, month: 1, year: 2000 };
+	this.time = 0; /*sp.Scenario.Calculator.getJDNTime(
+		this.date.year || 2000,
+		this.date.month || 1,
+		this.date.day || 1,
+		this.date.hours || 0,
+		this.date.minutes || 0,
+		this.date.seconds || 0
+	);*/
 	// Prepare the objects
 	this.processObjects( scenario.objects || {} );
 };
@@ -193,6 +208,11 @@ sp.Scenario.prototype.processObjects = function SpScenarioProcessObjects( scenar
 			this.objects[co].setOrbit( this.objects[scenarioObjects[co].orbiting] );
 		}
 	}
+
+	// Set initial POV
+	if ( this.init_pov && this.objects[this.init_pov] ) {
+		this.pov_object = this.objects[this.init_pov];
+	}
 };
 
 /**
@@ -200,22 +220,28 @@ sp.Scenario.prototype.processObjects = function SpScenarioProcessObjects( scenar
  * @param {number} time Time
  */
 sp.Scenario.prototype.draw = function SpScenarioUpdateObjects( time ) {
-	var o, coords, view;
+	var o, coords, translatedCoords, view;
 
 	for ( o in this.objects ) {
 		coords = this.objects[o].getSpaceCoordinates( time );
+
+		// Update POV coordinates
+		if ( o === this.pov_object ) {
+			this.pov = coords;
+		}
 		// Translate coordinates to canvas
-		coords = this.translateCoodinates( coords );
+		translatedCoords = this.translateScreenCoodinates( coords );
+
 		// Draw
 		view = this.objects[o].getView();
 
 		this.context.save();
 		this.context.beginPath();
-		this.context.arc( coords.x, coords.y, view.radius || 10, 0, 2 * Math.PI, false );
-		this.context.fillStyle = view.color || 'teal';
+		this.context.arc( translatedCoords.x, translatedCoords.y, view.radius || 10, 0, 2 * Math.PI, false );
+		this.context.fillStyle = view.color || 'white';
 		this.context.fill();
 		this.context.restore();
-		sp.log( 'drawing "' + this.objects[o].getName() + '" at ' + coords.x + ':' + coords.y, 'notice' );
+		sp.log( 'Notice', 'drawing "' + this.objects[o].getName() + '" at ' + coords.x + ':' + coords.y );
 	}
 };
 
@@ -226,21 +252,41 @@ sp.Scenario.prototype.run = function SpScenarioRun() {
 
 		// Draw canvas
 		this.draw( this.time );
-		this.time += this.config.speed;
+
+		// Increase time
+		this.time += 0.0000000001;
 
 		window.requestNextAnimationFrame( $.proxy( this.run, this ) );
 	}
 }
 
-sp.Scenario.prototype.translateCoodinates = function SpScenarioAnimate( coords ) {
-	var transform = Math.sqrt( this.config.orbit_scale * this.config.zoomFactor );
+sp.Scenario.prototype.translateScreenCoodinates = function SpScenarioAnimate( coords ) {
+	var pov = this.pov || { x: 0, y: 0 },
+		ca = Math.cos( this.camera.yaw ),
+		sa = Math.sin( this.camera.yaw ),
+		cb = Math.cos( this.camera.pitch ),
+		sb = Math.sin( this.camera.pitch ),
+		dx = this.centerPoint.x,
+		dy = this.centerPoint.y,
+		scale = 100; //Math.sqrt( this.config.orbit_scale * this.config.zoom );
 
-	coords = coords || { x: 0, y: 0 };
+	// TODO: Work out scale
+	x = ( coords.x - pov.x ) * scale;
+	y = ( coords.y - pov.y ) * scale;
+	z = ( coords.z - pov.z ) * scale;
 
-	coords.x = transform * coords.x + this.centerPoint.x;
-	coords.y = transform * coords.y + this.centerPoint.y;
-
-	return coords;
+	destination = {
+		'x': x * ca - y * sa + dx,
+		'y': x * sa + y * ca
+	};
+	destination.z = destination.y * sb;
+	destination.y = destination.y * cb + dy
+	return destination;
+//	return {
+//		'x': x,
+//		'y': y,
+//		'z': z
+//	}
 };
 
 /**
@@ -342,7 +388,7 @@ sp.System.prototype.load = function SpSystemLoad( scenarioName ) {
 			this.loadScenario( response );
 		}, this ) )
 		.fail( function () {
-			sp.log( 'ERROR', 'Scenario ' + targetName + ' not found in directory "' + targetDir + '"' );
+			sp.log( 'Error', 'Scenario ' + targetName + ' not found in directory "' + targetDir + '"' );
 		} );
 };
 
@@ -394,69 +440,267 @@ sp.Scenario.Calculator = function SpScenarioCalculator( config ) {
 };
 
 /**
- * Originally created by Matthew Watson Copyright (C) 2012
- * For SolarPlayground Educational Orbit Simulator
+ * Astronomical constants. Mostly related to the solar
+ * system but also to other calculations.
+ * @property {Object}
+ */
+sp.Scenario.Calculator.constants = {
+	// Astronomical units (AU) in km
+	'AU': 149597871, // km
+	// Gravitational constant in N*(m/kg)^2
+	'G': 6.67 * Math.pow( 10, -11 )
+};
+
+/**
+ * Calculate the absolute time needed for proper calculations.
+ * In our case, it is the number of days from 1999 Dec 31, 0:00 UT
+ * @param {number} year Requested year (YYYY)
+ * @param {number} month Requested month
+ * @param {number} day Requested day of the month
+ * @param {number} time_of_day Time of day in decimals 0-24
+ * @returns {number} The decimal number of days from 1999 Dec 31, 0:00 UT
+ */
+sp.Scenario.Calculator.translateTime = function SpScenarioCalculatorGetAbsTime( year, month, day, time_of_day ) {
+	var totalDays;
+	year = year || 2014;
+	month = month || 6;
+	day = day || 10;
+	time_of_day = time_of_day || 0;
+
+	// The day calculation must be integer calculation, so 'Math.floor' must
+	// be used for all divisions
+	totalDays = 367 * year - 7 *
+		Math.floor( ( year + Math.floor( ( month + 9 ) / 12 ) ) / 4 ) +
+		275 * Math.floor( month / 9 ) + D - 730530;
+
+	// Add time (floating point division)
+	totalDays += time_of_day / 24;
+
+	return totalDays;
+};
+
+/**
+ * Return a JDN (Julian Day Number) from J2000.0, converted from a Gregorian date and time
+ * @param {[type]} year Requested year (yyyy)
+ * @param {number} month Requested month
+ * @param {number} day Requested day of the month
+ * @param {number} [hours] Hour of the day in 24h format
+ * @param {number} [minutes] Minutes after the hour
+ * @param {number} [seconds] Seconds after the minute
+ * @returns {number} JDN, number of days from epoch J2000.0
+ */
+sp.Scenario.Calculator.getJDNTime = function SpScenarioCalculatorGetEpochTime( year, month, day, hours, minutes, seconds ) {
+	var JDN,
+		a = Math.floor( ( 14 - month ) / 12 ),
+		y = year + 4800 - a,
+		m = month + 12 * a - 3;
+
+	hours = hours || 12; // Given hours or midday
+	minutes = minutes || 0;
+	seconds = seconds || 0;
+
+	// Translate from Gregorian to JDN
+	// Calculation take from
+	// https://en.wikipedia.org/wiki/Julian_day#Converting_Julian_or_Gregorian_calendar_date_to_Julian_Day_Number
+	JDN = day + Math.floor( ( 153 * m + 2) / 5 ) + 365 * y +
+		Math.floor( y / 4 ) - Math.floor( y / 100 ) + Math.floor( y / 400 ) +
+		32045
+
+	// Include time of day
+	JD = JDN + ( ( hours - 12 ) / 24 ) + ( minutes / 1440 ) + ( seconds / 86400 );
+
+	// Return JD from J2000.0 (Epoch)
+	return JD - 2451545.0;
+};
+
+/**
+ * Solve the Kepler equation for the given parameters to get the object's
+ * position in space. This position is raw heliocentric space coordiates
  *
- * Solver for the Keplerian orbit at time t with initial parameters.
- * @param {number} a Semi-major axis.
+ * Calculation taken from NASA JPL Formula:
+ * http://ssd.jpl.nasa.gov/?planet_pos
+ * And
+ * https://gist.github.com/bartolsthoorn/7913357
+ *
+ * @param {Object} vars Variables necessary for calculation.
+ * @param {number[]} vars.a Semi-major axis (au and au/seconds)
+ * @param {number[]} vars.e Eccentricity ( no units and no units/seconds)
+ * @param {number[]} vars.I Inclination (degrees and degrees/seconds)
+ * @param {number[]} vars.L Mean longitude (degrees and degrees/seconds)
+ * @param {number[]} vars.long_peri Longitude of perihelion (degree and degrees/seconds)
+ * @param {number[]} vars.long_node Longitude of the ascending node (degrees and degrees/seconds)
+ * @param {number} [jd] Julian Days from J2000.0. If not given, calculated for J2000.0
+ * @returns {Object} Three-dimensional position in space, values in km
+ */
+sp.Scenario.Calculator.solveKepler = function SpScenarioCalculatorSolveKepler( vars, jd ) {
+	var T, a, e, I, L, om, bigOm, omega, M, b, c, f, s,
+		dimensions = {},
+		x_tag, y_tag, z_tag,
+		ITERLIMIT = 1000,
+		ERRORLIMIT = Math.pow( 10, -4 ),
+		/**
+		 * Convert angles to radians
+		 * @param {number} angle Angle
+		 * @returns {number} Radians
+		 */
+		to_radians = function ( angle ) {
+			return angle * ( 180 / Math.PI );
+		},
+		/**
+		 * Approximate the eccententric anomaly by iteration
+		 * @param {number} e Eccentricity
+		 * @param {number} M Mean anomaly
+		 * @returns {number} Eccentric anomaly in radians
+		 */
+		approximate_E = function ( e, M ) {
+			var e_star = ( Math.PI / 180 ) * e,
+			E_n = M + e_star + Math.sin( to_radians( M ) ),
+			dE = 1,
+			i = 0;
+
+			while ( ITERLIMIT-- && Math.abs( dE ) > ERRORLIMIT ) {
+				dM = M - ( E_n - e_star * Math.sin( to_radians( E_n ) ) );
+				dE = dM / ( 1 - e * Math.cos( to_radians( E_n ) ) );
+				E_n = E_n + dE;
+			}
+			return to_radians( E_n );
+		};
+
+	if ( !vars ) {
+		return null;
+	}
+
+	// Optional variables
+	T = jd || 0;
+	b = vars.b || 0;
+	c = vars.c || 0;
+	f = vars.f || 0;
+	s = vars.s || 0;
+
+	// Calculate the elements
+	a = vars.a[0] + vars.a[1] * T;
+	e = vars.e[0] + vars.e[1] * T;
+	I = vars.I[0] + vars.I[1] * T;
+	L = vars.L[0] + vars.L[1] * T;
+	om = vars.long_peri[0] + vars.long_peri[1] * T;
+	bigOm = vars.long_node[0] + vars.long_node[1] * T;
+
+	// Argument of perihelion
+	omega = om - bigOm;
+
+	// Mean anomaly
+	M = L - om + b *
+		Math.pow( T, 2 ) + c * Math.cos( f * T ) + s * Math.sin( f * T );
+	M = to_radians( M ) % 180;
+
+	// Eccentric anomaly
+	E = approximate_E( e, M );
+
+	// Heliocentric coordinates
+	x_tag = a * ( Math.cos( E ) - e );
+	y_tag = a * Math.sqrt( 1 - Math.pow( e, 2 ) ) * Math.sin( E );
+	z_tag = 0;
+
+	dimensions = {
+		'x': x_tag,
+		'y': y_tag,
+		'z': z_tag
+	}
+
+/*	// Convert to radians
+	rad_omega = to_radians( omega );
+	rad_bigOm = to_radians( bigOm );
+	rad_I = to_radians( I );
+
+	// Pre-calculate the cosine/sine values for more readability
+	cos_omega = Math.cos( rad_omega );
+	cos_bigOm = Math.cos( rad_bigOm );
+	cos_I = Math.cos( rad_I );
+	sin_omega = Math.sin( rad_omega );
+	sin_bigOm = Math.sin( rad_bigOm );
+	sin_I = Math.sin( rad_I );
+
+	// Convert to ecliptic plane
+	dimensions.x = ( cos_omega * cos_bigOm - sin_omega * sin_bigOm * cos_I * x_tag ) +
+		( -sin_omega * cos_bigOm - cos_omega * sin_bigOm * cos_I ) * y_tag;
+
+	dimensions.y = ( cos_omega * sin_bigOm + sin_omega * cos_bigOm * cos_I * x_tag ) +
+		( -sin_omega * sin_bigOm + cos_omega * cos_bigOm * cos_I ) * y_tag;
+
+	dimensions.z = sin_omega * sin_I * x_tag +
+		cos_omega * sin_I * y_tag;
+
+*/
+	return dimensions;
+};
+
+/*
+ * Solve Kepler's equation
+ * @param {number} a Semi-major axis in meters.
  * @param {number} e Eccentricity.
  * @param {number} p Period, not strictly needed, but saves carrying around
- *    masses or working them out.
+ *	masses or working them out.
  * @param {number} t Time.
- * @param {Object.<string,number>} [eangles] Euler angles in format {t: , p:,
- *    r: } for theta, phi and rho. In radians.
+ * @param {Object} [transform] Transformation definition object
  * @param {Object.<string,number>} [destination] Optional object to the result
- *    in. Saves on gc if we're doing it a lot. Format {x: , y: , z: }.
+ *	in. Saves on gc if we're doing it a lot. Format {x: , y: , z: }.
  * @return {Object.<string,number>} destination The destination object passed
- *    in with modified coordinates, or a new object if none is provide.
- */
-sp.Scenario.Calculator.solveKepler = function SpScenarioCalculatorSolveKepler( a, e, p, t, eangles, destination ) {
-	// If destination isn't supplied, make one.
-	if ( !destination ) {
-		destination = {};
-	}
-	if ( a === 0 ) {
-		destination.x = destination.y = destination.z = 0;
-		return destination;
-	}
+ *	in with modified coordinates, or a new object if none is provide.
+ *
+sp.Scenario.Calculator.solveKepler = function SpScenarioCalculatorSolveKepler( a, e, p, t, transform, destination ) {
+	destination = destination || {};
+	transform = transform || { x: 0, y: 0, angle: 0, scale: 1 };
 
-	var ITERLIMIT = 1000,         // Limit on number of iterations.
-		x = 0,
-		y = 0,
-		r = 0,                    // Temporary coords.
-		M = t / p * Math.PI / 2,  // Mean anomaly.
-		tanom = 0,                // True anomaly.
-		E0 = 0,                   // Eccentric anomaly.
-		E1 = 0;     // Ditto, two values for iterative soln.
+	var ERRORLIMIT = 0, // Limit on the improvement per iteration.
+		ITERLIMIT = 100, // Limit on number of iterations.
+		SQRDIST = true, // Flag for taking square roots of distances to fit them all on the screen.
+		x, y, r,
+		// Cache some maths out of habit. Not strictly necessary, but
+		// increases readability and speed.
+		round = Math.round,
+		abs = Math.abs,
+		sqrt = Math.sqrt,
+		cos = Math.cos,
+		sin = Math.sin,
+		atan2 = Math.atan2,
 
-	/**
-	 * Improve our value for eccentric anomaly while the error is above
-	 * truncation error, or until we have done ITERLIMIT cycles.
-	 * NB: E1 - E0 is falsy when they are the same.
-	 */
-	do {
+		// Mean anomaly. Goes from 0 at t=0 to 2pi at t= 1 period.
+		M = t / p * 6.283,
+		// Eccentric anomaly.
+		E0, E1,
+		// True anomaly
+		tanom,
+
+		// Paramaters for an affine transformation,
+		// so semi-major axis isn't always horizontal
+		// and centre of ellipse isn't at 0,0.
+		ca = cos( transform.angle ) * transform.scale,
+		sa = sin( transform.angle ) * transform.scale,
+		dx = transform.x,
+		dy = transform.y;
+
+	// Iterative solution to kepler's equation.
+	E0 = 0;
+	E1 = M + e * sin( E0 );
+	// Improve our value for eccentric anomaly while the improvement in relative error
+	// is greater than our limit, unless we exceed the iteration limit.
+	while ( ITERLIMIT-- && abs(E1 - E0) > ERRORLIMIT ) {
 		E0 = E1;
-		E1 = M + e * Math.sin( E0 );
-	} while ( ITERLIMIT-- && E1 - E0 );
-
-	E1 *= 0.5;  // We only want half E1 in later calcs.
-
-	// Solve for true anomaly.
-	tanom = 2 * Math.atan2( Math.sqrt( 1 + e ) * Math.sin( E1 ),
-		Math.sqrt( 1 - e ) * Math.cos( E1 ) );
+		E1 = M + e * sin(E0);
+	}
 
 	// Solve for r, theta, x and y.
-	r = a * ( 1 - e * e ) /
-		( 1 + e * Math.cos( tanom ) );
-	x = ( r ) * Math.cos( tanom );
-	y = ( r ) * Math.sin( tanom );
+	tanom = 2 * atan2( sqrt( 1 + e) * sin( E1 / 2 ), sqrt( 1 - e ) * cos( E1 / 2 ) );
+	r = a * ( 1 - e * e ) / ( 1 + e * cos( tanom ) );
+	x = ( r ) * cos( tanom );
+	y = ( r ) * sin( tanom );
 
-	destination.x = x || 0;
-	destination.y = y || 0;
-	destination.z = 0 || 0;
-	destination.r = r || 0;
+	// Return transformed coordinates.
+	destination.x = x * ca - y * sa + dx;
+	destination.y = x * sa + y * ca + dy;
+//	destination.r = r;
 	return destination;
-};
+};*/
 
 /**
  * Celestial object
@@ -472,6 +716,8 @@ sp.Scenario.CelestialObject = function SpScenarioCelestialObject( config ) {
 	this.name = config.name || '';
 	this.description = config.description || '';
 	this.view = config.graphic || {};
+
+	this.transform = { x: 0, y: 0, angle: 0, scale: 1 };
 
 	this.vars = config.vars;
 
@@ -493,23 +739,14 @@ sp.Scenario.CelestialObject.prototype.getSpaceCoordinates = function SpScenarioC
 
 	time = time || 0;
 
-	// Calculate period (only once per session, if doesn't exist)
-	if ( !this.vars.p && this.orbiting ) {
-		// 1AU = 149 597 870 700 meters
-		G =  6.67 * Math.pow( 10, -11 );
-		// M = Mass of the object at the center of orbit
-		M = this.orbiting.getMass();
-		if ( M ) {
-			this.vars.p = 2 * Math.PI * Math.sqrt( Math.pow( this.vars.a, 3 ) / ( G * M) );
-		}
+	if ( this.orbiting ) {
+		this.coordinates = sp.Scenario.Calculator.solveKepler(
+			this.vars,
+			time
+		);
+	} else {
+		this.coordinates = { x: 0, y: 0, z: 0 };
 	}
-
-	this.coordinates = sp.Scenario.Calculator.solveKepler(
-		this.vars.a,
-		this.vars.e,
-		this.vars.p || 0,
-		time
-	);
 
 	return this.coordinates;
 };

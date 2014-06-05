@@ -14,14 +14,14 @@
 	 * General method to produce logs into the console
 	 * or some files.
 	 *
-	 * @param {String} msg Log message
 	 * @param {String} type Message type: LOG, ERROR
+	 * @param {String} msg Log message
 	 */
-	solarPlayground.log = function ( msg, type ) {
+	solarPlayground.log = function ( type, msg ) {
 		type = type || 'LOG';
 		// TODO: Condition the console logging only on debug mode
 		// otherwise output logs to a file
-		window.console.log( type + ':\n' + msg );
+		window.console.log( '[' + type + '] ' + msg );
 	};
 
 	// Add to the global namespace
