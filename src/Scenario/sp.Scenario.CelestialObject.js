@@ -13,6 +13,8 @@ sp.Scenario.CelestialObject = function SpScenarioCelestialObject( config ) {
 	this.description = config.description || '';
 	this.view = config.graphic || {};
 
+	this.transform = { x: 0, y: 0, angle: 0, scale: 1 };
+
 	this.vars = config.vars;
 
 	this.initial_position = config.initial_position || { 'x': 0, 'y': 0 };
@@ -33,23 +35,14 @@ sp.Scenario.CelestialObject.prototype.getSpaceCoordinates = function SpScenarioC
 
 	time = time || 0;
 
-	// Calculate period (only once per session, if doesn't exist)
-	if ( !this.vars.p && this.orbiting ) {
-		// 1AU = 149 597 870 700 meters
-		G =  6.67 * Math.pow( 10, -11 );
-		// M = Mass of the object at the center of orbit
-		M = this.orbiting.getMass();
-		if ( M ) {
-			this.vars.p = 2 * Math.PI * Math.sqrt( Math.pow( this.vars.a, 3 ) / ( G * M) );
-		}
+	if ( this.orbiting ) {
+		this.coordinates = sp.Scenario.Calculator.solveKepler(
+			this.vars,
+			time
+		);
+	} else {
+		this.coordinates = { x: 0, y: 0, z: 0 };
 	}
-
-	this.coordinates = sp.Scenario.Calculator.solveKepler(
-		this.vars.a,
-		this.vars.e,
-		this.vars.p || 0,
-		time
-	);
 
 	return this.coordinates;
 };

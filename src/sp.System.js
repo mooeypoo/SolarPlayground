@@ -65,7 +65,7 @@ sp.System.prototype.load = function SpSystemLoad( scenarioName ) {
 			this.loadScenario( response );
 		}, this ) )
 		.fail( function () {
-			sp.log( 'ERROR', 'Scenario ' + targetName + ' not found in directory "' + targetDir + '"' );
+			sp.log( 'Error', 'Scenario ' + targetName + ' not found in directory "' + targetDir + '"' );
 		} );
 };
 

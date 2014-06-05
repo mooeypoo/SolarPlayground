@@ -1,0 +1,160 @@
+{
+    "title": "Example Scenario",
+    "description": "Example celestial objects scenario.",
+    "config": {
+	    "speed": 1,
+	    "orbit_scale": 4e-19,
+	    "planet_scale": 1e-4,
+        "init_pov": 0,
+        "init_zoom": 1
+   	},
+    "objects": {
+        "sun": {
+            "name": "The Sun",
+            "orbiting": null,
+            "description": "The center of our solar system.",
+            "graphic": {
+            	"radius": 15,
+                "color": "yellow",
+                "aura": {
+                    "color": "#dcdcdc",
+                    "size": 5
+                }
+            },
+            "vars": {
+            	"m": 1.9891e30,
+            	"r": 6.9e8,
+            	"a": 1e-30,
+            	"e": 0
+            },
+            "initial_position": {
+                "x": 0,
+                "y": 0
+            }
+        },
+        "mercury": {
+            "name": "Mercury",
+            "orbiting": "sun",
+            "graphic": {
+            	"radius": 2,
+				"color": "pink",
+                "border": {
+                    "width": 1,
+                    "color": "blue"
+                }
+            },
+            "description": "",
+            "vars": {
+			    "r": 2.44e6,
+			    "a": 5.7e10,
+				"e": 0.0068
+            }
+        },
+        "venus": {
+            "name": "Venus",
+            "orbiting": "sun",
+            "graphic": {
+            	"radius": 2,
+				"color": "white",
+                "border": {
+                    "width": 1,
+                    "color": "blue"
+                }
+            },
+            "description": "",
+            "vars": {
+			    "r": 6.051e6,
+			    "a": 1.082e11,
+				"e": 0.0068
+            }
+        },
+        "earth": {
+            "name": "The Earth",
+            "image": "images/earth.jpg",
+            "orbiting": "sun",
+            "graphic": {
+            	"radius": 3,
+				"color": "blue",
+                "border": {
+                    "width": 1,
+                    "color": "blue"
+                }
+            },
+            "description": "Our home in the universe.",
+            "vars": {
+			    "r": 6.3e6,
+			    "a": 1.496e11,
+				"e": 0.0167,
+                "theta": 0,
+                "phi": 0,
+                "rho": 0
+            }
+        },
+        "mars": {
+            "name": "Mars",
+            "image": "images/earth.jpg",
+            "orbiting": "sun",
+            "graphic": {
+            	"radius": 3,
+				"color": "red",
+                "border": {
+                    "width": 1,
+                    "color": "blue"
+                }
+            },
+            "description": "",
+            "vars": {
+			    "r": 3.396e6,
+			    "a": 2.279e11,
+			    "e": 0.093,
+                "theta": 0,
+                "phi": 0,
+                "rho": 0
+            }
+        },
+        "jupiter": {
+            "name": "Jupiter",
+            "image": "images/earth.jpg",
+            "orbiting": "sun",
+            "graphic": {
+            	"radius": 4,
+				"color": "green",
+                "border": {
+                    "width": 1,
+                    "color": "blue"
+                }
+            },
+            "description": "",
+            "vars": {
+			    "r": 6.7e7,
+			    "a": 778507319,
+			    "e": 0.0488,
+                "theta": 0,
+                "phi": 0,
+                "rho": 0
+            }
+        }
+    },
+    "viewpoint": {
+        "angles": {
+            "theta": 0,
+            "phi": 0,
+            "rho": 0
+        }
+    },
+    "movement": {
+        "0": {
+            "elapsed_time": 10000,
+            "moveto": {
+                "x": 100,
+                "y": 200,
+                "z": 0
+            },
+            "tiltto": {
+                "theta": 10,
+                "phi": 0,
+                "rho": 30
+            }
+        }
+    }
+}
