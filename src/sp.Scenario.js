@@ -10,8 +10,13 @@ sp.Scenario = function SpScenario( $canvas, scenario ) {
 	// Mixin constructors
 	OO.EventEmitter.call( this );
 
+	// TODO: Create another canvas for trails so we can draw planet
+	// trails that remain for a bit on the screen
 	this.$canvas = $canvas;
 	this.context = $canvas[0].getContext( '2d' );
+
+	// TODO: Validate the scenario object to make sure all required
+	// elements exist.
 
 	this.paused = false;
 	this.objects = {};
@@ -29,11 +34,10 @@ sp.Scenario = function SpScenario( $canvas, scenario ) {
 
 	// Prepare general configuration
 	this.config = scenario.config || {};
-	this.config.speed = this.config.speed || 1;
 
-	this.init_pov = this.config.init_pov;
+	this.pov_key = this.config.init_pov;
 	this.pov_object = null;
-	this.pov = null;
+	this.pov_coords = null;
 
 	this.config.speed = this.config.speed || 1;
 	this.config.orbit_scale = this.config.orbit_scale || 0.5 * Math.pow( 10, -5 );
@@ -42,6 +46,13 @@ sp.Scenario = function SpScenario( $canvas, scenario ) {
 
 	this.date = this.config.start_time || { day: 1, month: 1, year: 2000 };
 	this.time = 0;
+	this.speed = this.config.init_speed || 1;
+
+	// Size steps for drawing. Bigger and smaller planets will accept
+	// the value of these steps so they can be scaled to canvas size, but
+	// still have a more-or-less representative size on the screen.
+	// Size is in pixels and represents circle radius.
+	this.relative_radii = [ 2, 4, 6, 8, 10, 12, 14, 16, 18, 20 ];
 
 	// Prepare the objects
 	this.processObjects( scenario.objects || {} );
@@ -55,24 +66,45 @@ OO.mixinClass( sp.Scenario, OO.EventEmitter );
  * @param {Object} scenarioObjects Simulation objects definition
  */
 sp.Scenario.prototype.processObjects = function SpScenarioProcessObjects( scenarioObjects ) {
-	var o, co;
+	var o, co, radii = [], radii_diff, step_size, radius, circle_radius;
 
 	// Initialize celestial objects
 	for ( o in scenarioObjects ) {
 		this.objects[o] = new sp.Scenario.CelestialObject( scenarioObjects[o] );
+
+		// Calculate relative radii
+		if ( scenarioObjects[o].vars.r ) {
+			radii.push( scenarioObjects[o].vars.r );
+		}
 	}
 
+	// Calculate effective drawing radius
+	// TODO: Find a better way to represent planet radii, scaled to the canvas
+
+	// Sort by size
+	radii.sort();
+	// Check biggest and smallest
+	radii_diff = radii[ radii.length - 1 ] - radii[0];
+	// Create radius 'steps' fitting the pixel size steps
+	step_size = radii_diff / this.relative_radii.length;
+
 	// Connect selestial objects to orbit
+	// And fit each planet drawing size to its relative size
 	for ( co in this.objects ) {
 		if ( scenarioObjects[co] && this.objects[scenarioObjects[co].orbiting] ) {
 			// Connect the object to its center of orbit
 			this.objects[co].setOrbit( this.objects[scenarioObjects[co].orbiting] );
 		}
+		radius = this.objects[co].getRadius();
+		if ( radius ) {
+			circle_radius = this.relative_radii[ Math.floor( radius / step_size ) ];
+			this.objects[co].setCircleRadius( circle_radius );
+		}
 	}
 
 	// Set initial POV
-	if ( this.init_pov && this.objects[this.init_pov] ) {
-		this.pov_object = this.objects[this.init_pov];
+	if ( this.pov_key && this.objects[this.pov_key] ) {
+		this.pov_object = this.objects[this.pov_key];
 	}
 };
 
@@ -81,28 +113,31 @@ sp.Scenario.prototype.processObjects = function SpScenarioProcessObjects( scenar
  * @param {number} time Time
  */
 sp.Scenario.prototype.draw = function SpScenarioUpdateObjects( time ) {
-	var o, coords, translatedCoords, view;
+	var o, coords, translatedCoords, view, radius;
 
 	for ( o in this.objects ) {
 		coords = this.objects[o].getSpaceCoordinates( time );
 
 		// Update POV coordinates
-		if ( o === this.pov_object ) {
-			this.pov = coords;
+		if ( o === this.pov_key ) {
+			this.pov_coords = coords;
 		}
 		// Translate coordinates to canvas
 		translatedCoords = this.translateScreenCoodinates( coords );
 
-		// Draw
+		// Get graphic details
 		view = this.objects[o].getView();
+
+		// TODO: Allow the user to choose between relative radii and preset radius value
+		// in the view parameters, instead of having the view take precedence randomly
+		radius = view.radius || this.objects[o].getCircleRadius();
 
 		this.context.save();
 		this.context.beginPath();
-		this.context.arc( translatedCoords.x, translatedCoords.y, view.radius || 10, 0, 2 * Math.PI, false );
+		this.context.arc( translatedCoords.x, translatedCoords.y, radius || 5, 0, 2 * Math.PI, false );
 		this.context.fillStyle = view.color || 'white';
 		this.context.fill();
 		this.context.restore();
-		sp.log( 'Notice', 'drawing "' + this.objects[o].getName() + '" at ' + coords.x + ':' + coords.y );
 	}
 };
 
@@ -115,14 +150,14 @@ sp.Scenario.prototype.run = function SpScenarioRun() {
 		this.draw( this.time );
 
 		// Increase time
-		this.time += 0.0000000001;
+		this.time += 0.0000000001 * this.speed;
 
 		window.requestNextAnimationFrame( $.proxy( this.run, this ) );
 	}
 }
 
 sp.Scenario.prototype.translateScreenCoodinates = function SpScenarioAnimate( coords ) {
-	var pov = this.pov || { x: 0, y: 0 },
+	var pov = this.pov_coords || { x: 0, y: 0, z: 0 },
 		ca = Math.cos( this.camera.yaw ),
 		sa = Math.sin( this.camera.yaw ),
 		cb = Math.cos( this.camera.pitch ),
