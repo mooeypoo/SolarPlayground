@@ -26,7 +26,7 @@ sp.Scenario.CelestialObject = function SpScenarioCelestialObject( config ) {
 	this.orbiting = null;
 
 	// Initial radius
-	this.circleRadius = 10;
+	this.circleRadius = Number( config.vars.r ) || 10;
 };
 
 /* Inheritance */

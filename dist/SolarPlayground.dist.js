@@ -172,14 +172,12 @@ sp.Scenario = function SpScenario( $canvas, scenario ) {
 	this.pov_object = null;
 	this.pov_coords = null;
 
-	this.config.speed = this.config.speed || 1;
 	this.config.orbit_scale = this.config.orbit_scale || 0.5 * Math.pow( 10, -5 );
-	this.config.planet_scale = this.config.planet_scale || 1 * Math.pow( 10, -9 );
-	this.config.zoom = this.config.init_zoom || 1;
 
 	this.date = this.config.start_time || { day: 1, month: 1, year: 2000 };
 	this.time = 0;
 	this.speed = this.config.init_speed || 1;
+	this.zoom = this.config.init_zoom || 1;
 
 	// Size steps for drawing. Bigger and smaller planets will accept
 	// the value of these steps so they can be scaled to canvas size, but
@@ -199,7 +197,7 @@ OO.mixinClass( sp.Scenario, OO.EventEmitter );
  * @param {Object} scenarioObjects Simulation objects definition
  */
 sp.Scenario.prototype.processObjects = function SpScenarioProcessObjects( scenarioObjects ) {
-	var o, co, radii = [], radii_diff, step_size, radius, circle_radius;
+	var o, co, radii = [], radii_diff, step_size, radius, circle_radius, smallest_radii;
 
 	// Initialize celestial objects
 	for ( o in scenarioObjects ) {
@@ -207,19 +205,27 @@ sp.Scenario.prototype.processObjects = function SpScenarioProcessObjects( scenar
 
 		// Calculate relative radii
 		if ( scenarioObjects[o].vars.r ) {
-			radii.push( scenarioObjects[o].vars.r );
+			radii.push( Number( scenarioObjects[o].vars.r ) );
 		}
 	}
 
 	// Calculate effective drawing radius
 	// TODO: Find a better way to represent planet radii, scaled to the canvas
 
-	// Sort by size
-	radii.sort();
+	// Sort by size, ascending
+	radii.sort( function ( a, b ) {
+		return a - b;
+	} );
+	// First see if the biggest object (usually the star) is too big to count
+	if ( Math.ceil( radii[ radii.length - 1] / radii[ radii.length - 2 ] ) >= 10 ) {
+		// Big planet is too big to count.
+		radii.shift();
+	}
 	// Check biggest and smallest
 	radii_diff = radii[ radii.length - 1 ] - radii[0];
+	smallest_radii = radii[0];
 	// Create radius 'steps' fitting the pixel size steps
-	step_size = radii_diff / this.relative_radii.length;
+	step_size = radii_diff / ( this.relative_radii.length - 1 );
 
 	// Connect selestial objects to orbit
 	// And fit each planet drawing size to its relative size
@@ -230,7 +236,7 @@ sp.Scenario.prototype.processObjects = function SpScenarioProcessObjects( scenar
 		}
 		radius = this.objects[co].getRadius();
 		if ( radius ) {
-			circle_radius = this.relative_radii[ Math.floor( radius / step_size ) ];
+			circle_radius = this.relative_radii[ Math.floor( ( radius - smallest_radii ) / step_size ) ];
 			this.objects[co].setCircleRadius( circle_radius );
 		}
 	}
@@ -263,7 +269,8 @@ sp.Scenario.prototype.draw = function SpScenarioUpdateObjects( time ) {
 
 		// TODO: Allow the user to choose between relative radii and preset radius value
 		// in the view parameters, instead of having the view take precedence randomly
-		radius = view.radius || this.objects[o].getCircleRadius();
+		radius = ( this.objects[o].getCircleRadius() * this.zoom );
+		radius = radius >= 2 ? radius : 2;
 
 		this.context.save();
 		this.context.beginPath();
@@ -297,7 +304,7 @@ sp.Scenario.prototype.translateScreenCoodinates = function SpScenarioAnimate( co
 		sb = Math.sin( this.camera.pitch ),
 		dx = this.centerPoint.x,
 		dy = this.centerPoint.y,
-		scale = 100; //Math.sqrt( this.config.orbit_scale * this.config.zoom );
+		scale = Math.sqrt( this.config.orbit_scale * this.zoom );
 
 	// TODO: Work out scale
 	x = ( coords.x - pov.x ) * scale;
@@ -665,7 +672,7 @@ sp.Scenario.CelestialObject = function SpScenarioCelestialObject( config ) {
 	this.orbiting = null;
 
 	// Initial radius
-	this.circleRadius = 10;
+	this.circleRadius = Number( config.vars.r ) || 10;
 };
 
 /* Inheritance */

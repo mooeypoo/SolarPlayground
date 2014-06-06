@@ -3,9 +3,9 @@
 	"description": "Example celestial objects scenario.",
 	"config": {
 		"init_speed": 1,
-        "init_pov": "sun",
         "init_zoom": 1,
-		"orbit_scale": 4e-19,
+        "init_pov": "earth",
+		"orbit_scale": 1e4,
         "start_time": {
             "day": 1,
             "month": 1,
