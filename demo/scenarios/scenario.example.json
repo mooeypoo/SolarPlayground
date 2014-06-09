@@ -3,7 +3,7 @@
 	"description": "Example celestial objects scenario.",
 	"config": {
 		"init_speed": 1,
-        "init_zoom": 1,
+        "init_zoom": 2e4,
         "init_pov": "earth",
 		"orbit_scale": 1e4,
         "start_time": {

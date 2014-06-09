@@ -25,8 +25,10 @@ sp.Scenario.CelestialObject = function SpScenarioCelestialObject( config ) {
 	// Link to the object it is orbiting
 	this.orbiting = null;
 
+	this.type = config.type || 'planet';
+
 	// Initial radius
-	this.circleRadius = Number( config.vars.r ) || 10;
+	this.radius = Number( config.vars.r ) || 10;
 };
 
 /* Inheritance */
@@ -36,7 +38,7 @@ OO.mixinClass( sp.Scenario.CelestialObject, OO.EventEmitter );
  * Get space coordinates per time.
  * @param {number} time Time unit
  */
-sp.Scenario.CelestialObject.prototype.getSpaceCoordinates = function SpScenarioCelestialObjectUpdateCoordinates( time ) {
+sp.Scenario.CelestialObject.prototype.getSpaceCoordinates = function ( time ) {
 	var dest, M, G, period;
 
 	time = time || 0;
@@ -60,15 +62,22 @@ sp.Scenario.CelestialObject.prototype.getSpaceCoordinates = function SpScenarioC
 	} else {
 		this.coordinates = { x: 0, y: 0, z: 0 };
 	}
-
 	return this.coordinates;
+};
+
+/**
+ * Get object type
+ * @returns {string} Celestial object type, 'star' or 'planet'
+ */
+sp.Scenario.CelestialObject.prototype.getType = function () {
+	return this.type;
 };
 
 /**
  * Get object name
  * @returns {string} Celestial object name
  */
-sp.Scenario.CelestialObject.prototype.getName = function SpScenarioCelestialObjectGetName() {
+sp.Scenario.CelestialObject.prototype.getName = function () {
 	return this.name;
 };
 
@@ -76,7 +85,7 @@ sp.Scenario.CelestialObject.prototype.getName = function SpScenarioCelestialObje
  * Get object description
  * @returns {string} Celestial object description
  */
-sp.Scenario.CelestialObject.prototype.getDescription = function SpScenarioCelestialObjectGetDescription() {
+sp.Scenario.CelestialObject.prototype.getDescription = function () {
 	return this.description;
 };
 
@@ -84,7 +93,7 @@ sp.Scenario.CelestialObject.prototype.getDescription = function SpScenarioCelest
  * Set the object this object is orbiting
  * @param {sp.Scenario.CelestialObject} obj Object that is the center of the orbit
  */
-sp.Scenario.CelestialObject.prototype.setOrbit = function SpScenarioCelestialObjectSetOrbit( obj ) {
+sp.Scenario.CelestialObject.prototype.setOrbit = function ( obj ) {
 	this.orbiting = obj;
 };
 
@@ -92,7 +101,7 @@ sp.Scenario.CelestialObject.prototype.setOrbit = function SpScenarioCelestialObj
  * Retrieve the object that is the center of orbit
  * @returns {sp.Scenario.CelestialObject} obj Object that is the center of the orbit
  */
-sp.Scenario.CelestialObject.prototype.getOrbit = function SpScenarioCelestialObjectGetOrbit() {
+sp.Scenario.CelestialObject.prototype.getOrbit = function () {
 	return this.orbiting;
 };
 
@@ -100,7 +109,7 @@ sp.Scenario.CelestialObject.prototype.getOrbit = function SpScenarioCelestialObj
  * Set object name
  * @param {string} name New object name
  */
-sp.Scenario.CelestialObject.prototype.setName = function SpScenarioCelestialObjectSetName( name ) {
+sp.Scenario.CelestialObject.prototype.setName = function ( name ) {
 	this.name = name;
 };
 
@@ -108,15 +117,15 @@ sp.Scenario.CelestialObject.prototype.setName = function SpScenarioCelestialObje
  * Set object description
  * @param {string} desc New object description
  */
-sp.Scenario.CelestialObject.prototype.setDescription = function SpScenarioCelestialObjectSetDescription( desc ) {
+sp.Scenario.CelestialObject.prototype.setDescription = function ( desc ) {
 	this.description = desc;
 };
 
-sp.Scenario.CelestialObject.prototype.getMass = function SpScenarioCelestialObjectGetMass() {
+sp.Scenario.CelestialObject.prototype.getMass = function () {
 	return this.vars.m;
 };
 
-sp.Scenario.CelestialObject.prototype.getView = function SpScenarioCelestialObjectGetView() {
+sp.Scenario.CelestialObject.prototype.getView = function () {
 	return this.view;
 }
 
@@ -124,22 +133,6 @@ sp.Scenario.CelestialObject.prototype.getView = function SpScenarioCelestialObje
  * Get the planet radius if it exists.
  * @returns {number|null} Planet radius in km
  */
-sp.Scenario.CelestialObject.prototype.getRadius = function SpScenarioCelestialObjectGetRadius() {
+sp.Scenario.CelestialObject.prototype.getRadius = function () {
 	return this.vars.r;
-};
-
-/**
- * Set the radius for the circle representing this celestial object
- * @param {number} radius Size in pixels
- */
-sp.Scenario.CelestialObject.prototype.setCircleRadius = function SpScenarioCelestialObjectSetDrawingRadius( radius ) {
-	this.circleRadius = radius;
-};
-
-/**
- * Get the radius for the circle representing this celestial object
- * @returns {number} Radius in pixels
- */
-sp.Scenario.CelestialObject.prototype.getCircleRadius = function SpScenarioCelestialObjectGetDrawingRadius() {
-	return this.circleRadius;
 };

@@ -27,7 +27,7 @@ sp.Scenario.Calculator.constants = {
  * @param {number} time_of_day Time of day in decimals 0-24
  * @returns {number} The decimal number of days from 1999 Dec 31, 0:00 UT
  */
-sp.Scenario.Calculator.translateTime = function SpScenarioCalculatorGetAbsTime( year, month, day, time_of_day ) {
+sp.Scenario.Calculator.translateTime = function ( year, month, day, time_of_day ) {
 	var totalDays;
 	year = year || 2014;
 	month = month || 6;
@@ -56,7 +56,7 @@ sp.Scenario.Calculator.translateTime = function SpScenarioCalculatorGetAbsTime( 
  * @param {number} [seconds] Seconds after the minute
  * @returns {number} JDN, number of days from epoch J2000.0
  */
-sp.Scenario.Calculator.getJDNTime = function SpScenarioCalculatorGetEpochTime( year, month, day, hours, minutes, seconds ) {
+sp.Scenario.Calculator.getJDNTime = function ( year, month, day, hours, minutes, seconds ) {
 	var JDN,
 		a = Math.floor( ( 14 - month ) / 12 ),
 		y = year + 4800 - a,
@@ -99,7 +99,7 @@ sp.Scenario.Calculator.getJDNTime = function SpScenarioCalculatorGetEpochTime( y
  * @param {number} [jd] Julian Days from J2000.0. If not given, calculated for J2000.0
  * @returns {Object} Three-dimensional position in space, values in km
  */
-sp.Scenario.Calculator.solveKepler = function SpScenarioCalculatorSolveKepler( vars, jd ) {
+sp.Scenario.Calculator.solveKepler = function ( vars, jd ) {
 	var T, a, e, I, L, om, bigOm, omega, M, b, c, f, s,
 		dimensions = {},
 		x_tag, y_tag, z_tag,

@@ -6,11 +6,18 @@
 sp.System = function SpSystemInitialize( config ) {
 	var defaultConfig;
 
+	// Mixin constructors
+	OO.EventEmitter.call( this );
+
+	// Scenario holder
+	// TODO: Allow for multiple scenarios
+	this.scenario = null;
+
 	config = config || {};
 
 	defaultConfig = {
 		container: '#solarSystem',
-		scenario_dir: 'scenarios', // Current directory unless otherwise specified
+		scenario_dir: 'scenarios', // Default directory unless otherwise specified
 		directory_sep: '/',
 		width: $( window ).width() - 100,
 		height: $( window ).height() - 100
@@ -18,11 +25,6 @@ sp.System = function SpSystemInitialize( config ) {
 
 	// Extend default global options
 	this.config = $.extend( true, config, defaultConfig );
-
-	// Mixin constructors
-	OO.EventEmitter.call( this );
-
-	this.scenario = null;
 
 	// Initialize
 	this.$container = $( this.config.container )
@@ -52,7 +54,7 @@ OO.mixinClass( sp.System, OO.EventEmitter );
  *  an ajax response from source 'scenario.[name].json' in the scenario
  *  directory.
  */
-sp.System.prototype.load = function SpSystemLoad( scenarioName ) {
+sp.System.prototype.load = function ( scenarioName ) {
 	var targetName,
 		targetDir = this.config.scenario_dir + this.config.directory_sep;
 
@@ -73,7 +75,7 @@ sp.System.prototype.load = function SpSystemLoad( scenarioName ) {
  * Load and run a scenario
  * @param {Object} scenarioObject Scenario configuration object
  */
-sp.System.prototype.loadScenario = function SpSystemLoadScenario( scenarioObject ) {
+sp.System.prototype.loadScenario = function ( scenarioObject ) {
 	scenarioObject = scenarioObject || {};
 
 	this.scenario = new sp.Scenario( this.$canvas, scenarioObject );
@@ -85,14 +87,14 @@ sp.System.prototype.loadScenario = function SpSystemLoadScenario( scenarioObject
  * Toggle between pause and resume the scenario
  * @param {boolean} [isPause] Optional. If supplied, pauses or resumes the scenario
  */
-sp.System.prototype.togglePaused = function SpSystemTogglePaused( isPause ) {
+sp.System.prototype.togglePaused = function ( isPause ) {
 	this.scenario.togglePaused( isPause );
 };
 
 /**
  * Check whether the scenario is paused
  */
-sp.System.prototype.isPaused = function SpSystemIsPaused() {
+sp.System.prototype.isPaused = function () {
 	return this.scenario.isPaused();
 };
 
@@ -101,7 +103,7 @@ sp.System.prototype.isPaused = function SpSystemIsPaused() {
  * @param {string} [option] Configuration key
  * @returns {string|Object} Configuration object
  */
-sp.System.prototype.getConfig = function SpSystemGetConfig( option ) {
+sp.System.prototype.getConfig = function ( option ) {
 	if ( this.config[option] ) {
 		return this.config[option];
 	}

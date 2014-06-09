@@ -10,47 +10,47 @@ sp.Scenario = function SpScenario( $canvas, scenario ) {
 	// Mixin constructors
 	OO.EventEmitter.call( this );
 
-	// TODO: Create another canvas for trails so we can draw planet
-	// trails that remain for a bit on the screen
-	this.$canvas = $canvas;
-	this.context = $canvas[0].getContext( '2d' );
-
 	// TODO: Validate the scenario object to make sure all required
 	// elements exist.
+
+	// TODO: Create another canvas for trails so we can visualize the
+	// orbits with trails that remain for a bit on the screen
+	this.$canvas = $canvas;
+	this.context = $canvas[0].getContext( '2d' );
 
 	this.paused = false;
 	this.objects = {};
 
-	this.centerPoint = {
-		x: this.$canvas.width() / 2,
-		y: this.$canvas.height() / 2
-	};
-
-	// TODO: Create camera controller
-	this.camera = {
-		'yaw': 0,
-		'pitch': 0
-	};
-
 	// Prepare general configuration
 	this.config = scenario.config || {};
 
+	// Viewpoint controller
+	this.viewpoint = new sp.Viewpoint( {
+		'zoom': this.config.init_zoom || 1,
+		'centerPoint': {
+			x: this.$canvas.width() / 2,
+			y: this.$canvas.height() / 2
+		},
+		'yaw': 0,
+		'pitch': 0,
+		'scale': {
+			'orbit': this.config.orbit_scale || 0.5 * Math.pow( 10, -5 ),
+			'planets': this.config.planet_scale
+		}
+	} );
+
 	this.pov_key = this.config.init_pov;
 	this.pov_object = null;
-	this.pov_coords = null;
-
-	this.config.orbit_scale = this.config.orbit_scale || 0.5 * Math.pow( 10, -5 );
 
 	this.date = this.config.start_time || { day: 1, month: 1, year: 2000 };
 	this.time = 0;
 	this.speed = this.config.init_speed || 1;
-	this.zoom = this.config.init_zoom || 1;
 
 	// Size steps for drawing. Bigger and smaller planets will accept
 	// the value of these steps so they can be scaled to canvas size, but
 	// still have a more-or-less representative size on the screen.
 	// Size is in pixels and represents circle radius.
-	this.relative_radii = [ 2, 4, 6, 8, 10, 12, 14, 16, 18, 20 ];
+//	this.relative_radii = [ 2, 4, 6, 8, 10, 12, 14, 16, 18, 20 ];
 
 	// Prepare the objects
 	this.processObjects( scenario.objects || {} );
@@ -63,54 +63,42 @@ OO.mixinClass( sp.Scenario, OO.EventEmitter );
  * Process the solar playground simulator objects
  * @param {Object} scenarioObjects Simulation objects definition
  */
-sp.Scenario.prototype.processObjects = function SpScenarioProcessObjects( scenarioObjects ) {
-	var o, co, radii = [], radii_diff, step_size, radius, circle_radius, smallest_radii;
+sp.Scenario.prototype.processObjects = function ( scenarioObjects ) {
+	var o, co, radii_diff, step_size, radius, circle_radius, smallest_radii,
+		radii = {
+			'star': [],
+			'planet': []
+		};
 
 	// Initialize celestial objects
 	for ( o in scenarioObjects ) {
 		this.objects[o] = new sp.Scenario.CelestialObject( scenarioObjects[o] );
 
-		// Calculate relative radii
+		// Collect all radii
 		if ( scenarioObjects[o].vars.r ) {
-			radii.push( Number( scenarioObjects[o].vars.r ) );
+			if ( scenarioObjects[o].type === 'star' ) {
+				radii['star'].push( Number( scenarioObjects[o].vars.r ) );
+			} else {
+				radii['planet'].push( Number( scenarioObjects[o].vars.r ) );
+			}
 		}
 	}
 
-	// Calculate effective drawing radius
-	// TODO: Find a better way to represent planet radii, scaled to the canvas
+	// Send the radii list to the viewpoint
+	this.viewpoint.setRadiiList( radii );
 
-	// Sort by size, ascending
-	radii.sort( function ( a, b ) {
-		return a - b;
-	} );
-	// First see if the biggest object (usually the star) is too big to count
-	if ( Math.ceil( radii[ radii.length - 1] / radii[ radii.length - 2 ] ) >= 10 ) {
-		// Big planet is too big to count.
-		radii.shift();
-	}
-	// Check biggest and smallest
-	radii_diff = radii[ radii.length - 1 ] - radii[0];
-	smallest_radii = radii[0];
-	// Create radius 'steps' fitting the pixel size steps
-	step_size = radii_diff / ( this.relative_radii.length - 1 );
-
-	// Connect selestial objects to orbit
-	// And fit each planet drawing size to its relative size
+	// Figure out which objects orbit what
 	for ( co in this.objects ) {
 		if ( scenarioObjects[co] && this.objects[scenarioObjects[co].orbiting] ) {
 			// Connect the object to its center of orbit
 			this.objects[co].setOrbit( this.objects[scenarioObjects[co].orbiting] );
-		}
-		radius = this.objects[co].getRadius();
-		if ( radius ) {
-			circle_radius = this.relative_radii[ Math.floor( ( radius - smallest_radii ) / step_size ) ];
-			this.objects[co].setCircleRadius( circle_radius );
 		}
 	}
 
 	// Set initial POV
 	if ( this.pov_key && this.objects[this.pov_key] ) {
 		this.pov_object = this.objects[this.pov_key];
+		this.viewpoint.setPOV( this.objects[this.pov_key].getSpaceCoordinates( 0 ) );
 	}
 };
 
@@ -118,40 +106,83 @@ sp.Scenario.prototype.processObjects = function SpScenarioProcessObjects( scenar
  * Draw all elements
  * @param {number} time Time
  */
-sp.Scenario.prototype.draw = function SpScenarioUpdateObjects( time ) {
-	var o, coords, translatedCoords, view, radius;
+sp.Scenario.prototype.draw = function ( time ) {
+	var o, coords, viewpointCoords, view, radius;
 
 	for ( o in this.objects ) {
 		coords = this.objects[o].getSpaceCoordinates( time );
 
 		// Update POV coordinates
 		if ( o === this.pov_key ) {
-			this.pov_coords = coords;
+			this.viewpoint.setPOV( coords );
 		}
 		// Translate coordinates to canvas
-		translatedCoords = this.translateScreenCoodinates( coords );
+		viewpointCoords = this.viewpoint.getCoordinates( coords );
 
 		// Get graphic details
 		view = this.objects[o].getView();
 
 		// TODO: Allow the user to choose between relative radii and preset radius value
 		// in the view parameters, instead of having the view take precedence randomly
-		radius = ( this.objects[o].getCircleRadius() * this.zoom );
-		radius = radius >= 2 ? radius : 2;
+		radius = this.viewpoint.getRadius( this.objects[o].getRadius(), this.objects[o].getType() );
 
-		this.context.save();
-		this.context.beginPath();
-		this.context.arc( translatedCoords.x, translatedCoords.y, radius || 5, 0, 2 * Math.PI, false );
-		this.context.fillStyle = view.color || 'white';
-		this.context.fill();
-		this.context.restore();
+		// Draw
+		this.drawCircle( this.context, viewpointCoords, radius, view.color );
 	}
 };
 
-sp.Scenario.prototype.run = function SpScenarioRun() {
+/**
+ * Draw a circle on the canvas
+ * @param {Object} context Canvas context object
+ * @param {Object} coords Canvas coordinates
+ * @param {number} [radius] Circle radius
+ * @param {string} [color] Circle color
+ */
+sp.Scenario.prototype.drawCircle = function ( context, coords, radius, color ) {
+	context.save();
+	context.beginPath();
+	context.arc(
+		coords.x,
+		coords.y,
+		radius || 5, 0, 2 * Math.PI,
+		false
+	);
+	context.fillStyle = color || 'white';
+	context.fill();
+	context.restore();
+};
+
+/**
+ * Clear an area on the canvas
+ * @param {Object} context Canvas context object
+ * @param {number} [square] Dimensions and coordinates of the square
+ * to clear
+ * @param {number} [square.top] Top coordinate of the square
+ * @param {number} [square.left] Left coordinate of the square
+ * @param {number} [square.width] Width of the square
+ * @param {number} [square.height] Height of the square
+ */
+sp.Scenario.prototype.clearCanvas = function ( context, square ) {
+	context = this.context;
+	square = square || {};
+
+	// Fix optional values:
+	square.left = square.left || 0;
+	square.top = square.top || 0;
+	square.width = square.width || this.$canvas.width();
+	square.height = square.height || this.$canvas.height();
+
+	// Erase the square
+	context.clearRect( square.left, square.top, square.width, square.height );
+};
+
+/**
+ * Run the scenario
+ */
+sp.Scenario.prototype.run = function () {
 	if ( !this.paused ) {
 		// Clear canvas
-		this.context.clearRect( 0, 0, this.$canvas.width(), this.$canvas.height() );
+		this.clearCanvas( this.context );
 
 		// Draw canvas
 		this.draw( this.time );
@@ -161,37 +192,13 @@ sp.Scenario.prototype.run = function SpScenarioRun() {
 
 		window.requestNextAnimationFrame( $.proxy( this.run, this ) );
 	}
-}
-
-sp.Scenario.prototype.translateScreenCoodinates = function SpScenarioAnimate( coords ) {
-	var pov = this.pov_coords || { x: 0, y: 0, z: 0 },
-		ca = Math.cos( this.camera.yaw ),
-		sa = Math.sin( this.camera.yaw ),
-		cb = Math.cos( this.camera.pitch ),
-		sb = Math.sin( this.camera.pitch ),
-		dx = this.centerPoint.x,
-		dy = this.centerPoint.y,
-		scale = Math.sqrt( this.config.orbit_scale * this.zoom );
-
-	// TODO: Work out scale
-	x = ( coords.x - pov.x ) * scale;
-	y = ( coords.y - pov.y ) * scale;
-	z = ( coords.z - pov.z ) * scale;
-
-	destination = {
-		'x': x * ca - y * sa + dx,
-		'y': x * sa + y * ca
-	};
-	destination.z = destination.y * sb;
-	destination.y = destination.y * cb + dy
-	return destination;
 };
 
 /**
  * Toggle between pause and resume the scenario
  * @param {boolean} [isPause] Optional. If supplied, pauses or resumes the scenario
  */
-sp.Scenario.prototype.togglePaused = function SpScenarioTogglePaused( isPause ) {
+sp.Scenario.prototype.togglePaused = function ( isPause ) {
 	isPause = !!isPause || !this.paused;
 	this.paused = isPause;
 	this.run();
@@ -200,21 +207,21 @@ sp.Scenario.prototype.togglePaused = function SpScenarioTogglePaused( isPause ) 
 /**
  * Check whether the scenario is paused
  */
-sp.Scenario.prototype.isPaused = function SpScenarioTogglePaused() {
+sp.Scenario.prototype.isPaused = function () {
 	return this.paused;
 };
 
 /**
  * Pause the scenario
  */
-sp.Scenario.prototype.pause = function SpScenarioPause() {
+sp.Scenario.prototype.pause = function () {
 	this.paused = true;
 };
 
 /**
  * Resume the scenario
  */
-sp.Scenario.prototype.resume = function SpScenarioResume() {
+sp.Scenario.prototype.resume = function () {
 	this.paused = false;
 	this.run();
 };
