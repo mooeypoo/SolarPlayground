@@ -50,6 +50,9 @@ module.exports = function(grunt) {
           'src/**/*.js'
         ],
         dest: 'docs'
+//        options: {
+//          '--title': 'SolarPlayground Documentation'
+//        }
       }
     }
     // TODO: QUnit tests

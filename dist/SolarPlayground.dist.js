@@ -17,7 +17,7 @@
 	 * @param {String} type Message type: LOG, ERROR
 	 * @param {String} msg Log message
 	 */
-	solarPlayground.log = function ( type, msg ) {
+	solarPlayground.log = function SpLog( type, msg ) {
 		type = type || 'LOG';
 		// TODO: Condition the console logging only on debug mode
 		// otherwise output logs to a file
@@ -134,7 +134,10 @@ window.requestNextAnimationFrame = ( function () {
 /**
  * Solar playground scenario container
  *
- * @param {jQuery} $canvas Target canvas for the scenario
+ * @class
+ * @mixins OO.EventEmitter
+ *
+ * @param {JQuery} $canvas Target canvas for the scenario
  * @param {Object} scenario Scenario configuration object
  */
 sp.Scenario = function SpScenario( $canvas, scenario ) {
@@ -256,15 +259,6 @@ sp.Scenario.prototype.draw = function ( time ) {
 			// in the view parameters, instead of having the view take precedence randomly
 			radius = this.viewpoint.getRadius( this.objects[o].getRadius(), this.objects[o].getType() );
 
-			// Draw
-			this.drawCircle( this.context,
-				viewpointCoords,
-				radius,
-				view.color,
-				// Add a shadow to stars
-				this.objects[o].getType() === 'star'
-			);
-
 			// Draw planet trails
 			if ( this.showTrails ) {
 				// Get the trail points
@@ -280,6 +274,15 @@ sp.Scenario.prototype.draw = function ( time ) {
 					);
 				}
 			}
+
+			// Draw the object
+			this.drawCircle( this.context,
+				viewpointCoords,
+				radius,
+				view.color,
+				// Add a shadow to stars
+				this.objects[o].getType() === 'star'
+			);
 		}
 	}
 };
@@ -388,6 +391,9 @@ sp.Scenario.prototype.resume = function () {
 
 /**
  * Solar Playground system
+ *
+ * @class
+ * @mixins OO.EventEmitter
  *
  * @param {Object} [config] Configuration object
  */
@@ -502,6 +508,9 @@ sp.System.prototype.getConfig = function ( option ) {
  * Solar Playground viewpoint controller.
  * Controls the presentation of the objects on the canvas.
  *
+ * @class
+ * @mixins OO.EventEmitter
+ *
  * @param {Object} [config] Configuration object
  */
 sp.Viewpoint = function SpViewpoint( config ) {
@@ -522,8 +531,8 @@ sp.Viewpoint = function SpViewpoint( config ) {
 
 	// Set up visible canvas-scaled radius steps in pixels
 	this.radii = {
-		'star': [ 15, 17, 20, 22, 25, 30, 32, 35, 37 ],
-		'planet': [ 2, 3, 4, 5, 6, 7, 8, 9, 10 ]
+		'star': [ 25, 30, 32, 35 ],
+		'planet': [ 4, 8, 10, 12, 14, 16 ]
 	};
 	// Define the step between each value
 	this.radius_step = {
@@ -686,7 +695,7 @@ sp.Scenario.Calculator.translateTime = function ( year, month, day, time_of_day 
 
 /**
  * Return a JDN (Julian Day Number) from J2000.0, converted from a Gregorian date and time
- * @param {[type]} year Requested year (yyyy)
+ * @param {number} year Requested year (yyyy)
  * @param {number} month Requested month
  * @param {number} day Requested day of the month
  * @param {number} [hours] Hour of the day in 24h format
@@ -819,7 +828,11 @@ sp.Scenario.Calculator.solveKepler = function ( vars, jd ) {
 };
 
 /**
- * Celestial object
+ * Celestial object, defines a moving object in space.
+ *
+ * @class
+ * @mixins OO.EventEmitter
+ *
  * @param {Object} config Celestial object definition
  */
 sp.Scenario.CelestialObject = function SpScenarioCelestialObject( config ) {
@@ -838,7 +851,7 @@ sp.Scenario.CelestialObject = function SpScenarioCelestialObject( config ) {
 	// Keep record of trail every X frames
 	this.trailsFrameGap = 10;
 	// How many trail points to store
-	this.numTrailPoints = 50;
+	this.numTrailPoints = 30;
 
 	// Attributes
 	this.name = config.name || '';

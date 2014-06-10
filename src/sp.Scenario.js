@@ -1,7 +1,10 @@
 /**
  * Solar playground scenario container
  *
- * @param {jQuery} $canvas Target canvas for the scenario
+ * @class
+ * @mixins OO.EventEmitter
+ *
+ * @param {JQuery} $canvas Target canvas for the scenario
  * @param {Object} scenario Scenario configuration object
  */
 sp.Scenario = function SpScenario( $canvas, scenario ) {
@@ -123,15 +126,6 @@ sp.Scenario.prototype.draw = function ( time ) {
 			// in the view parameters, instead of having the view take precedence randomly
 			radius = this.viewpoint.getRadius( this.objects[o].getRadius(), this.objects[o].getType() );
 
-			// Draw
-			this.drawCircle( this.context,
-				viewpointCoords,
-				radius,
-				view.color,
-				// Add a shadow to stars
-				this.objects[o].getType() === 'star'
-			);
-
 			// Draw planet trails
 			if ( this.showTrails ) {
 				// Get the trail points
@@ -147,6 +141,15 @@ sp.Scenario.prototype.draw = function ( time ) {
 					);
 				}
 			}
+
+			// Draw the object
+			this.drawCircle( this.context,
+				viewpointCoords,
+				radius,
+				view.color,
+				// Add a shadow to stars
+				this.objects[o].getType() === 'star'
+			);
 		}
 	}
 };

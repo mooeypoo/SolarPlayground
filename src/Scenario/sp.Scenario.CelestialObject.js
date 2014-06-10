@@ -1,5 +1,9 @@
 /**
- * Celestial object
+ * Celestial object, defines a moving object in space.
+ *
+ * @class
+ * @mixins OO.EventEmitter
+ *
  * @param {Object} config Celestial object definition
  */
 sp.Scenario.CelestialObject = function SpScenarioCelestialObject( config ) {
@@ -18,7 +22,7 @@ sp.Scenario.CelestialObject = function SpScenarioCelestialObject( config ) {
 	// Keep record of trail every X frames
 	this.trailsFrameGap = 10;
 	// How many trail points to store
-	this.numTrailPoints = 50;
+	this.numTrailPoints = 30;
 
 	// Attributes
 	this.name = config.name || '';

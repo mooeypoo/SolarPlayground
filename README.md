@@ -2,7 +2,9 @@
 ### A Web-Based, Open-Source, Extendible Platform for Creating Custom Solar System Simulations
 #### By Moriel Schottlender
 
-This project is created as a graduate project.
+This project is created as a graduate project. It is still being built, and is definitely **not ready for use yet**.
+
+Feel free to make suggestions by [posting them in an issue](https://github.com/mooeypoo/SolarPlayground/issues).
 
 ### Introduction
 

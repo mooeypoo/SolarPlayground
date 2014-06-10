@@ -17,7 +17,7 @@
 	 * @param {String} type Message type: LOG, ERROR
 	 * @param {String} msg Log message
 	 */
-	solarPlayground.log = function ( type, msg ) {
+	solarPlayground.log = function SpLog( type, msg ) {
 		type = type || 'LOG';
 		// TODO: Condition the console logging only on debug mode
 		// otherwise output logs to a file
