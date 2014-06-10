@@ -252,25 +252,23 @@ sp.Scenario.prototype.draw = function ( time ) {
 		// Translate coordinates to canvas
 		viewpointCoords = this.viewpoint.getCoordinates( coords );
 
-		// Get graphic details
-		view = this.objects[o].getView();
+		if ( viewpointCoords ) {
+			// Get graphic details
+			view = this.objects[o].getView();
 
-		// TODO: Allow the user to choose between relative radii and preset radius value
-		// in the view parameters, instead of having the view take precedence randomly
-		radius = this.viewpoint.getRadius( this.objects[o].getRadius(), this.objects[o].getType() );
-		// Draw
-		this.drawCircle( this.context, viewpointCoords, radius, view.color );
-/*		this.context.save();
-		this.context.beginPath();
-		this.context.arc(
-			viewpointCoords.x,
-			viewpointCoords.y,
-			radius || 5, 0, 2 * Math.PI,
-			false
-		);
-		this.context.fillStyle = view.color || 'white';
-		this.context.fill();
-		this.context.restore();*/
+			// TODO: Allow the user to choose between relative radii and preset radius value
+			// in the view parameters, instead of having the view take precedence randomly
+			radius = this.viewpoint.getRadius( this.objects[o].getRadius(), this.objects[o].getType() );
+
+			// Draw
+			this.drawCircle( this.context,
+				viewpointCoords,
+				radius,
+				view.color,
+				// Add a shadow to stars
+				this.objects[o].getType() === 'star'
+			);
+		}
 	}
 };
 
@@ -280,8 +278,9 @@ sp.Scenario.prototype.draw = function ( time ) {
  * @param {Object} coords Canvas coordinates
  * @param {number} [radius] Circle radius
  * @param {string} [color] Circle color
+ * @param {boolean} [hasShadow] Add a shadow
  */
-sp.Scenario.prototype.drawCircle = function ( context, coords, radius, color ) {
+sp.Scenario.prototype.drawCircle = function ( context, coords, radius, color, hasShadow ) {
 	context.save();
 	context.beginPath();
 	context.arc(
@@ -291,6 +290,12 @@ sp.Scenario.prototype.drawCircle = function ( context, coords, radius, color ) {
 		false
 	);
 	context.fillStyle = color || 'white';
+	if ( hasShadow ) {
+		context.shadowColor = color || 'white';
+		context.shadowBlur = 20;
+		context.shadowOffsetX = 0;
+		context.shadowOffsetY = 0;
+	}
 	context.fill();
 	context.restore();
 };
@@ -568,7 +573,9 @@ sp.Viewpoint.prototype.getCoordinates = function ( spaceCoords ) {
 		'y': x * sa + y * ca
 	};
 	destination.z = destination.y * sb;
-	destination.y = destination.y * cb + dy
+	destination.y = destination.y * cb + dy;
+
+	// TODO: Check if destination is inside the canvas. Return null otherwise.
 	return destination;
 };
 
@@ -602,12 +609,19 @@ sp.Viewpoint.prototype.setRadiiList = function ( rList ) {
  * @returns {number} Actual radius in pixels
  */
 sp.Viewpoint.prototype.getRadius = function ( orig_radius, type ) {
-	var radius;
+	var radius, index,
+		step = this.radius_step[type] || 1;
 
 	type = type || 'planet';
-	radius = this.radii[ Math.floor( orig_radius / this.radius_step[type] ) ]
+	index = Math.floor( orig_radius / step );
 
-	return radius >= 2 ? radius : 2;
+	if ( index > this.radii[type].length - 1 ) {
+		index = this.radii[type].length - 1;
+	}
+
+	radius = this.radii[type][ index ];
+
+	return ( radius >= 2 ) ? radius : 2;
 };
 
 /**

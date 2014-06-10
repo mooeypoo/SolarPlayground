@@ -85,7 +85,9 @@ sp.Viewpoint.prototype.getCoordinates = function ( spaceCoords ) {
 		'y': x * sa + y * ca
 	};
 	destination.z = destination.y * sb;
-	destination.y = destination.y * cb + dy
+	destination.y = destination.y * cb + dy;
+
+	// TODO: Check if destination is inside the canvas. Return null otherwise.
 	return destination;
 };
 
@@ -119,10 +121,17 @@ sp.Viewpoint.prototype.setRadiiList = function ( rList ) {
  * @returns {number} Actual radius in pixels
  */
 sp.Viewpoint.prototype.getRadius = function ( orig_radius, type ) {
-	var radius;
+	var radius, index,
+		step = this.radius_step[type] || 1;
 
 	type = type || 'planet';
-	radius = this.radii[ Math.floor( orig_radius / this.radius_step[type] ) ]
+	index = Math.floor( orig_radius / step );
 
-	return radius >= 2 ? radius : 2;
+	if ( index > this.radii[type].length - 1 ) {
+		index = this.radii[type].length - 1;
+	}
+
+	radius = this.radii[type][ index ];
+
+	return ( radius >= 2 ) ? radius : 2;
 };
