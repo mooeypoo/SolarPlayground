@@ -16,7 +16,11 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='sp-Scenario-CelestialObject'>/**
-</span> * Celestial object
+</span> * Celestial object, defines a moving object in space.
+ *
+ * @class
+ * @mixins OO.EventEmitter
+ *
  * @param {Object} config Celestial object definition
  */
 sp.Scenario.CelestialObject = function SpScenarioCelestialObject( config ) {

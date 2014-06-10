@@ -1,6 +1,9 @@
 /**
  * Solar Playground system
  *
+ * @class
+ * @mixins OO.EventEmitter
+ *
  * @param {Object} [config] Configuration object
  */
 sp.System = function SpSystemInitialize( config ) {

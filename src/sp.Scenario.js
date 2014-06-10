@@ -1,7 +1,10 @@
 /**
  * Solar playground scenario container
  *
- * @param {jQuery} $canvas Target canvas for the scenario
+ * @class
+ * @mixins OO.EventEmitter
+ *
+ * @param {JQuery} $canvas Target canvas for the scenario
  * @param {Object} scenario Scenario configuration object
  */
 sp.Scenario = function SpScenario( $canvas, scenario ) {

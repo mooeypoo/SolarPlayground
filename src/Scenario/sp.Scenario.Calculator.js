@@ -48,7 +48,7 @@ sp.Scenario.Calculator.translateTime = function ( year, month, day, time_of_day 
 
 /**
  * Return a JDN (Julian Day Number) from J2000.0, converted from a Gregorian date and time
- * @param {[type]} year Requested year (yyyy)
+ * @param {number} year Requested year (yyyy)
  * @param {number} month Requested month
  * @param {number} day Requested day of the month
  * @param {number} [hours] Hour of the day in 24h format

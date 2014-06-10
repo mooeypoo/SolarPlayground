@@ -2,6 +2,9 @@
  * Solar Playground viewpoint controller.
  * Controls the presentation of the objects on the canvas.
  *
+ * @class
+ * @mixins OO.EventEmitter
+ *
  * @param {Object} [config] Configuration object
  */
 sp.Viewpoint = function SpViewpoint( config ) {
@@ -23,7 +26,7 @@ sp.Viewpoint = function SpViewpoint( config ) {
 	// Set up visible canvas-scaled radius steps in pixels
 	this.radii = {
 		'star': [ 15, 17, 20, 22, 25, 30, 32, 35, 37 ],
-		'planet': [ 2, 3, 4, 5, 6, 7, 8, 9, 10 ]
+		'planet': [ 14, 6, 8, 10 ]
 	};
 	// Define the step between each value
 	this.radius_step = {
