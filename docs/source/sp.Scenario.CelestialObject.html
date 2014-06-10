@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='sp-Scenario-CelestialObject'>/**
+</span> * Celestial object
+ * @param {Object} config Celestial object definition
+ */
+sp.Scenario.CelestialObject = function SpScenarioCelestialObject( config ) {
+	config = config || {};
+
+	// Mixin constructors
+	OO.EventEmitter.call( this );
+
+	// Cache
+	this.cache = {};
+
+	// Cache trail points
+	this.trails = [];
+	this.frameCounter = 0;
+	// TODO: Consider adding these to the global scenario config
+	// Keep record of trail every X frames
+	this.trailsFrameGap = 10;
+	// How many trail points to store
+	this.numTrailPoints = 50;
+
+	// Attributes
+	this.name = config.name || &#39;&#39;;
+	this.description = config.description || &#39;&#39;;
+	this.view = config.graphic || {};
+
+	this.transform = { x: 0, y: 0, angle: 0, scale: 1 };
+
+	this.vars = config.vars;
+
+	this.initial_position = config.initial_position || { &#39;x&#39;: 0, &#39;y&#39;: 0 };
+
+	// Link to the object it is orbiting
+	this.orbiting = null;
+
+	this.type = config.type || &#39;planet&#39;;
+
+	// Initial radius
+	this.radius = Number( config.vars.r ) || 10;
+};
+
+/* Inheritance */
+OO.mixinClass( sp.Scenario.CelestialObject, OO.EventEmitter );
+
+<span id='sp-Scenario-CelestialObject-method-getSpaceCoordinates'>/**
+</span> * Get space coordinates per time.
+ * @param {number} time Time unit
+ */
+sp.Scenario.CelestialObject.prototype.getSpaceCoordinates = function ( time ) {
+	var dest, M, G, period;
+
+	time = time || 0;
+
+	if ( this.orbiting ) {
+		// Find period if it doesn&#39;t exist
+		if ( !this.vars.p ) {
+			// Calculate period
+			a = this.vars.a[0];// * sp.Scenario.Calculator.constants.AU;
+			G = sp.Scenario.Calculator.constants.G;
+			M = this.orbiting.getMass();
+			this.vars.p = 2 * Math.PI * Math.sqrt( Math.pow( a, 3) / ( G * M ) );
+		}
+
+		// TODO: Cache coordinates
+
+		this.coordinates = sp.Scenario.Calculator.solveKepler(
+			this.vars,
+			time
+		);
+
+		this.frameCounter++;
+		if ( this.frameCounter &gt;= this.trailsFrameGap ) {
+			this.storeTrailPoint( this.coordinates );
+			this.frameCounter = 0;
+		}
+	} else {
+		this.coordinates = { x: 0, y: 0, z: 0 };
+	}
+	return this.coordinates;
+};
+
+<span id='sp-Scenario-CelestialObject-method-storeTrailPoint'>/**
+</span> * Store the coordinate in the trail queue. Stores the space coordinates.
+ * Dequeue the first when trail number cap is reached.
+ * @param {Object} coordinates Coordinates of the trails
+ */
+sp.Scenario.CelestialObject.prototype.storeTrailPoint = function ( coordinates ) {
+	// Store coordinates for trails
+	this.trails.push( coordinates );
+	if ( this.trails.length &gt; this.numTrailPoints ) {
+		// Dequeue the first
+		this.trails.shift();
+	}
+};
+
+<span id='sp-Scenario-CelestialObject-method-getTrailPoints'>/**
+</span> * Get the trail points.
+ * @returns {Object[]} Space coordinates for the trails
+ */
+sp.Scenario.CelestialObject.prototype.getTrailPoints = function () {
+	return this.trails;
+};
+
+<span id='sp-Scenario-CelestialObject-method-getType'>/**
+</span> * Get object type
+ * @returns {string} Celestial object type, &#39;star&#39; or &#39;planet&#39;
+ */
+sp.Scenario.CelestialObject.prototype.getType = function () {
+	return this.type;
+};
+
+<span id='sp-Scenario-CelestialObject-method-getName'>/**
+</span> * Get object name
+ * @returns {string} Celestial object name
+ */
+sp.Scenario.CelestialObject.prototype.getName = function () {
+	return this.name;
+};
+
+<span id='sp-Scenario-CelestialObject-method-getDescription'>/**
+</span> * Get object description
+ * @returns {string} Celestial object description
+ */
+sp.Scenario.CelestialObject.prototype.getDescription = function () {
+	return this.description;
+};
+
+<span id='sp-Scenario-CelestialObject-method-setOrbit'>/**
+</span> * Set the object this object is orbiting
+ * @param {sp.Scenario.CelestialObject} obj Object that is the center of the orbit
+ */
+sp.Scenario.CelestialObject.prototype.setOrbit = function ( obj ) {
+	this.orbiting = obj;
+};
+
+<span id='sp-Scenario-CelestialObject-method-getOrbit'>/**
+</span> * Retrieve the object that is the center of orbit
+ * @returns {sp.Scenario.CelestialObject} obj Object that is the center of the orbit
+ */
+sp.Scenario.CelestialObject.prototype.getOrbit = function () {
+	return this.orbiting;
+};
+
+<span id='sp-Scenario-CelestialObject-method-setName'>/**
+</span> * Set object name
+ * @param {string} name New object name
+ */
+sp.Scenario.CelestialObject.prototype.setName = function ( name ) {
+	this.name = name;
+};
+
+<span id='sp-Scenario-CelestialObject-method-setDescription'>/**
+</span> * Set object description
+ * @param {string} desc New object description
+ */
+sp.Scenario.CelestialObject.prototype.setDescription = function ( desc ) {
+	this.description = desc;
+};
+
+sp.Scenario.CelestialObject.prototype.getMass = function () {
+	return this.vars.m;
+};
+
+sp.Scenario.CelestialObject.prototype.getView = function () {
+	return this.view;
+}
+
+<span id='sp-Scenario-CelestialObject-method-'>/**
+</span> * Get the planet radius if it exists.
+ * @returns {number|null} Planet radius in km
+ */
+sp.Scenario.CelestialObject.prototype.getRadius = function () {
+	return this.vars.r;
+};
+</pre>
+</body>
+</html>

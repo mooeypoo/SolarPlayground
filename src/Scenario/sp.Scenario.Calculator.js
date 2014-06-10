@@ -110,7 +110,7 @@ sp.Scenario.Calculator.solveKepler = function ( vars, jd ) {
 		 * @param {number} angle Angle
 		 * @returns {number} Radians
 		 */
-		to_radians = function ( angle ) {
+		to_radians = function toRadians( angle ) {
 			return angle * ( 180 / Math.PI );
 		},
 		/**
@@ -119,7 +119,7 @@ sp.Scenario.Calculator.solveKepler = function ( vars, jd ) {
 		 * @param {number} M Mean anomaly
 		 * @returns {number} Eccentric anomaly in radians
 		 */
-		approximate_E = function ( e, M ) {
+		approximate_E = function approxE( e, M ) {
 			var e_star = ( Math.PI / 180 ) * e,
 			E_n = M + e_star + Math.sin( to_radians( M ) ),
 			dE = 1,

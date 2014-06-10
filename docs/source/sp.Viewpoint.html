@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='sp-Viewpoint'>/**
+</span> * Solar Playground viewpoint controller.
+ * Controls the presentation of the objects on the canvas.
+ *
+ * @param {Object} [config] Configuration object
+ */
+sp.Viewpoint = function SpViewpoint( config ) {
+	// Mixin constructors
+	OO.EventEmitter.call( this );
+
+	// Configuration
+	this.config = config || {};
+
+	this.zoom = this.config.zoom || 1;
+	this.orbit_scale = this.config.orbit_scale || 1;
+	this.centerPoint = this.config.centerPoint;
+	this.yaw = this.config.yaw;
+	this.pitch = this.config.pitch;
+
+	this.pov = { &#39;x&#39;: 0, &#39;y&#39;: 0, &#39;z&#39;: 0 };
+	this.radii_list = null;
+
+	// Set up visible canvas-scaled radius steps in pixels
+	this.radii = {
+		&#39;star&#39;: [ 15, 17, 20, 22, 25, 30, 32, 35, 37 ],
+		&#39;planet&#39;: [ 2, 3, 4, 5, 6, 7, 8, 9, 10 ]
+	};
+	// Define the step between each value
+	this.radius_step = {
+		&#39;star&#39;: 0,
+		&#39;planet&#39;: 0
+	};
+};
+
+/* Inheritance */
+OO.mixinClass( sp.Viewpoint, OO.EventEmitter );
+
+/* Events */
+
+<span id='sp-Viewpoint-event-changePOV'>/**
+</span> * Change of the POV coordinates in space
+ * @event changePOV
+ * @param {Object} New space coordinates of the POV
+ */
+
+/* Methods */
+
+<span id='sp-Viewpoint-method-setPOV'>/**
+</span> * Set the coordinates of the current POV object
+ * @param {Object} pov_coords The 3d coordinates of the current POV
+ * @fires changePOV
+ */
+sp.Viewpoint.prototype.setPOV = function ( pov_coords ) {
+	if ( !pov_coords ) {
+		return;
+	}
+	if ( pov_coords.x !== this.pov.x || pov_coords.y !== this.pov.y ) {
+		this.pov = pov_coords;
+		this.emit( &#39;changePOV&#39;, pov_coords );
+	}
+};
+
+<span id='sp-Viewpoint-method-getCoordinates'>/**
+</span> * Translate between space coordinates and viewpoint coordinates
+ * on the canvas.
+ * @param {Object} spaceCoords Original 3D space coordinates
+ * @returns {Object} Canvas 2d coordinates
+ */
+sp.Viewpoint.prototype.getCoordinates = function ( spaceCoords ) {
+	var ca = Math.cos( this.yaw ),
+		sa = Math.sin( this.yaw ),
+		cb = Math.cos( this.pitch ),
+		sb = Math.sin( this.pitch ),
+		dx = this.centerPoint.x,
+		dy = this.centerPoint.y,
+		scale = Math.sqrt( this.orbit_scale * this.zoom );
+
+	// TODO: Work out proper scale
+	x = ( spaceCoords.x - this.pov.x ) * scale;
+	y = ( spaceCoords.y - this.pov.y ) * scale;
+	z = ( spaceCoords.z - this.pov.z ) * scale;
+
+	destination = {
+		&#39;x&#39;: x * ca - y * sa + dx,
+		&#39;y&#39;: x * sa + y * ca
+	};
+	destination.z = destination.y * sb;
+	destination.y = destination.y * cb + dy;
+
+	// TODO: Check if destination is inside the canvas. Return null otherwise.
+	return destination;
+};
+
+<span id='sp-Viewpoint-method-setRadiiList'>/**
+</span> * Calculate radius size steps from a new radii list
+ * @param {Object} rList Actual size radii of all celestial objects
+ * divided into &#39;stars&#39; and &#39;planets&#39; to distinguish relative sizes better
+ */
+sp.Viewpoint.prototype.setRadiiList = function ( rList ) {
+	var type, diff;
+
+	this.radii_list = rList;
+
+	for ( type in this.radii_list ) {
+		// Sort by size, ascending
+		this.radii_list[type].sort( function ( a, b ) {
+			return a - b;
+		} );
+
+		// Figure out steps for each of the types
+		diff = this.radii_list[type][this.radii_list[type].length - 1] -
+			this.radii_list[type][0];
+
+		this.radius_step[type] = diff / this.radii[type].length
+	}
+};
+
+<span id='sp-Viewpoint-method-getRadius'>/**
+</span> * Translate between the original radius and the canvas radius in pixels
+ * @param {number} orig_radius Object&#39;s original radius
+ * @returns {number} Actual radius in pixels
+ */
+sp.Viewpoint.prototype.getRadius = function ( orig_radius, type ) {
+	var radius, index,
+		step = this.radius_step[type] || 1;
+
+	type = type || &#39;planet&#39;;
+	index = Math.floor( orig_radius / step );
+
+	if ( index &gt; this.radii[type].length - 1 ) {
+		index = this.radii[type].length - 1;
+	}
+
+	radius = this.radii[type][ index ];
+
+	return ( radius &gt;= 2 ) ? radius : 2;
+};
+</pre>
+</body>
+</html>

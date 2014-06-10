@@ -39,18 +39,14 @@ sp.Scenario = function SpScenario( $canvas, scenario ) {
 		}
 	} );
 
+	this.showTrails = this.config.show_trails || false;
+
 	this.pov_key = this.config.init_pov;
 	this.pov_object = null;
 
 	this.date = this.config.start_time || { day: 1, month: 1, year: 2000 };
 	this.time = 0;
 	this.speed = this.config.init_speed || 1;
-
-	// Size steps for drawing. Bigger and smaller planets will accept
-	// the value of these steps so they can be scaled to canvas size, but
-	// still have a more-or-less representative size on the screen.
-	// Size is in pixels and represents circle radius.
-//	this.relative_radii = [ 2, 4, 6, 8, 10, 12, 14, 16, 18, 20 ];
 
 	// Prepare the objects
 	this.processObjects( scenario.objects || {} );
@@ -107,7 +103,7 @@ sp.Scenario.prototype.processObjects = function ( scenarioObjects ) {
  * @param {number} time Time
  */
 sp.Scenario.prototype.draw = function ( time ) {
-	var o, coords, viewpointCoords, view, radius;
+	var o, coords, viewpointCoords, view, radius, trails;
 
 	for ( o in this.objects ) {
 		coords = this.objects[o].getSpaceCoordinates( time );
@@ -135,6 +131,22 @@ sp.Scenario.prototype.draw = function ( time ) {
 				// Add a shadow to stars
 				this.objects[o].getType() === 'star'
 			);
+
+			// Draw planet trails
+			if ( this.showTrails ) {
+				// Get the trail points
+				trails = this.objects[o].getTrailPoints();
+				for ( i = 0; i < trails.length; i++ ) {
+					// Draw all trails as dots
+					this.drawCircle(
+						this.context,
+						this.viewpoint.getCoordinates( trails[i] ),
+						1,
+						// TODO: Consider making trail colors a configuration option
+						'#FF005D' // Bright pink
+					);
+				}
+			}
 		}
 	}
 };

@@ -41,6 +41,16 @@ module.exports = function(grunt) {
         options: {
             config: ".jscs.json"
         }
+    },
+    jsduck: {
+      main: {
+        src: [
+          'src/sp.js',
+          'src/*.js',
+          'src/**/*.js'
+        ],
+        dest: 'docs'
+      }
     }
     // TODO: QUnit tests
 //    qunit: {
@@ -53,7 +63,7 @@ module.exports = function(grunt) {
 //  grunt.loadNpmTasks('grunt-contrib-qunit');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-jscs-checker');
-  grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-jsduck');
 
   // Default task.
   grunt.registerTask('default', ['jshint', 'jscs', 'concat' ]);

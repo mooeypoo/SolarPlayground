@@ -172,18 +172,14 @@ sp.Scenario = function SpScenario( $canvas, scenario ) {
 		}
 	} );
 
+	this.showTrails = this.config.show_trails || false;
+
 	this.pov_key = this.config.init_pov;
 	this.pov_object = null;
 
 	this.date = this.config.start_time || { day: 1, month: 1, year: 2000 };
 	this.time = 0;
 	this.speed = this.config.init_speed || 1;
-
-	// Size steps for drawing. Bigger and smaller planets will accept
-	// the value of these steps so they can be scaled to canvas size, but
-	// still have a more-or-less representative size on the screen.
-	// Size is in pixels and represents circle radius.
-//	this.relative_radii = [ 2, 4, 6, 8, 10, 12, 14, 16, 18, 20 ];
 
 	// Prepare the objects
 	this.processObjects( scenario.objects || {} );
@@ -240,7 +236,7 @@ sp.Scenario.prototype.processObjects = function ( scenarioObjects ) {
  * @param {number} time Time
  */
 sp.Scenario.prototype.draw = function ( time ) {
-	var o, coords, viewpointCoords, view, radius;
+	var o, coords, viewpointCoords, view, radius, trails;
 
 	for ( o in this.objects ) {
 		coords = this.objects[o].getSpaceCoordinates( time );
@@ -268,6 +264,22 @@ sp.Scenario.prototype.draw = function ( time ) {
 				// Add a shadow to stars
 				this.objects[o].getType() === 'star'
 			);
+
+			// Draw planet trails
+			if ( this.showTrails ) {
+				// Get the trail points
+				trails = this.objects[o].getTrailPoints();
+				for ( i = 0; i < trails.length; i++ ) {
+					// Draw all trails as dots
+					this.drawCircle(
+						this.context,
+						this.viewpoint.getCoordinates( trails[i] ),
+						1,
+						// TODO: Consider making trail colors a configuration option
+						'#FF005D' // Bright pink
+					);
+				}
+			}
 		}
 	}
 };
@@ -736,7 +748,7 @@ sp.Scenario.Calculator.solveKepler = function ( vars, jd ) {
 		 * @param {number} angle Angle
 		 * @returns {number} Radians
 		 */
-		to_radians = function ( angle ) {
+		to_radians = function toRadians( angle ) {
 			return angle * ( 180 / Math.PI );
 		},
 		/**
@@ -745,7 +757,7 @@ sp.Scenario.Calculator.solveKepler = function ( vars, jd ) {
 		 * @param {number} M Mean anomaly
 		 * @returns {number} Eccentric anomaly in radians
 		 */
-		approximate_E = function ( e, M ) {
+		approximate_E = function approxE( e, M ) {
 			var e_star = ( Math.PI / 180 ) * e,
 			E_n = M + e_star + Math.sin( to_radians( M ) ),
 			dE = 1,
@@ -819,6 +831,15 @@ sp.Scenario.CelestialObject = function SpScenarioCelestialObject( config ) {
 	// Cache
 	this.cache = {};
 
+	// Cache trail points
+	this.trails = [];
+	this.frameCounter = 0;
+	// TODO: Consider adding these to the global scenario config
+	// Keep record of trail every X frames
+	this.trailsFrameGap = 10;
+	// How many trail points to store
+	this.numTrailPoints = 50;
+
 	// Attributes
 	this.name = config.name || '';
 	this.description = config.description || '';
@@ -867,10 +888,38 @@ sp.Scenario.CelestialObject.prototype.getSpaceCoordinates = function ( time ) {
 			this.vars,
 			time
 		);
+
+		this.frameCounter++;
+		if ( this.frameCounter >= this.trailsFrameGap ) {
+			this.storeTrailPoint( this.coordinates );
+			this.frameCounter = 0;
+		}
 	} else {
 		this.coordinates = { x: 0, y: 0, z: 0 };
 	}
 	return this.coordinates;
+};
+
+/**
+ * Store the coordinate in the trail queue. Stores the space coordinates.
+ * Dequeue the first when trail number cap is reached.
+ * @param {Object} coordinates Coordinates of the trails
+ */
+sp.Scenario.CelestialObject.prototype.storeTrailPoint = function ( coordinates ) {
+	// Store coordinates for trails
+	this.trails.push( coordinates );
+	if ( this.trails.length > this.numTrailPoints ) {
+		// Dequeue the first
+		this.trails.shift();
+	}
+};
+
+/**
+ * Get the trail points.
+ * @returns {Object[]} Space coordinates for the trails
+ */
+sp.Scenario.CelestialObject.prototype.getTrailPoints = function () {
+	return this.trails;
 };
 
 /**

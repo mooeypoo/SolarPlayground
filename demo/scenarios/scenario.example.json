@@ -5,6 +5,7 @@
 		"init_speed": 1,
         "init_zoom": 2e4,
         "init_pov": "sun",
+        "show_trails": true,
 		"orbit_scale": 1e4,
         "start_time": {
             "day": 1,

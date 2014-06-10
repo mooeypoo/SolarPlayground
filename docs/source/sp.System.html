@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='sp-System'>/**
+</span> * Solar Playground system
+ *
+ * @param {Object} [config] Configuration object
+ */
+sp.System = function SpSystemInitialize( config ) {
+	var defaultConfig;
+
+	// Mixin constructors
+	OO.EventEmitter.call( this );
+
+	// Scenario holder
+	// TODO: Allow for multiple scenarios
+	this.scenario = null;
+
+	config = config || {};
+
+	defaultConfig = {
+		container: &#39;#solarSystem&#39;,
+		scenario_dir: &#39;scenarios&#39;, // Default directory unless otherwise specified
+		directory_sep: &#39;/&#39;,
+		width: $( window ).width() - 100,
+		height: $( window ).height() - 100
+	};
+
+	// Extend default global options
+	this.config = $.extend( true, config, defaultConfig );
+
+	// Initialize
+	this.$container = $( this.config.container )
+		.addClass( &#39;sp-system-container&#39; )
+
+	this.$spinner = $( &#39;&lt;div&gt;&#39; )
+		.addClass( &#39;sp-system-spinner&#39; )
+		.appendTo( this.$container );
+
+	this.$canvas = $( &#39;&lt;canvas&gt;&#39; )
+		.addClass( &#39;sp-system-canvas&#39; )
+		.attr( &#39;width&#39;, this.config.width )
+		.attr( &#39;height&#39;, this.config.height )
+		.appendTo( this.$container );
+
+	this.$spinner.hide().detach();
+};
+
+/* Inheritance */
+OO.mixinClass( sp.System, OO.EventEmitter );
+
+/* Methods */
+
+<span id='sp-System-method-load'>/**
+</span> * Load a scenario
+ * @param {String} scenarioName Scenario name. The system will search for
+ *  an ajax response from source &#39;scenario.[name].json&#39; in the scenario
+ *  directory.
+ */
+sp.System.prototype.load = function ( scenarioName ) {
+	var targetName,
+		targetDir = this.config.scenario_dir + this.config.directory_sep;
+
+	scenarioName = scenarioName || &#39;example&#39;;
+	targetName = &#39;scenario.&#39; + scenarioName + &#39;.json&#39;;
+
+	$.getJSON( targetDir + targetName )
+		.done( $.proxy( function ( response ) {
+			// Load the scenario
+			this.loadScenario( response );
+		}, this ) )
+		.fail( function () {
+			sp.log( &#39;Error&#39;, &#39;Scenario &#39; + targetName + &#39; not found in directory &quot;&#39; + targetDir + &#39;&quot;&#39; );
+		} );
+};
+
+<span id='sp-System-method-loadScenario'>/**
+</span> * Load and run a scenario
+ * @param {Object} scenarioObject Scenario configuration object
+ */
+sp.System.prototype.loadScenario = function ( scenarioObject ) {
+	scenarioObject = scenarioObject || {};
+
+	this.scenario = new sp.Scenario( this.$canvas, scenarioObject );
+
+	this.scenario.run();
+};
+
+<span id='sp-System-method-togglePaused'>/**
+</span> * Toggle between pause and resume the scenario
+ * @param {boolean} [isPause] Optional. If supplied, pauses or resumes the scenario
+ */
+sp.System.prototype.togglePaused = function ( isPause ) {
+	this.scenario.togglePaused( isPause );
+};
+
+<span id='sp-System-method-isPaused'>/**
+</span> * Check whether the scenario is paused
+ */
+sp.System.prototype.isPaused = function () {
+	return this.scenario.isPaused();
+};
+
+<span id='sp-System-method-getConfig'>/**
+</span> * Get configuration option or full configuration object.
+ * @param {string} [option] Configuration key
+ * @returns {string|Object} Configuration object
+ */
+sp.System.prototype.getConfig = function ( option ) {
+	if ( this.config[option] ) {
+		return this.config[option];
+	}
+	return this.config;
+};
+</pre>
+</body>
+</html>
