@@ -9,9 +9,15 @@
 sp.Gui.Module.ooui = function SpGuiModuleOoui ( $container, config ) {
 	config = config || {};
 
+	// Mixin constructors
+	OO.EventEmitter.call( this );
+
 	this.$container = $container;
 	this.scenario = null;
 };
+
+/* Inheritance */
+OO.mixinClass( sp.Gui.Module.ooui, OO.EventEmitter );
 
 /**
  * Connect the GUI to the scenario it controls
@@ -40,9 +46,8 @@ sp.Gui.Module.ooui.prototype.initialize = function () {
 	// TODO: Disable all buttons until the scenario is loaded
 	tools = [
 		// playTools
-		[ 'playTool', 'playTools', 'check', 'Play scenario', null, $.proxy( this.onPlayButtonSelect, this ) ],
-//		[ 'pauseTool', 'playTools', 'close', 'Pause scenario', function () { this.setDisabled( true ); }, this.onPauseButtonSelect ]
-		[ 'pauseTool', 'playTools', 'close', 'Pause scenario', null, $.proxy( this.onPauseButtonSelect, this ) ]
+		[ 'playTool', 'playTools', 'check', 'Play scenario', null, this.onPlayButtonSelect ]
+//		[ 'pauseTool', 'playTools', 'close', 'Pause scenario', null, $.proxy( this.onPauseButtonSelect, this ) ]
 	];
 
 	for ( i = 0; i < tools.length; i++ ) {
@@ -57,22 +62,21 @@ sp.Gui.Module.ooui.prototype.initialize = function () {
  * @returns {[type]} [description]
  */
 sp.Gui.Module.ooui.prototype.onPlayButtonSelect = function () {
-	if ( this.scenario ) {
-		this.scenario.resume();
-	}
 	// TODO: Activate the pause button and disable self
+	this.toggled = !this.toggled;
+	this.setActive( this.toggled );
+
+	this.toolbar.emit( 'play', this.toggled );
 };
 
 /**
- * Respond to pause button click
- * @returns {[type]} [description]
+ * Get the Gui toolbar
+ * @returns {OO.ui.Toolbar} The toolbar connected to the gui
  */
-sp.Gui.Module.ooui.prototype.onPauseButtonSelect = function () {
-	if ( this.scenario ) {
-		this.scenario.pause();
-	}
-	// TODO: Activate the play button and disable self
+sp.Gui.Module.ooui.prototype.getToolbar = function () {
+	return this.toolbar;
 };
+
 /**
  * Create a toolbar tool.
  * Taken from the OOUI tools demo.

@@ -436,7 +436,7 @@ sp.System = function SpSystemInitialize( config ) {
 	};
 
 	// Extend default global options
-	this.config = $.extend( true, config, defaultConfig );
+	this.config = $.extend( true, defaultConfig, config );
 
 	// Initialize
 	this.$container = $( this.config.container )
@@ -448,11 +448,16 @@ sp.System = function SpSystemInitialize( config ) {
 		.attr( 'height', this.config.height )
 		.appendTo( this.$container );
 
+	// Gui
 	this.gui = new sp.Gui.Loader( {
 		'module': 'ooui',
 		'$container': this.$container
 	} );
-	this.gui.initialize();
+	this.gui_module = this.gui.initialize();
+	this.toolbar = this.gui_module.getToolbar();
+
+	// Events
+	this.toolbar.connect( this, { 'play': 'onGuiPlay' } );
 };
 
 /* Inheritance */
@@ -467,6 +472,14 @@ OO.mixinClass( sp.System, OO.EventEmitter );
  */
 
 /* Methods */
+
+/**
+ * Respond to play button press
+ * @param {Boolean} isPlay Play or pause
+ */
+sp.System.prototype.onGuiPlay = function ( isPlay ) {
+	this.scenario.togglePaused( !isPlay );
+};
 
 /**
  * Load a scenario
@@ -726,6 +739,7 @@ sp.Gui.Loader.prototype.initialize = function () {
 
 	this.module.initialize( this.settings );
 	this.$spinner.hide();
+	return this.module;
 };
 
 /**
@@ -753,9 +767,15 @@ sp.Gui.Module = {};
 sp.Gui.Module.ooui = function SpGuiModuleOoui ( $container, config ) {
 	config = config || {};
 
+	// Mixin constructors
+	OO.EventEmitter.call( this );
+
 	this.$container = $container;
 	this.scenario = null;
 };
+
+/* Inheritance */
+OO.mixinClass( sp.Gui.Module.ooui, OO.EventEmitter );
 
 /**
  * Connect the GUI to the scenario it controls
@@ -784,9 +804,8 @@ sp.Gui.Module.ooui.prototype.initialize = function () {
 	// TODO: Disable all buttons until the scenario is loaded
 	tools = [
 		// playTools
-		[ 'playTool', 'playTools', 'check', 'Play scenario', null, $.proxy( this.onPlayButtonSelect, this ) ],
-//		[ 'pauseTool', 'playTools', 'close', 'Pause scenario', function () { this.setDisabled( true ); }, this.onPauseButtonSelect ]
-		[ 'pauseTool', 'playTools', 'close', 'Pause scenario', null, $.proxy( this.onPauseButtonSelect, this ) ]
+		[ 'playTool', 'playTools', 'check', 'Play scenario', null, this.onPlayButtonSelect ]
+//		[ 'pauseTool', 'playTools', 'close', 'Pause scenario', null, $.proxy( this.onPauseButtonSelect, this ) ]
 	];
 
 	for ( i = 0; i < tools.length; i++ ) {
@@ -801,22 +820,21 @@ sp.Gui.Module.ooui.prototype.initialize = function () {
  * @returns {[type]} [description]
  */
 sp.Gui.Module.ooui.prototype.onPlayButtonSelect = function () {
-	if ( this.scenario ) {
-		this.scenario.resume();
-	}
 	// TODO: Activate the pause button and disable self
+	this.toggled = !this.toggled;
+	this.setActive( this.toggled );
+
+	this.toolbar.emit( 'play', this.toggled );
 };
 
 /**
- * Respond to pause button click
- * @returns {[type]} [description]
+ * Get the Gui toolbar
+ * @returns {OO.ui.Toolbar} The toolbar connected to the gui
  */
-sp.Gui.Module.ooui.prototype.onPauseButtonSelect = function () {
-	if ( this.scenario ) {
-		this.scenario.pause();
-	}
-	// TODO: Activate the play button and disable self
+sp.Gui.Module.ooui.prototype.getToolbar = function () {
+	return this.toolbar;
 };
+
 /**
  * Create a toolbar tool.
  * Taken from the OOUI tools demo.

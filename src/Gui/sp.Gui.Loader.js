@@ -47,6 +47,7 @@ sp.Gui.Loader.prototype.initialize = function () {
 
 	this.module.initialize( this.settings );
 	this.$spinner.hide();
+	return this.module;
 };
 
 /**

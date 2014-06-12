@@ -27,7 +27,7 @@ sp.System = function SpSystemInitialize( config ) {
 	};
 
 	// Extend default global options
-	this.config = $.extend( true, config, defaultConfig );
+	this.config = $.extend( true, defaultConfig, config );
 
 	// Initialize
 	this.$container = $( this.config.container )
@@ -39,11 +39,16 @@ sp.System = function SpSystemInitialize( config ) {
 		.attr( 'height', this.config.height )
 		.appendTo( this.$container );
 
+	// Gui
 	this.gui = new sp.Gui.Loader( {
 		'module': 'ooui',
 		'$container': this.$container
 	} );
-	this.gui.initialize();
+	this.gui_module = this.gui.initialize();
+	this.toolbar = this.gui_module.getToolbar();
+
+	// Events
+	this.toolbar.connect( this, { 'play': 'onGuiPlay' } );
 };
 
 /* Inheritance */
@@ -58,6 +63,14 @@ OO.mixinClass( sp.System, OO.EventEmitter );
  */
 
 /* Methods */
+
+/**
+ * Respond to play button press
+ * @param {Boolean} isPlay Play or pause
+ */
+sp.System.prototype.onGuiPlay = function ( isPlay ) {
+	this.scenario.togglePaused( !isPlay );
+};
 
 /**
  * Load a scenario

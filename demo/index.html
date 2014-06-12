@@ -25,24 +25,17 @@
             $( document ).ready( function() {
                 var paused = false;
 
-                playground = new sp.System( {} );
+                playground = new sp.System( {
+                    'width': 800,
+                    'height': 600
+                } );
                 playground.load( 'example' );
 
-/*                $( '#pause' ).click( function() {
-                    playground.togglePaused( paused );
-
-                    if ( playground.isPaused() ) {
-                        $( this ).text( 'Resume' );
-                    } else {
-                        $( this ).text( 'Pause' );
-                    }
-                } );*/
             } );
 
         </script>
 
         <h1>Solar Playground Demo</h1>
-        <!--button id="pause">Run</button><br /-->
 
         <div id="solarSystem"></div>
     </body>
