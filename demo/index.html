@@ -12,9 +12,9 @@
         <script type="text/javascript" src="../lib/oojs/dist/oojs.js"></script>
 
         <!-- OOJS-UI -->
-        <!-- script src="../lib/oojs-ui/dist/oojs-ui.js"></script>
+        <script src="../lib/oojs-ui/dist/oojs-ui.js"></script>
         <link rel="stylesheet" href="../lib/oojs-ui/dist/oojs-ui.svg.css">
-        <link rel="stylesheet" href="../lib/oojs-ui/dist/oojs-ui-apex.css" -->
+        <link rel="stylesheet" href="../lib/oojs-ui/dist/oojs-ui-apex.css">
 
         <!-- Celestial Playground files -->
         <script type="text/javascript" src="../dist/SolarPlayground.dist.js"></script>
@@ -28,7 +28,7 @@
                 playground = new sp.System( {} );
                 playground.load( 'example' );
 
-                $( '#pause' ).click( function() {
+/*                $( '#pause' ).click( function() {
                     playground.togglePaused( paused );
 
                     if ( playground.isPaused() ) {
@@ -36,13 +36,13 @@
                     } else {
                         $( this ).text( 'Pause' );
                     }
-                } );
+                } );*/
             } );
 
         </script>
 
         <h1>Solar Playground Demo</h1>
-        <button id="pause">Pause</button><br />
+        <!--button id="pause">Run</button><br /-->
 
         <div id="solarSystem"></div>
     </body>

@@ -132,9 +132,14 @@ window.requestNextAnimationFrame = ( function () {
 } ) ();
 
 /**
+ * SolarPlaygound Gui objects and methods
+ */
+sp.Gui = {};
+
+/**
  * Solar playground scenario container
  *
- * @class
+ * @class sp.Scenario
  * @mixins OO.EventEmitter
  *
  * @param {JQuery} $canvas Target canvas for the scenario
@@ -154,7 +159,7 @@ sp.Scenario = function SpScenario( $canvas, scenario ) {
 	this.$canvas = $canvas;
 	this.context = $canvas[0].getContext( '2d' );
 
-	this.paused = false;
+	this.paused = true;
 	this.objects = {};
 
 	// Prepare general configuration
@@ -190,6 +195,12 @@ sp.Scenario = function SpScenario( $canvas, scenario ) {
 
 /* Inheritance */
 OO.mixinClass( sp.Scenario, OO.EventEmitter );
+
+/**
+ * @event paused
+ * @param {boolean} [isPaused] Paused or resumed
+ * Change in pause/resume state
+ */
 
 /**
  * Process the solar playground simulator objects
@@ -360,11 +371,18 @@ sp.Scenario.prototype.run = function () {
 /**
  * Toggle between pause and resume the scenario
  * @param {boolean} [isPause] Optional. If supplied, pauses or resumes the scenario
+ * @fires paused
  */
 sp.Scenario.prototype.togglePaused = function ( isPause ) {
-	isPause = !!isPause || !this.paused;
+	if ( isPause === undefined ) {
+		isPause = !this.paused;
+	}
+	isPause = !!isPause;
+
 	this.paused = isPause;
 	this.run();
+
+	this.emit( 'paused', isPause );
 };
 
 /**
@@ -378,21 +396,21 @@ sp.Scenario.prototype.isPaused = function () {
  * Pause the scenario
  */
 sp.Scenario.prototype.pause = function () {
-	this.paused = true;
+	this.togglePaused( true );
 };
 
 /**
  * Resume the scenario
  */
 sp.Scenario.prototype.resume = function () {
-	this.paused = false;
+	this.togglePaused( false );
 	this.run();
 };
 
 /**
  * Solar Playground system
  *
- * @class
+ * @class sp.System
  * @mixins OO.EventEmitter
  *
  * @param {Object} [config] Configuration object
@@ -424,21 +442,29 @@ sp.System = function SpSystemInitialize( config ) {
 	this.$container = $( this.config.container )
 		.addClass( 'sp-system-container' )
 
-	this.$spinner = $( '<div>' )
-		.addClass( 'sp-system-spinner' )
-		.appendTo( this.$container );
-
 	this.$canvas = $( '<canvas>' )
 		.addClass( 'sp-system-canvas' )
 		.attr( 'width', this.config.width )
 		.attr( 'height', this.config.height )
 		.appendTo( this.$container );
 
-	this.$spinner.hide().detach();
+	this.gui = new sp.Gui.Loader( {
+		'module': 'ooui',
+		'$container': this.$container
+	} );
+	this.gui.initialize();
 };
 
 /* Inheritance */
 OO.mixinClass( sp.System, OO.EventEmitter );
+
+/* Events */
+
+/**
+ * @event scenarioLoaded
+ * @param {sp.Scenario} scenario Reference to the loaded scenario
+ * Scenario fully loaded and ready to be run.
+ */
 
 /* Methods */
 
@@ -468,13 +494,19 @@ sp.System.prototype.load = function ( scenarioName ) {
 /**
  * Load and run a scenario
  * @param {Object} scenarioObject Scenario configuration object
+ * @fires scenarioLoaded
  */
 sp.System.prototype.loadScenario = function ( scenarioObject ) {
 	scenarioObject = scenarioObject || {};
 
 	this.scenario = new sp.Scenario( this.$canvas, scenarioObject );
+	// Link scenario to GUI
+	this.gui.setScenario( this.scenario );
 
-	this.scenario.run();
+	// Draw initial frame
+	this.scenario.draw( 0 );
+
+	this.emit( 'scenarioLoaded', this.scenario );
 };
 
 /**
@@ -508,7 +540,7 @@ sp.System.prototype.getConfig = function ( option ) {
  * Solar Playground viewpoint controller.
  * Controls the presentation of the objects on the canvas.
  *
- * @class
+ * @class sp.Viewpoint
  * @mixins OO.EventEmitter
  *
  * @param {Object} [config] Configuration object
@@ -643,6 +675,187 @@ sp.Viewpoint.prototype.getRadius = function ( orig_radius, type ) {
 	radius = this.radii[type][ index ];
 
 	return ( radius >= 2 ) ? radius : 2;
+};
+
+/**
+ * Gui Loader. Creates the gui to be attached to
+ * the SolarPlayground container.
+ *
+ * @class sp.Gui.Loader
+ * @mixins OO.EventEmitter
+ *
+ * @param {Object} config Gui definition
+ * @config {string} module The GUI module. Defaults to 'ooui'
+ * @config {jQuery} jQuery object for the container on top of which
+ *  the GUI should be built.
+ */
+sp.Gui.Loader = function SpGuiInitializer( config ) {
+	config = config || {};
+
+	// Mixin constructors
+	OO.EventEmitter.call( this );
+
+	this.moduleName = config.module || 'ooui';
+	this.module = null;
+	this.scenario = config.scenario;
+
+	this.settings = config.settings || {};
+
+	this.$container = config.$container;
+	this.$spinner = $( '<div>' )
+		.addClass( 'sp-system-spinner' )
+		.appendTo( this.$container );
+};
+
+/* Inheritance */
+OO.mixinClass( sp.Gui.Loader, OO.EventEmitter );
+
+/**
+ * Create the GUI according to the ui module
+ */
+sp.Gui.Loader.prototype.initialize = function () {
+	/// TODO: Use a factory instead of this quick and somewhat
+	/// lame 'switch' statement, so we can allow for proper
+	/// modules for the GUI, like jQueryUI or whatever else.
+	switch ( this.module ) {
+		case 'ooui':
+		default:
+			this.module = new sp.Gui.Module.ooui( this.$container, this.settings );
+			break;
+	}
+
+	this.module.initialize( this.settings );
+	this.$spinner.hide();
+};
+
+/**
+ * Connect the GUI module to the scenario it controls
+ * @param {sp.Scenario} scenario The scenario object
+ */
+sp.Gui.Loader.prototype.setScenario = function ( scenario ) {
+	this.module.setScenario( scenario );
+};
+
+/**
+ * SolarPlaground GUI Modules
+ * @property {Object}
+ */
+sp.Gui.Module = {};
+
+/**
+ * OOUI Gui module
+ *
+ * @class sp.Gui.Module.ooui
+ *
+ * @param {jQuery} $container The container to attach the GUI to
+ * @param {Object} [config] Gui module definition
+ */
+sp.Gui.Module.ooui = function SpGuiModuleOoui ( $container, config ) {
+	config = config || {};
+
+	this.$container = $container;
+	this.scenario = null;
+};
+
+/**
+ * Connect the GUI to the scenario it controls
+ * @param {sp.Scenario} scenario The scenario object this GUI controls
+ */
+sp.Gui.Module.ooui.prototype.setScenario = function ( scenario ) {
+	this.scenario = scenario;
+};
+
+sp.Gui.Module.ooui.prototype.initialize = function () {
+	var i, tools,
+		toolFactory = new OO.ui.ToolFactory(),
+		toolGroupFactory = new OO.ui.ToolGroupFactory();
+
+	// Create toolbar
+	this.toolbar = new OO.ui.Toolbar( toolFactory, toolGroupFactory );
+	this.toolbar.setup( [
+		{
+			'type': 'bar',
+			'include': [ { 'group': 'playTools' } ]
+		}
+	] );
+	this.toolbar.emit( 'updateState' );
+
+	// Create buttons for the toolbar
+	// TODO: Disable all buttons until the scenario is loaded
+	tools = [
+		// playTools
+		[ 'playTool', 'playTools', 'check', 'Play scenario', null, $.proxy( this.onPlayButtonSelect, this ) ],
+//		[ 'pauseTool', 'playTools', 'close', 'Pause scenario', function () { this.setDisabled( true ); }, this.onPauseButtonSelect ]
+		[ 'pauseTool', 'playTools', 'close', 'Pause scenario', null, $.proxy( this.onPauseButtonSelect, this ) ]
+	];
+
+	for ( i = 0; i < tools.length; i++ ) {
+		toolFactory.register( this.createTool.apply( this, tools[i] ) );
+	}
+	// Attach toolbar to container
+	this.$container.prepend( this.toolbar.$element );
+};
+
+/**
+ * Respond to play button click
+ * @returns {[type]} [description]
+ */
+sp.Gui.Module.ooui.prototype.onPlayButtonSelect = function () {
+	if ( this.scenario ) {
+		this.scenario.resume();
+	}
+	// TODO: Activate the pause button and disable self
+};
+
+/**
+ * Respond to pause button click
+ * @returns {[type]} [description]
+ */
+sp.Gui.Module.ooui.prototype.onPauseButtonSelect = function () {
+	if ( this.scenario ) {
+		this.scenario.pause();
+	}
+	// TODO: Activate the play button and disable self
+};
+/**
+ * Create a toolbar tool.
+ * Taken from the OOUI tools demo.
+ *
+ * @param {string} name Tool name
+ * @param {string} group Tool group
+ * @param {string} icon Tool icon
+ * @param {string} title Title or alternate text
+ * @param {Function} init Initialization function
+ * @param {Function} onSelect Activation function
+ * @returns {OO.ui.Tool} Tool
+ */
+sp.Gui.Module.ooui.prototype.createTool = function ( name, group, icon, title, init, onSelect ) {
+	var Tool = function () {
+		Tool.super.apply( this, arguments );
+		this.toggled = false;
+		if ( init ) {
+			init.call( this );
+		}
+	};
+
+	OO.inheritClass( Tool, OO.ui.Tool );
+
+	Tool.prototype.onSelect = function () {
+		if ( onSelect ) {
+			onSelect.call( this );
+		} else {
+			this.toggled = !this.toggled;
+			this.setActive( this.toggled );
+		}
+		this.toolbar.emit( 'updateState' );
+	};
+	Tool.prototype.onUpdateState = function () {};
+
+	Tool.static.name = name;
+	Tool.static.group = group;
+	Tool.static.icon = icon;
+	Tool.static.title = title;
+	return Tool;
 };
 
 /**
@@ -830,7 +1043,7 @@ sp.Scenario.Calculator.solveKepler = function ( vars, jd ) {
 /**
  * Celestial object, defines a moving object in space.
  *
- * @class
+ * @class sp.Scenario.CelestialObject
  * @mixins OO.EventEmitter
  *
  * @param {Object} config Celestial object definition

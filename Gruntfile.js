@@ -1,5 +1,5 @@
 /*global module:false*/
-module.exports = function(grunt) {
+module.exports = function ( grunt ) {
 
   // Project configuration.
   grunt.initConfig({
@@ -50,9 +50,6 @@ module.exports = function(grunt) {
           'src/**/*.js'
         ],
         dest: 'docs'
-//        options: {
-//          '--title': 'SolarPlayground Documentation'
-//        }
       }
     }
     // TODO: QUnit tests

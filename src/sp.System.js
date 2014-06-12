@@ -1,7 +1,7 @@
 /**
  * Solar Playground system
  *
- * @class
+ * @class sp.System
  * @mixins OO.EventEmitter
  *
  * @param {Object} [config] Configuration object
@@ -33,21 +33,29 @@ sp.System = function SpSystemInitialize( config ) {
 	this.$container = $( this.config.container )
 		.addClass( 'sp-system-container' )
 
-	this.$spinner = $( '<div>' )
-		.addClass( 'sp-system-spinner' )
-		.appendTo( this.$container );
-
 	this.$canvas = $( '<canvas>' )
 		.addClass( 'sp-system-canvas' )
 		.attr( 'width', this.config.width )
 		.attr( 'height', this.config.height )
 		.appendTo( this.$container );
 
-	this.$spinner.hide().detach();
+	this.gui = new sp.Gui.Loader( {
+		'module': 'ooui',
+		'$container': this.$container
+	} );
+	this.gui.initialize();
 };
 
 /* Inheritance */
 OO.mixinClass( sp.System, OO.EventEmitter );
+
+/* Events */
+
+/**
+ * @event scenarioLoaded
+ * @param {sp.Scenario} scenario Reference to the loaded scenario
+ * Scenario fully loaded and ready to be run.
+ */
 
 /* Methods */
 
@@ -77,13 +85,19 @@ sp.System.prototype.load = function ( scenarioName ) {
 /**
  * Load and run a scenario
  * @param {Object} scenarioObject Scenario configuration object
+ * @fires scenarioLoaded
  */
 sp.System.prototype.loadScenario = function ( scenarioObject ) {
 	scenarioObject = scenarioObject || {};
 
 	this.scenario = new sp.Scenario( this.$canvas, scenarioObject );
+	// Link scenario to GUI
+	this.gui.setScenario( this.scenario );
 
-	this.scenario.run();
+	// Draw initial frame
+	this.scenario.draw( 0 );
+
+	this.emit( 'scenarioLoaded', this.scenario );
 };
 
 /**

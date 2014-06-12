@@ -2,7 +2,7 @@
  * Solar Playground viewpoint controller.
  * Controls the presentation of the objects on the canvas.
  *
- * @class
+ * @class sp.Viewpoint
  * @mixins OO.EventEmitter
  *
  * @param {Object} [config] Configuration object

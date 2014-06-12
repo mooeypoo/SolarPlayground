@@ -1,7 +1,7 @@
 /**
  * Celestial object, defines a moving object in space.
  *
- * @class
+ * @class sp.Scenario.CelestialObject
  * @mixins OO.EventEmitter
  *
  * @param {Object} config Celestial object definition

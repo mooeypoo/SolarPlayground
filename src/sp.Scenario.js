@@ -1,7 +1,7 @@
 /**
  * Solar playground scenario container
  *
- * @class
+ * @class sp.Scenario
  * @mixins OO.EventEmitter
  *
  * @param {JQuery} $canvas Target canvas for the scenario
@@ -21,7 +21,7 @@ sp.Scenario = function SpScenario( $canvas, scenario ) {
 	this.$canvas = $canvas;
 	this.context = $canvas[0].getContext( '2d' );
 
-	this.paused = false;
+	this.paused = true;
 	this.objects = {};
 
 	// Prepare general configuration
@@ -57,6 +57,12 @@ sp.Scenario = function SpScenario( $canvas, scenario ) {
 
 /* Inheritance */
 OO.mixinClass( sp.Scenario, OO.EventEmitter );
+
+/**
+ * @event paused
+ * @param {boolean} [isPaused] Paused or resumed
+ * Change in pause/resume state
+ */
 
 /**
  * Process the solar playground simulator objects
@@ -227,11 +233,18 @@ sp.Scenario.prototype.run = function () {
 /**
  * Toggle between pause and resume the scenario
  * @param {boolean} [isPause] Optional. If supplied, pauses or resumes the scenario
+ * @fires paused
  */
 sp.Scenario.prototype.togglePaused = function ( isPause ) {
-	isPause = !!isPause || !this.paused;
+	if ( isPause === undefined ) {
+		isPause = !this.paused;
+	}
+	isPause = !!isPause;
+
 	this.paused = isPause;
 	this.run();
+
+	this.emit( 'paused', isPause );
 };
 
 /**
@@ -245,13 +258,13 @@ sp.Scenario.prototype.isPaused = function () {
  * Pause the scenario
  */
 sp.Scenario.prototype.pause = function () {
-	this.paused = true;
+	this.togglePaused( true );
 };
 
 /**
  * Resume the scenario
  */
 sp.Scenario.prototype.resume = function () {
-	this.paused = false;
+	this.togglePaused( false );
 	this.run();
 };
