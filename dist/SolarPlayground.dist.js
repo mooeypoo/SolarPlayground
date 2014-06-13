@@ -252,6 +252,8 @@ sp.Scenario.prototype.processObjects = function ( scenarioObjects ) {
 sp.Scenario.prototype.draw = function ( time ) {
 	var o, coords, viewpointCoords, view, radius, trails;
 
+	time = time || this.time;
+
 	for ( o in this.objects ) {
 		coords = this.objects[o].getSpaceCoordinates( time );
 
@@ -495,6 +497,10 @@ sp.System.prototype.onGuiPlay = function ( isPlay ) {
  */
 sp.System.prototype.onGuiZoom = function ( zoom ) {
 	this.scenario.zoom( zoom );
+	if ( this.isPaused() ) {
+		this.scenario.clearCanvas()
+		this.scenario.draw();
+	}
 };
 
 /**

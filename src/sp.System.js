@@ -78,6 +78,10 @@ sp.System.prototype.onGuiPlay = function ( isPlay ) {
  */
 sp.System.prototype.onGuiZoom = function ( zoom ) {
 	this.scenario.zoom( zoom );
+	if ( this.isPaused() ) {
+		this.scenario.clearCanvas()
+		this.scenario.draw();
+	}
 };
 
 /**

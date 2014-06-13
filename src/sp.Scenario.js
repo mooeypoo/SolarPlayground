@@ -114,6 +114,8 @@ sp.Scenario.prototype.processObjects = function ( scenarioObjects ) {
 sp.Scenario.prototype.draw = function ( time ) {
 	var o, coords, viewpointCoords, view, radius, trails;
 
+	time = time || this.time;
+
 	for ( o in this.objects ) {
 		coords = this.objects[o].getSpaceCoordinates( time );
 

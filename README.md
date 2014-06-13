@@ -6,6 +6,8 @@ This project is created as a graduate project. It is still being built, and is d
 
 Feel free to make suggestions by [posting them in an issue](https://github.com/mooeypoo/SolarPlayground/issues).
 
+For a quick demo (http://moriel.smarterthanthat.com/apps/SolarPlayground/)[click here].
+
 ### Introduction
 
 The movement and behaviour of celestial bodies in our solar system and our universe have always been a source of awe and inspiration, driving human curiosity and fuelling technological progress. The desire to learn about the way our universe behaves led to the development of solar system simulators that allow amateur and professional astronomers to explore these systems from the comfort of their own computers. This also allowed for theoretical experimentation, like simulation of complex celestial systems or testing the route of a theoretical spacecraft.
