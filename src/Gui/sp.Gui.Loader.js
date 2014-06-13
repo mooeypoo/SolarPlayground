@@ -35,6 +35,7 @@ OO.mixinClass( sp.Gui.Loader, OO.EventEmitter );
  * Create the GUI according to the ui module
  */
 sp.Gui.Loader.prototype.initialize = function () {
+	var module;
 	/// TODO: Use a factory instead of this quick and somewhat
 	/// lame 'switch' statement, so we can allow for proper
 	/// modules for the GUI, like jQueryUI or whatever else.
@@ -45,15 +46,7 @@ sp.Gui.Loader.prototype.initialize = function () {
 			break;
 	}
 
-	this.module.initialize( this.settings );
+	module = this.module.initialize( this.settings );
 	this.$spinner.hide();
-	return this.module;
-};
-
-/**
- * Connect the GUI module to the scenario it controls
- * @param {sp.Scenario} scenario The scenario object
- */
-sp.Gui.Loader.prototype.setScenario = function ( scenario ) {
-	this.module.setScenario( scenario );
+	return module;
 };

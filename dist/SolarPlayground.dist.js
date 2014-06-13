@@ -408,6 +408,14 @@ sp.Scenario.prototype.resume = function () {
 };
 
 /**
+ * Increase or decrease scenario zoom levels
+ * @param {number} z Zoom level, negative for zoom out
+ */
+sp.Scenario.prototype.zoom = function ( z ) {
+	this.viewpoint.setZoom( z );
+};
+
+/**
  * Solar Playground system
  *
  * @class sp.System
@@ -416,7 +424,7 @@ sp.Scenario.prototype.resume = function () {
  * @param {Object} [config] Configuration object
  */
 sp.System = function SpSystemInitialize( config ) {
-	var defaultConfig;
+	var defaultConfig, guiLoader;
 
 	// Mixin constructors
 	OO.EventEmitter.call( this );
@@ -449,15 +457,15 @@ sp.System = function SpSystemInitialize( config ) {
 		.appendTo( this.$container );
 
 	// Gui
-	this.gui = new sp.Gui.Loader( {
+	guiLoader = new sp.Gui.Loader( {
 		'module': 'ooui',
 		'$container': this.$container
 	} );
-	this.gui_module = this.gui.initialize();
-	this.toolbar = this.gui_module.getToolbar();
+	this.gui = guiLoader.initialize();
 
 	// Events
-	this.toolbar.connect( this, { 'play': 'onGuiPlay' } );
+	this.gui.connect( this, { 'play': 'onGuiPlay' } );
+	this.gui.connect( this, { 'zoom': 'onGuiZoom' } );
 };
 
 /* Inheritance */
@@ -479,6 +487,14 @@ OO.mixinClass( sp.System, OO.EventEmitter );
  */
 sp.System.prototype.onGuiPlay = function ( isPlay ) {
 	this.scenario.togglePaused( !isPlay );
+};
+
+/**
+ * Respond to zoom button press
+ * @param {Boolean} zoom Zoom level
+ */
+sp.System.prototype.onGuiZoom = function ( zoom ) {
+	this.scenario.zoom( zoom );
 };
 
 /**
@@ -685,9 +701,17 @@ sp.Viewpoint.prototype.getRadius = function ( orig_radius, type ) {
 		index = this.radii[type].length - 1;
 	}
 
-	radius = this.radii[type][ index ];
+	radius = Math.sqrt( this.radii[type][ index ] * this.zoom ) / 100;
 
 	return ( radius >= 2 ) ? radius : 2;
+};
+
+/**
+ * Increase or decrease scenario zoom levels
+ * @param {number} z Zoom level, negative for zoom out
+ */
+sp.Viewpoint.prototype.setZoom = function ( z ) {
+	this.zoom += z;
 };
 
 /**
@@ -727,6 +751,7 @@ OO.mixinClass( sp.Gui.Loader, OO.EventEmitter );
  * Create the GUI according to the ui module
  */
 sp.Gui.Loader.prototype.initialize = function () {
+	var module;
 	/// TODO: Use a factory instead of this quick and somewhat
 	/// lame 'switch' statement, so we can allow for proper
 	/// modules for the GUI, like jQueryUI or whatever else.
@@ -737,17 +762,9 @@ sp.Gui.Loader.prototype.initialize = function () {
 			break;
 	}
 
-	this.module.initialize( this.settings );
+	module = this.module.initialize( this.settings );
 	this.$spinner.hide();
-	return this.module;
-};
-
-/**
- * Connect the GUI module to the scenario it controls
- * @param {sp.Scenario} scenario The scenario object
- */
-sp.Gui.Loader.prototype.setScenario = function ( scenario ) {
-	this.module.setScenario( scenario );
+	return module;
 };
 
 /**
@@ -772,6 +789,7 @@ sp.Gui.Module.ooui = function SpGuiModuleOoui ( $container, config ) {
 
 	this.$container = $container;
 	this.scenario = null;
+	this.tools = {};
 };
 
 /* Inheritance */
@@ -785,8 +803,12 @@ sp.Gui.Module.ooui.prototype.setScenario = function ( scenario ) {
 	this.scenario = scenario;
 };
 
+/**
+ * Initialize the Gui
+ * @returns {OO.ui.Toolbar}
+ */
 sp.Gui.Module.ooui.prototype.initialize = function () {
-	var i, tools,
+	var i, tools, tname,
 		toolFactory = new OO.ui.ToolFactory(),
 		toolGroupFactory = new OO.ui.ToolGroupFactory();
 
@@ -796,28 +818,78 @@ sp.Gui.Module.ooui.prototype.initialize = function () {
 		{
 			'type': 'bar',
 			'include': [ { 'group': 'playTools' } ]
+		},
+		{
+			'type': 'bar',
+			'include': [ { 'group': 'viewTools' } ]
 		}
 	] );
 	this.toolbar.emit( 'updateState' );
 
 	// Create buttons for the toolbar
 	// TODO: Disable all buttons until the scenario is loaded
-	tools = [
+	tools = {
 		// playTools
-		[ 'playTool', 'playTools', 'check', 'Play scenario', null, this.onPlayButtonSelect ]
-//		[ 'pauseTool', 'playTools', 'close', 'Pause scenario', null, $.proxy( this.onPauseButtonSelect, this ) ]
-	];
+		'play': [ 'playTool', 'playTools', 'play', 'Play scenario', null, this.onPlayButtonSelect ],
+//		'pause': [ 'pauseTool', 'playTools', 'pause', 'Pause scenario', null, this.onPlayButtonSelect ],
+		// viewTools
+		'zoomin': [ 'zoominTool', 'viewTools', 'zoomin', 'Zoom in', null, this.onZoomInButtonSelect ],
+		'zoomout': [ 'zoomoutTool', 'viewTools', 'zoomout', 'Zoom out', null, this.onZoomOutButtonSelect ]
+	}
 
+	this.tools = {};
+	for ( tname in tools ) {
+		this.tools[tname] = this.createTool.apply( this, tools[tname] );
+		toolFactory.register( this.tools[tname] );
+	}
+/*
 	for ( i = 0; i < tools.length; i++ ) {
 		toolFactory.register( this.createTool.apply( this, tools[i] ) );
-	}
+	}*/
 	// Attach toolbar to container
 	this.$container.prepend( this.toolbar.$element );
+
+	// Events
+	this.toolbar.connect( this, { 'updateState': [ 'onToolbarEvent', 'updateToolbarState' ] } );
+	this.toolbar.connect( this, { 'play': [ 'onToolbarEvent', 'play' ] } );
+//	this.toolbar.connect( this, { 'pause': [ 'onToolbarEvent', 'pause' ] } );
+	this.toolbar.connect( this, { 'zoom': [ 'onToolbarEvent', 'zoom' ] } );
+
+	return this;
+};
+
+/**
+ * Propogate the event from the toolbar to the module.
+ * We want the system to listen to the module and not specific
+ * elements in it.
+ * @param {string} ev Type of event to emit
+ * @param {Object} [params] Parameters to attach to the event
+ */
+sp.Gui.Module.ooui.prototype.onToolbarEvent = function ( ev, params ) {
+	this.emit( ev, params );
+};
+
+/**
+ * Respond to zoom in button click
+ * @fires zoom
+ */
+sp.Gui.Module.ooui.prototype.onZoomInButtonSelect = function () {
+	this.setActive( false );
+	this.toolbar.emit( 'zoom', 1000 );
+};
+
+/**
+ * Respond to zoom in button click
+ * @fires zoom
+ */
+sp.Gui.Module.ooui.prototype.onZoomOutButtonSelect = function () {
+	this.setActive( false );
+	this.toolbar.emit( 'zoom', -1000 );
 };
 
 /**
  * Respond to play button click
- * @returns {[type]} [description]
+ * @fires play
  */
 sp.Gui.Module.ooui.prototype.onPlayButtonSelect = function () {
 	// TODO: Activate the pause button and disable self
@@ -837,7 +909,9 @@ sp.Gui.Module.ooui.prototype.getToolbar = function () {
 
 /**
  * Create a toolbar tool.
- * Taken from the OOUI tools demo.
+ * NOTE: Taken from the OOUI tools demo. This method should be adjusted
+ * to better suit this projects' needs, it is only used as-is at
+ * the moment for basic testing.
  *
  * @param {string} name Tool name
  * @param {string} group Tool group
@@ -848,7 +922,9 @@ sp.Gui.Module.ooui.prototype.getToolbar = function () {
  * @returns {OO.ui.Tool} Tool
  */
 sp.Gui.Module.ooui.prototype.createTool = function ( name, group, icon, title, init, onSelect ) {
-	var Tool = function () {
+	// TODO: The entire createTool method should be rewritten to
+	// better suit the needs of this particular toolbar
+	var Tool = function SpGuiTool() {
 		Tool.super.apply( this, arguments );
 		this.toggled = false;
 		if ( init ) {

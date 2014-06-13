@@ -14,6 +14,7 @@ sp.Gui.Module.ooui = function SpGuiModuleOoui ( $container, config ) {
 
 	this.$container = $container;
 	this.scenario = null;
+	this.tools = {};
 };
 
 /* Inheritance */
@@ -27,8 +28,12 @@ sp.Gui.Module.ooui.prototype.setScenario = function ( scenario ) {
 	this.scenario = scenario;
 };
 
+/**
+ * Initialize the Gui
+ * @returns {OO.ui.Toolbar}
+ */
 sp.Gui.Module.ooui.prototype.initialize = function () {
-	var i, tools,
+	var i, tools, tname,
 		toolFactory = new OO.ui.ToolFactory(),
 		toolGroupFactory = new OO.ui.ToolGroupFactory();
 
@@ -38,28 +43,78 @@ sp.Gui.Module.ooui.prototype.initialize = function () {
 		{
 			'type': 'bar',
 			'include': [ { 'group': 'playTools' } ]
+		},
+		{
+			'type': 'bar',
+			'include': [ { 'group': 'viewTools' } ]
 		}
 	] );
 	this.toolbar.emit( 'updateState' );
 
 	// Create buttons for the toolbar
 	// TODO: Disable all buttons until the scenario is loaded
-	tools = [
+	tools = {
 		// playTools
-		[ 'playTool', 'playTools', 'check', 'Play scenario', null, this.onPlayButtonSelect ]
-//		[ 'pauseTool', 'playTools', 'close', 'Pause scenario', null, $.proxy( this.onPauseButtonSelect, this ) ]
-	];
+		'play': [ 'playTool', 'playTools', 'play', 'Play scenario', null, this.onPlayButtonSelect ],
+//		'pause': [ 'pauseTool', 'playTools', 'pause', 'Pause scenario', null, this.onPlayButtonSelect ],
+		// viewTools
+		'zoomin': [ 'zoominTool', 'viewTools', 'zoomin', 'Zoom in', null, this.onZoomInButtonSelect ],
+		'zoomout': [ 'zoomoutTool', 'viewTools', 'zoomout', 'Zoom out', null, this.onZoomOutButtonSelect ]
+	}
 
+	this.tools = {};
+	for ( tname in tools ) {
+		this.tools[tname] = this.createTool.apply( this, tools[tname] );
+		toolFactory.register( this.tools[tname] );
+	}
+/*
 	for ( i = 0; i < tools.length; i++ ) {
 		toolFactory.register( this.createTool.apply( this, tools[i] ) );
-	}
+	}*/
 	// Attach toolbar to container
 	this.$container.prepend( this.toolbar.$element );
+
+	// Events
+	this.toolbar.connect( this, { 'updateState': [ 'onToolbarEvent', 'updateToolbarState' ] } );
+	this.toolbar.connect( this, { 'play': [ 'onToolbarEvent', 'play' ] } );
+//	this.toolbar.connect( this, { 'pause': [ 'onToolbarEvent', 'pause' ] } );
+	this.toolbar.connect( this, { 'zoom': [ 'onToolbarEvent', 'zoom' ] } );
+
+	return this;
+};
+
+/**
+ * Propogate the event from the toolbar to the module.
+ * We want the system to listen to the module and not specific
+ * elements in it.
+ * @param {string} ev Type of event to emit
+ * @param {Object} [params] Parameters to attach to the event
+ */
+sp.Gui.Module.ooui.prototype.onToolbarEvent = function ( ev, params ) {
+	this.emit( ev, params );
+};
+
+/**
+ * Respond to zoom in button click
+ * @fires zoom
+ */
+sp.Gui.Module.ooui.prototype.onZoomInButtonSelect = function () {
+	this.setActive( false );
+	this.toolbar.emit( 'zoom', 1000 );
+};
+
+/**
+ * Respond to zoom in button click
+ * @fires zoom
+ */
+sp.Gui.Module.ooui.prototype.onZoomOutButtonSelect = function () {
+	this.setActive( false );
+	this.toolbar.emit( 'zoom', -1000 );
 };
 
 /**
  * Respond to play button click
- * @returns {[type]} [description]
+ * @fires play
  */
 sp.Gui.Module.ooui.prototype.onPlayButtonSelect = function () {
 	// TODO: Activate the pause button and disable self
@@ -79,7 +134,9 @@ sp.Gui.Module.ooui.prototype.getToolbar = function () {
 
 /**
  * Create a toolbar tool.
- * Taken from the OOUI tools demo.
+ * NOTE: Taken from the OOUI tools demo. This method should be adjusted
+ * to better suit this projects' needs, it is only used as-is at
+ * the moment for basic testing.
  *
  * @param {string} name Tool name
  * @param {string} group Tool group
@@ -90,7 +147,9 @@ sp.Gui.Module.ooui.prototype.getToolbar = function () {
  * @returns {OO.ui.Tool} Tool
  */
 sp.Gui.Module.ooui.prototype.createTool = function ( name, group, icon, title, init, onSelect ) {
-	var Tool = function () {
+	// TODO: The entire createTool method should be rewritten to
+	// better suit the needs of this particular toolbar
+	var Tool = function SpGuiTool() {
 		Tool.super.apply( this, arguments );
 		this.toggled = false;
 		if ( init ) {

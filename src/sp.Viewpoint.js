@@ -134,7 +134,15 @@ sp.Viewpoint.prototype.getRadius = function ( orig_radius, type ) {
 		index = this.radii[type].length - 1;
 	}
 
-	radius = this.radii[type][ index ];
+	radius = Math.sqrt( this.radii[type][ index ] * this.zoom ) / 100;
 
 	return ( radius >= 2 ) ? radius : 2;
+};
+
+/**
+ * Increase or decrease scenario zoom levels
+ * @param {number} z Zoom level, negative for zoom out
+ */
+sp.Viewpoint.prototype.setZoom = function ( z ) {
+	this.zoom += z;
 };

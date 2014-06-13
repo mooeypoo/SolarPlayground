@@ -1,0 +1,17 @@
+
+/** Tools **/
+.oo-ui-icon-play {
+	background-image: url( 'images/play.png' );
+}
+
+.oo-ui-icon-pause {
+	background-image: url( 'images/pause.png' );
+}
+
+.oo-ui-icon-zoomin {
+	background-image: url( 'images/zoom_in.png' );
+}
+
+.oo-ui-icon-zoomout {
+	background-image: url( 'images/zoom_out.png' );
+}

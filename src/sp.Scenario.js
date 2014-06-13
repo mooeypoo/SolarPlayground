@@ -268,3 +268,11 @@ sp.Scenario.prototype.resume = function () {
 	this.togglePaused( false );
 	this.run();
 };
+
+/**
+ * Increase or decrease scenario zoom levels
+ * @param {number} z Zoom level, negative for zoom out
+ */
+sp.Scenario.prototype.zoom = function ( z ) {
+	this.viewpoint.setZoom( z );
+};

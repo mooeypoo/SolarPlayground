@@ -7,7 +7,7 @@
  * @param {Object} [config] Configuration object
  */
 sp.System = function SpSystemInitialize( config ) {
-	var defaultConfig;
+	var defaultConfig, guiLoader;
 
 	// Mixin constructors
 	OO.EventEmitter.call( this );
@@ -40,15 +40,15 @@ sp.System = function SpSystemInitialize( config ) {
 		.appendTo( this.$container );
 
 	// Gui
-	this.gui = new sp.Gui.Loader( {
+	guiLoader = new sp.Gui.Loader( {
 		'module': 'ooui',
 		'$container': this.$container
 	} );
-	this.gui_module = this.gui.initialize();
-	this.toolbar = this.gui_module.getToolbar();
+	this.gui = guiLoader.initialize();
 
 	// Events
-	this.toolbar.connect( this, { 'play': 'onGuiPlay' } );
+	this.gui.connect( this, { 'play': 'onGuiPlay' } );
+	this.gui.connect( this, { 'zoom': 'onGuiZoom' } );
 };
 
 /* Inheritance */
@@ -70,6 +70,14 @@ OO.mixinClass( sp.System, OO.EventEmitter );
  */
 sp.System.prototype.onGuiPlay = function ( isPlay ) {
 	this.scenario.togglePaused( !isPlay );
+};
+
+/**
+ * Respond to zoom button press
+ * @param {Boolean} zoom Zoom level
+ */
+sp.System.prototype.onGuiZoom = function ( zoom ) {
+	this.scenario.zoom( zoom );
 };
 
 /**
