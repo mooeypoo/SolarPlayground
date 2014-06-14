@@ -146,3 +146,39 @@ sp.Viewpoint.prototype.getRadius = function ( orig_radius, type ) {
 sp.Viewpoint.prototype.setZoom = function ( z ) {
 	this.zoom += z;
 };
+
+/**
+ * Set the canvas center point
+ * @param {number} x X coordinate of the center of the system
+ * @param {number} y Y coordinate of the center of the system
+ */
+sp.Viewpoint.prototype.setCenterPoint = function ( x, y ) {
+	x = x || this.centerPoint.x;
+	y = y || this.centerPoint.y;
+
+	this.centerPoint = {
+		'x': x,
+		'y': y
+	};
+};
+
+/**
+ * Get the current center point of the view
+ * @returns {Object} x/y coordinates of the current center point
+ */
+sp.Viewpoint.prototype.getCenterPoint = function () {
+	return this.centerPoint;
+};
+
+/**
+ * Add to the center point
+ * @param {number} [x] Amount to add to X coordinate
+ * @param {number} [y] Amount to add to Y coordinate
+ */
+sp.Viewpoint.prototype.addToCenterPoint = function ( x, y ) {
+	x = x || 0;
+	y = y || 0;
+
+	this.centerPoint.x += x;
+	this.centerPoint.y += y;
+};

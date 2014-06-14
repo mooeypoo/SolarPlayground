@@ -112,8 +112,9 @@ sp.Scenario.prototype.processObjects = function ( scenarioObjects ) {
 /**
  * Draw all elements
  * @param {number} time Time
+ * @param {boolean} ignoreTrails Ignore trails despite settings
  */
-sp.Scenario.prototype.draw = function ( time ) {
+sp.Scenario.prototype.draw = function ( time, ignoreTrails ) {
 	var o, coords, viewpointCoords, view, radius, trails;
 
 	time = time || this.time;
@@ -138,7 +139,7 @@ sp.Scenario.prototype.draw = function ( time ) {
 			radius = this.viewpoint.getRadius( this.objects[o].getRadius(), this.objects[o].getType() );
 
 			// Draw planet trails
-			if ( this.showTrails && o !== this.pov_key ) {
+			if ( !ignoreTrails && this.showTrails && o !== this.pov_key ) {
 				// Store trails
 				this.frameCounter++;
 				if ( this.frameCounter >= this.trailsFrameGap ) {
@@ -225,6 +226,16 @@ sp.Scenario.prototype.clearCanvas = function ( context, square ) {
 };
 
 /**
+ * Flush all trails from all objects
+ */
+sp.Scenario.prototype.flushAllTrails = function () {
+	var o;
+	for ( o in this.objects ) {
+		this.objects[o].flushTrailPoints()
+	}
+};
+
+/**
  * Run the scenario
  */
 sp.Scenario.prototype.run = function () {
@@ -295,4 +306,31 @@ sp.Scenario.prototype.resume = function () {
  */
 sp.Scenario.prototype.zoom = function ( z ) {
 	this.viewpoint.setZoom( z );
+	this.flushAllTrails();
+	if ( this.isPaused() ) {
+		this.clearCanvas();
+		this.draw( this.time, true );
+	}
+};
+
+/**
+ * Set the viewpoint's center point
+ * @param {number} x X coordinate of the center of the system
+ * @param {number} y Y coordinate of the center of the system
+ */
+sp.Scenario.prototype.setCenterPoint = function ( x, y ) {
+	this.viewpoint.setCenterPoint( x, y );
+	this.flushAllTrails();
+	if ( this.isPaused() ) {
+		this.clearCanvas();
+		this.draw( this.time, true );
+	}
+};
+
+/**
+ * Get the current center point of the view
+ * @returns {Object} x/y coordinates of the current center point
+ */
+sp.Scenario.prototype.getCenterPoint = function () {
+	return this.viewpoint.getCenterPoint();
 };

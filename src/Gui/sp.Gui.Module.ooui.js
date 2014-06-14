@@ -9,24 +9,36 @@
 sp.Gui.Module.ooui = function SpGuiModuleOoui ( $container, config ) {
 	config = config || {};
 
-	// Mixin constructors
-	OO.EventEmitter.call( this );
+	// Parent constructor
+	sp.Gui.Module.ooui.super.call( this, $container, config );
 
-	this.$container = $container;
-	this.scenario = null;
 	this.tools = {};
 };
 
 /* Inheritance */
-OO.mixinClass( sp.Gui.Module.ooui, OO.EventEmitter );
+OO.inheritClass( sp.Gui.Module.ooui, sp.Gui.Module.Base );
+
+/* Events */
 
 /**
- * Connect the GUI to the scenario it controls
- * @param {sp.Scenario} scenario The scenario object this GUI controls
+ * Play or pause scenario
+ * @event play
+ * @param {boolean} isPlay Play scenario or pause
  */
-sp.Gui.Module.ooui.prototype.setScenario = function ( scenario ) {
-	this.scenario = scenario;
-};
+
+/**
+ * Zoom in or out
+ * @event zoom
+ * @param {number} zoomLevel How much to zoom. Negative to zoom out.
+ */
+
+/**
+ * Change point of view object
+ * @event pov
+ * @param {string} povObjName New POV object name or key
+ */
+
+/* Methods */
 
 /**
  * Initialize the Gui

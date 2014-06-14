@@ -250,8 +250,9 @@ sp.Scenario.prototype.processObjects = function ( scenarioObjects ) {
 /**
  * Draw all elements
  * @param {number} time Time
+ * @param {boolean} ignoreTrails Ignore trails despite settings
  */
-sp.Scenario.prototype.draw = function ( time ) {
+sp.Scenario.prototype.draw = function ( time, ignoreTrails ) {
 	var o, coords, viewpointCoords, view, radius, trails;
 
 	time = time || this.time;
@@ -276,7 +277,7 @@ sp.Scenario.prototype.draw = function ( time ) {
 			radius = this.viewpoint.getRadius( this.objects[o].getRadius(), this.objects[o].getType() );
 
 			// Draw planet trails
-			if ( this.showTrails && o !== this.pov_key ) {
+			if ( !ignoreTrails && this.showTrails && o !== this.pov_key ) {
 				// Store trails
 				this.frameCounter++;
 				if ( this.frameCounter >= this.trailsFrameGap ) {
@@ -363,6 +364,16 @@ sp.Scenario.prototype.clearCanvas = function ( context, square ) {
 };
 
 /**
+ * Flush all trails from all objects
+ */
+sp.Scenario.prototype.flushAllTrails = function () {
+	var o;
+	for ( o in this.objects ) {
+		this.objects[o].flushTrailPoints()
+	}
+};
+
+/**
  * Run the scenario
  */
 sp.Scenario.prototype.run = function () {
@@ -433,6 +444,33 @@ sp.Scenario.prototype.resume = function () {
  */
 sp.Scenario.prototype.zoom = function ( z ) {
 	this.viewpoint.setZoom( z );
+	this.flushAllTrails();
+	if ( this.isPaused() ) {
+		this.clearCanvas();
+		this.draw( this.time, true );
+	}
+};
+
+/**
+ * Set the viewpoint's center point
+ * @param {number} x X coordinate of the center of the system
+ * @param {number} y Y coordinate of the center of the system
+ */
+sp.Scenario.prototype.setCenterPoint = function ( x, y ) {
+	this.viewpoint.setCenterPoint( x, y );
+	this.flushAllTrails();
+	if ( this.isPaused() ) {
+		this.clearCanvas();
+		this.draw( this.time, true );
+	}
+};
+
+/**
+ * Get the current center point of the view
+ * @returns {Object} x/y coordinates of the current center point
+ */
+sp.Scenario.prototype.getCenterPoint = function () {
+	return this.viewpoint.getCenterPoint();
 };
 
 /**
@@ -483,7 +521,14 @@ sp.System = function SpSystemInitialize( config ) {
 	} );
 	this.gui = guiLoader.initialize();
 
+	this.canvasMoving = false;
+
 	// Events
+	this.$canvas.on( 'mousedown', $.proxy( this.onCanvasMouseDown, this ) );
+	this.$canvas.on( 'mousemove', $.proxy( this.onCanvasMouseMove, this ) );
+	this.$canvas.on( 'mouseup', $.proxy( this.onCanvasMouseUp, this ) );
+	this.$canvas.on( 'mouseout', $.proxy( this.onCanvasMouseUp, this ) );
+
 	this.gui.connect( this, { 'play': 'onGuiPlay' } );
 	this.gui.connect( this, { 'zoom': 'onGuiZoom' } );
 };
@@ -519,6 +564,51 @@ sp.System.prototype.onGuiZoom = function ( zoom ) {
 		this.scenario.clearCanvas()
 		this.scenario.draw();
 	}
+};
+
+/**
+ * Respond to mouse down event
+ * @param {Event} e Event
+ * @return {boolean} False
+ */
+sp.System.prototype.onCanvasMouseDown = function ( e ) {
+	this.canvasMoving = true;
+	this.canvasCenter = this.scenario.getCenterPoint();
+	this.mouseStartingPoint = {
+		'x': e.pageX,
+		'y': e.pageY
+	};
+	return false;
+};
+
+/**
+ * Respond to mouse move event
+ * @param {Event} e Event
+ * @return {boolean} False
+ */
+sp.System.prototype.onCanvasMouseMove = function ( e ) {
+	var dx, dy;
+	if ( this.canvasMoving ) {
+		dx = e.pageX - this.mouseStartingPoint.x;
+		dy = e.pageY - this.mouseStartingPoint.y;
+		this.scenario.setCenterPoint(
+			this.canvasCenter.x + dx,
+			this.canvasCenter.y + dy
+		);
+	}
+	return false;
+};
+
+/**
+ * Respond to mouse up event
+ * @param {Event} e Event
+ * @return {boolean} False
+ */
+sp.System.prototype.onCanvasMouseUp = function ( e ) {
+	this.canvasMoving = false;
+	this.canvasCenter = {};
+	this.mouseStartingPoint = {};
+	return false;
 };
 
 /**
@@ -757,6 +847,48 @@ sp.Viewpoint.prototype.setZoom = function ( z ) {
 };
 
 /**
+ * Set the canvas center point
+ * @param {number} x X coordinate of the center of the system
+ * @param {number} y Y coordinate of the center of the system
+ */
+sp.Viewpoint.prototype.setCenterPoint = function ( x, y ) {
+	x = x || this.centerPoint.x;
+	y = y || this.centerPoint.y;
+
+	this.centerPoint = {
+		'x': x,
+		'y': y
+	};
+};
+
+/**
+ * Get the current center point of the view
+ * @returns {Object} x/y coordinates of the current center point
+ */
+sp.Viewpoint.prototype.getCenterPoint = function () {
+	return this.centerPoint;
+};
+
+/**
+ * Add to the center point
+ * @param {number} [x] Amount to add to X coordinate
+ * @param {number} [y] Amount to add to Y coordinate
+ */
+sp.Viewpoint.prototype.addToCenterPoint = function ( x, y ) {
+	x = x || 0;
+	y = y || 0;
+
+	this.centerPoint.x += x;
+	this.centerPoint.y += y;
+};
+
+/**
+ * SolarPlaground GUI Modules
+ * @property {Object}
+ */
+sp.Gui.Module = {};
+
+/**
  * Gui Loader. Creates the gui to be attached to
  * the SolarPlayground container.
  *
@@ -810,10 +942,77 @@ sp.Gui.Loader.prototype.initialize = function () {
 };
 
 /**
- * SolarPlaground GUI Modules
- * @property {Object}
+ * General Gui module
+ *
+ * @class sp.Gui.Module.Base
+ * @abstract
+ *
+ * @param {jQuery} $container The container to attach the GUI to
+ * @param {Object} [config] Gui module definition
  */
-sp.Gui.Module = {};
+sp.Gui.Module.Base = function SpGuiModuleOoui ( $container, config ) {
+	config = config || {};
+
+	// Mixin constructors
+	OO.EventEmitter.call( this );
+
+	this.$container = $container;
+
+	this.scenario = null;
+};
+
+/* Inheritance */
+OO.mixinClass( sp.Gui.Module.Base, OO.EventEmitter );
+
+/* Events */
+
+/**
+ * Play or pause scenario
+ * @event play
+ * @param {boolean} isPlay Play scenario or pause
+ */
+
+/**
+ * Zoom in or out
+ * @event zoom
+ * @param {number} zoomLevel How much to zoom. Negative to zoom out.
+ */
+
+/**
+ * Change point of view object
+ * @event pov
+ * @param {string} povObjName New POV object name or key
+ */
+
+/* Methods */
+
+/**
+ * Connect the GUI to the scenario it controls
+ * @param {sp.Scenario} scenario The scenario object this GUI controls
+ */
+sp.Gui.Module.Base.prototype.setScenario = function ( scenario ) {
+	this.scenario = scenario;
+};
+
+/**
+ * Initialize the Gui
+ * @abstract
+ * @returns {OO.ui.Toolbar}
+ */
+sp.Gui.Module.Base.prototype.initialize = function () {
+	throw new Error( 'sp.Gui.Module.Initialize must be implemented in child class.' );
+};
+
+/**
+ * Add a tool to the POV list
+ * @abstract
+ * @param {string} name Tool name
+ * @param {string} title Title or alternate text
+ * @param {string} [icon] Tool icon
+ */
+sp.Gui.Module.Base.prototype.addToPOVList = function ( name, title, icon ) {
+	throw new Error( 'sp.Gui.Module.addToPOVList must be implemented in child class.' );
+};
 
 /**
  * OOUI Gui module
@@ -826,24 +1025,36 @@ sp.Gui.Module = {};
 sp.Gui.Module.ooui = function SpGuiModuleOoui ( $container, config ) {
 	config = config || {};
 
-	// Mixin constructors
-	OO.EventEmitter.call( this );
+	// Parent constructor
+	sp.Gui.Module.ooui.super.call( this, $container, config );
 
-	this.$container = $container;
-	this.scenario = null;
 	this.tools = {};
 };
 
 /* Inheritance */
-OO.mixinClass( sp.Gui.Module.ooui, OO.EventEmitter );
+OO.inheritClass( sp.Gui.Module.ooui, sp.Gui.Module.Base );
+
+/* Events */
 
 /**
- * Connect the GUI to the scenario it controls
- * @param {sp.Scenario} scenario The scenario object this GUI controls
+ * Play or pause scenario
+ * @event play
+ * @param {boolean} isPlay Play scenario or pause
  */
-sp.Gui.Module.ooui.prototype.setScenario = function ( scenario ) {
-	this.scenario = scenario;
-};
+
+/**
+ * Zoom in or out
+ * @event zoom
+ * @param {number} zoomLevel How much to zoom. Negative to zoom out.
+ */
+
+/**
+ * Change point of view object
+ * @event pov
+ * @param {string} povObjName New POV object name or key
+ */
+
+/* Methods */
 
 /**
  * Initialize the Gui
@@ -1321,6 +1532,14 @@ sp.Scenario.CelestialObject.prototype.storeTrailPoint = function ( coordinates )
  */
 sp.Scenario.CelestialObject.prototype.getTrailPoints = function () {
 	return this.trails;
+};
+
+/**
+ * Flush the trails queue completely.
+ */
+sp.Scenario.CelestialObject.prototype.flushTrailPoints = function () {
+	this.trails = [];
+	this.frameCounter = 0;
 };
 
 /**

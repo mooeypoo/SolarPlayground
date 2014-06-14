@@ -46,7 +46,14 @@ sp.System = function SpSystemInitialize( config ) {
 	} );
 	this.gui = guiLoader.initialize();
 
+	this.canvasMoving = false;
+
 	// Events
+	this.$canvas.on( 'mousedown', $.proxy( this.onCanvasMouseDown, this ) );
+	this.$canvas.on( 'mousemove', $.proxy( this.onCanvasMouseMove, this ) );
+	this.$canvas.on( 'mouseup', $.proxy( this.onCanvasMouseUp, this ) );
+	this.$canvas.on( 'mouseout', $.proxy( this.onCanvasMouseUp, this ) );
+
 	this.gui.connect( this, { 'play': 'onGuiPlay' } );
 	this.gui.connect( this, { 'zoom': 'onGuiZoom' } );
 };
@@ -82,6 +89,51 @@ sp.System.prototype.onGuiZoom = function ( zoom ) {
 		this.scenario.clearCanvas()
 		this.scenario.draw();
 	}
+};
+
+/**
+ * Respond to mouse down event
+ * @param {Event} e Event
+ * @return {boolean} False
+ */
+sp.System.prototype.onCanvasMouseDown = function ( e ) {
+	this.canvasMoving = true;
+	this.canvasCenter = this.scenario.getCenterPoint();
+	this.mouseStartingPoint = {
+		'x': e.pageX,
+		'y': e.pageY
+	};
+	return false;
+};
+
+/**
+ * Respond to mouse move event
+ * @param {Event} e Event
+ * @return {boolean} False
+ */
+sp.System.prototype.onCanvasMouseMove = function ( e ) {
+	var dx, dy;
+	if ( this.canvasMoving ) {
+		dx = e.pageX - this.mouseStartingPoint.x;
+		dy = e.pageY - this.mouseStartingPoint.y;
+		this.scenario.setCenterPoint(
+			this.canvasCenter.x + dx,
+			this.canvasCenter.y + dy
+		);
+	}
+	return false;
+};
+
+/**
+ * Respond to mouse up event
+ * @param {Event} e Event
+ * @return {boolean} False
+ */
+sp.System.prototype.onCanvasMouseUp = function ( e ) {
+	this.canvasMoving = false;
+	this.canvasCenter = {};
+	this.mouseStartingPoint = {};
+	return false;
 };
 
 /**

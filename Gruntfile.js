@@ -10,6 +10,11 @@ module.exports = function ( grunt ) {
       dist: {
         src: [
           'src/sp.js',
+          'src/sp.Gui.js',
+          'src/sp.Scenario.js',
+          'src/sp.System.js',
+          'src/sp.Viewpoint.js',
+          'src/Gui/sp.Gui.Module.js',
           'src/*.js',
           'src/**/*.js'
         ],

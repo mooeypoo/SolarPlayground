@@ -101,6 +101,14 @@ sp.Scenario.CelestialObject.prototype.getTrailPoints = function () {
 };
 
 /**
+ * Flush the trails queue completely.
+ */
+sp.Scenario.CelestialObject.prototype.flushTrailPoints = function () {
+	this.trails = [];
+	this.frameCounter = 0;
+};
+
+/**
  * Get object type
  * @returns {string} Celestial object type, 'star' or 'planet'
  */
