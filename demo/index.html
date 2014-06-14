@@ -35,18 +35,31 @@
             $( document ).ready( function() {
                 var paused = false;
 
-                playground = new sp.System( {
+                playground = new sp.System();
+
+                playground.setContainer( 'sp_container_1', {
                     'width': 800,
                     'height': 600
                 } );
-                playground.load( 'example' );
+                playground.setContainer( 'sp_container_2', {
+                    'width': 400,
+                    'height': 400
+                } );
+
+                playground.getContainer( 'sp_container_1' ).loadFromFile( 'geocentric' );
+
+                scenarioObj = {};
+                playground.getContainer( 'sp_container_2' ).loadFromFile( 'heliocentric' );
+//                playground.getContainer( 'sp_container_2' ).loadFromObject( scenarioObj );
 
             } );
 
         </script>
 
-        <h1>Solar Playground Demo</h1>
-
-        <div id="solarSystem"></div>
+        <h1>Solar Playground Demo (v0.1-alpha)</h1>
+        <p>By Moriel Schottlender</p>
+        <h2>Geocentric vs Heliocentric</h2>
+        <div id="sp_container_1"></div>
+        <div id="sp_container_2"></div>
     </body>
 </html>

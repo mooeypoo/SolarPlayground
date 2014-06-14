@@ -7,11 +7,10 @@
  * @param {Object} [config] Configuration object
  */
 sp.Container = function SpContainer( config ) {
-	config = config || {};
-
 	// Mixin constructors
 	OO.EventEmitter.call( this );
 
+	this.config = config || {};
 	this.scenario = null;
 
 	// Initialize
@@ -24,9 +23,20 @@ sp.Container = function SpContainer( config ) {
 		.attr( 'height', config.height )
 		.appendTo( this.$container );
 
+	// Gui
+	guiLoader = new sp.Gui.Loader( {
+		'module': 'ooui',
+		'container': this
+	} );
+	this.gui = guiLoader.initialize();
+
 	this.canvasMouseMoving = false;
 	this.canvasMouseStartPosition = {};
+
 	// Events
+	this.gui.connect( this, { 'play': 'onGuiPlay' } );
+	this.gui.connect( this, { 'zoom': 'onGuiZoom' } );
+
 	this.$canvas.on( 'mousedown', $.proxy( this.onCanvasMouseDown, this ) );
 	this.$canvas.on( 'mousemove', $.proxy( this.onCanvasMouseMove, this ) );
 	this.$canvas.on( 'mouseup', $.proxy( this.onCanvasMouseUp, this ) );
@@ -35,6 +45,86 @@ sp.Container = function SpContainer( config ) {
 
 /* Inheritance */
 OO.mixinClass( sp.Container, OO.EventEmitter );
+
+/**
+ * @event scenarioLoaded
+ * @param {sp.Scenario} scenario Reference to the loaded scenario
+ * Scenario fully loaded and ready to be run.
+ */
+
+/* Methods */
+
+/**
+ * Load a scenario
+ * @param {String} scenarioName Scenario name. The system will search for
+ *  an ajax response from source 'scenario.[name].json' in the scenario
+ *  directory.
+ */
+sp.Container.prototype.loadFromFile = function ( scenarioName ) {
+	var targetName,
+		targetDir = this.config.scenario_dir + this.config.directory_sep;
+
+	scenarioName = scenarioName || 'example';
+	targetName = 'scenario.' + scenarioName + '.json';
+
+	$.getJSON( targetDir + targetName )
+		.done( $.proxy( function ( response ) {
+			// Load the scenario
+			this.loadFromObject( response );
+		}, this ) )
+		.fail( function () {
+			sp.log( 'Error', 'Scenario ' + targetName + ' not found in directory "' + targetDir + '"' );
+		} );
+};
+
+/**
+ * Load and run a scenario
+ * @param {Object} scenarioObject Scenario configuration object
+ * @fires scenarioLoaded
+ */
+sp.Container.prototype.loadFromObject = function ( scenarioObject ) {
+	var objList;
+
+	scenarioObject = scenarioObject || {};
+
+	this.scenario = new sp.Scenario( this, scenarioObject );
+	// Link scenario to GUI
+	this.gui.setScenario( this.scenario );
+
+	// Draw initial frame
+	this.scenario.draw( 0 );
+
+	// Add pov objects to gui
+	objList = this.scenario.getAllObjects();
+	for ( o in objList ) {
+		this.gui.addToPOVList(
+			o,
+			objList[o].getName()
+		);
+	}
+
+	this.emit( 'scenarioLoaded', this.scenario );
+};
+
+/**
+ * Respond to play button press
+ * @param {Boolean} isPlay Play or pause
+ */
+sp.Container.prototype.onGuiPlay = function ( isPlay ) {
+	this.scenario.togglePaused( !isPlay );
+};
+
+/**
+ * Respond to zoom button press
+ * @param {Boolean} zoom Zoom level
+ */
+sp.Container.prototype.onGuiZoom = function ( zoom ) {
+	this.scenario.zoom( zoom );
+	if ( this.isPaused() ) {
+		this.scenario.clearCanvas()
+		this.scenario.draw();
+	}
+};
 
 /**
  * Propogate canvas mousedown event
@@ -53,19 +143,23 @@ sp.Container.prototype.onCanvasMouseDown = function ( e ) {
 };
 
 /**
- * Propogate canvas mousemove event
+ * Respond to canvas mouse move
  * @param {Event} e Event
  * @fires canvasdrag
  */
 sp.Container.prototype.onCanvasMouseMove = function ( e ) {
 	if ( this.canvasMouseMoving && !$.isEmptyObject( this.mouseStartingPoint ) ) {
-		this.emit(
-			'canvasdrag',
-			e.pageX,
-			e.pageY,
-			this.mouseStartingPoint,
-			this.scenarioCenterPoint
+		dx = e.pageX - this.mouseStartingPoint.x;
+		dy = e.pageY - this.mouseStartingPoint.y;
+
+		this.scenario.setCenterPoint(
+			dx + this.scenarioCenterPoint.x,
+			dy + this.scenarioCenterPoint.y
 		);
+
+		this.scenario.flushAllTrails();
+		this.scenario.clearCanvas();
+		this.scenario.draw();
 	}
 };
 
@@ -119,4 +213,19 @@ sp.Container.prototype.getCanvasDimensions = function () {
  */
 sp.Container.prototype.attachScenario = function ( s ) {
 	this.scenario = s;
+};
+
+/**
+ * Toggle between pause and resume the scenario
+ * @param {boolean} [isPause] Optional. If supplied, pauses or resumes the scenario
+ */
+sp.Container.prototype.togglePaused = function ( isPause ) {
+	this.scenario.togglePaused( isPause );
+};
+
+/**
+ * Check whether the scenario is paused
+ */
+sp.Container.prototype.isPaused = function () {
+	return this.scenario.isPaused();
 };
