@@ -4,11 +4,11 @@
  * @class sp.Scenario
  * @mixins OO.EventEmitter
  *
- * @param {JQuery} $canvas Target canvas for the scenario
+ * @param {sp.Container} container Target container for the scenario
  * @param {Object} scenario Scenario configuration object
  */
-sp.Scenario = function SpScenario( $canvas, scenario ) {
-	var objects;
+sp.Scenario = function SpScenario( container, scenario ) {
+	var objects, centerPt;
 
 	// Mixin constructors
 	OO.EventEmitter.call( this );
@@ -16,10 +16,8 @@ sp.Scenario = function SpScenario( $canvas, scenario ) {
 	// TODO: Validate the scenario object to make sure all required
 	// elements exist.
 
-	// TODO: Create another canvas for trails so we can visualize the
-	// orbits with trails that remain for a bit on the screen
-	this.$canvas = $canvas;
-	this.context = $canvas[0].getContext( '2d' );
+	this.container = container;
+	this.context = this.container.getContext();
 
 	this.paused = true;
 	this.objects = {};
@@ -28,11 +26,12 @@ sp.Scenario = function SpScenario( $canvas, scenario ) {
 	this.config = scenario.config || {};
 
 	// Viewpoint controller
+	centerPt = this.container.getCanvasDimensions();
 	this.viewpoint = new sp.Viewpoint( {
 		'zoom': this.config.init_zoom || 1,
 		'centerPoint': {
-			x: this.$canvas.width() / 2,
-			y: this.$canvas.height() / 2
+			x: centerPt.width / 2,
+			y: centerPt.height / 2
 		},
 		'yaw': 0,
 		'pitch': 0,
@@ -203,7 +202,7 @@ sp.Scenario.prototype.drawCircle = function ( context, coords, radius, color, ha
 
 /**
  * Clear an area on the canvas
- * @param {Object} context Canvas context object
+ * @param {Object} [context] Canvas context object
  * @param {number} [square] Dimensions and coordinates of the square
  * to clear
  * @param {number} [square.top] Top coordinate of the square
@@ -212,14 +211,15 @@ sp.Scenario.prototype.drawCircle = function ( context, coords, radius, color, ha
  * @param {number} [square.height] Height of the square
  */
 sp.Scenario.prototype.clearCanvas = function ( context, square ) {
-	context = this.context;
+	var canvasDimensions = this.container.getCanvasDimensions();
+	context = context || this.context;
 	square = square || {};
 
 	// Fix optional values:
 	square.left = square.left || 0;
 	square.top = square.top || 0;
-	square.width = square.width || this.$canvas.width();
-	square.height = square.height || this.$canvas.height();
+	square.width = square.width || canvasDimensions.width;
+	square.height = square.height || canvasDimensions.height;
 
 	// Erase the square
 	context.clearRect( square.left, square.top, square.width, square.height );
@@ -334,3 +334,12 @@ sp.Scenario.prototype.setCenterPoint = function ( x, y ) {
 sp.Scenario.prototype.getCenterPoint = function () {
 	return this.viewpoint.getCenterPoint();
 };
+
+/**
+ * Add to the center point
+ * @param {number} [x] Amount to add to X coordinate
+ * @param {number} [y] Amount to add to Y coordinate
+ */
+sp.Scenario.prototype.addToCenterPoint = function ( x, y ) {
+	this.viewpoint.addToCenterPoint( x, y );
+}

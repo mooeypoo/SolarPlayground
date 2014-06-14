@@ -1,10 +1,10 @@
-.sp-system-container {
+.sp-container {
 	background-color: #111111;
 	border: 2px solid #000000;
 	display: inline-block;
 }
 
-.sp-system-spinner {
+.sp-container-spinner {
 	background-image: url( 'images/loader.gif' );
 	width: 128px;
 	height: 15px;
@@ -14,7 +14,7 @@
 	margin-right: auto;
 }
 
-.sp-system-canvas {
+.sp-container-canvas {
 	width: 100%;
 	height: 100%;
 }

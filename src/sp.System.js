@@ -19,7 +19,7 @@ sp.System = function SpSystemInitialize( config ) {
 	config = config || {};
 
 	defaultConfig = {
-		container: '#solarSystem',
+//		container: '#solarSystem',
 		scenario_dir: 'scenarios', // Default directory unless otherwise specified
 		directory_sep: '/',
 		width: $( window ).width() - 100,
@@ -30,29 +30,21 @@ sp.System = function SpSystemInitialize( config ) {
 	this.config = $.extend( true, defaultConfig, config );
 
 	// Initialize
-	this.$container = $( this.config.container )
-		.addClass( 'sp-system-container' )
-
-	this.$canvas = $( '<canvas>' )
-		.addClass( 'sp-system-canvas' )
-		.attr( 'width', this.config.width )
-		.attr( 'height', this.config.height )
-		.appendTo( this.$container );
+	this.container = new sp.Container( {
+		'container': this.config.container || '#solarSystem',
+		'width': this.config.width,
+		'height': this.config.height
+	} );
 
 	// Gui
 	guiLoader = new sp.Gui.Loader( {
 		'module': 'ooui',
-		'$container': this.$container
+		'container': this.container
 	} );
 	this.gui = guiLoader.initialize();
 
-	this.canvasMoving = false;
-
 	// Events
-	this.$canvas.on( 'mousedown', $.proxy( this.onCanvasMouseDown, this ) );
-	this.$canvas.on( 'mousemove', $.proxy( this.onCanvasMouseMove, this ) );
-	this.$canvas.on( 'mouseup', $.proxy( this.onCanvasMouseUp, this ) );
-	this.$canvas.on( 'mouseout', $.proxy( this.onCanvasMouseUp, this ) );
+	this.container.connect( this, { 'canvasdrag': 'onCanvasDrag' } );
 
 	this.gui.connect( this, { 'play': 'onGuiPlay' } );
 	this.gui.connect( this, { 'zoom': 'onGuiZoom' } );
@@ -92,47 +84,28 @@ sp.System.prototype.onGuiZoom = function ( zoom ) {
 };
 
 /**
- * Respond to mouse down event
- * @param {Event} e Event
+ * Respond to canvas drag event
+ * @param {number} pageX X coordinate of the mouse
+ * @param {number} pageY Y coordinate of the mouse
+ * @param {Object} dragStartPos The starting position of the mouse
+ *  in the beginning of the drag event
+ * @param {Object} originalCenterPt The original canvas center point
  * @return {boolean} False
  */
-sp.System.prototype.onCanvasMouseDown = function ( e ) {
-	this.canvasMoving = true;
-	this.canvasCenter = this.scenario.getCenterPoint();
-	this.mouseStartingPoint = {
-		'x': e.pageX,
-		'y': e.pageY
-	};
-	return false;
-};
-
-/**
- * Respond to mouse move event
- * @param {Event} e Event
- * @return {boolean} False
- */
-sp.System.prototype.onCanvasMouseMove = function ( e ) {
+sp.System.prototype.onCanvasDrag = function ( pageX, pageY, dragStartPos, originalCenterPt ) {
 	var dx, dy;
-	if ( this.canvasMoving ) {
-		dx = e.pageX - this.mouseStartingPoint.x;
-		dy = e.pageY - this.mouseStartingPoint.y;
-		this.scenario.setCenterPoint(
-			this.canvasCenter.x + dx,
-			this.canvasCenter.y + dy
-		);
-	}
-	return false;
-};
 
-/**
- * Respond to mouse up event
- * @param {Event} e Event
- * @return {boolean} False
- */
-sp.System.prototype.onCanvasMouseUp = function ( e ) {
-	this.canvasMoving = false;
-	this.canvasCenter = {};
-	this.mouseStartingPoint = {};
+	dx = pageX - dragStartPos.x;
+	dy = pageY - dragStartPos.y;
+
+	this.scenario.setCenterPoint(
+		dx + originalCenterPt.x,
+		dy + originalCenterPt.y
+	);
+
+	this.scenario.flushAllTrails();
+	this.scenario.clearCanvas();
+	this.scenario.draw();
 	return false;
 };
 
@@ -169,7 +142,7 @@ sp.System.prototype.loadScenario = function ( scenarioObject ) {
 
 	scenarioObject = scenarioObject || {};
 
-	this.scenario = new sp.Scenario( this.$canvas, scenarioObject );
+	this.scenario = new sp.Scenario( this.container, scenarioObject );
 	// Link scenario to GUI
 	this.gui.setScenario( this.scenario );
 
@@ -184,13 +157,8 @@ sp.System.prototype.loadScenario = function ( scenarioObject ) {
 			objList[o].getName()
 		);
 	}
-/*	this.gui.addToToolbar(
-		'pov',
-		'earth',
-		'povTools',
-		'play',
-		'Earth'
-	);*/
+
+	this.container.attachScenario( this.scenario );
 
 	this.emit( 'scenarioLoaded', this.scenario );
 };

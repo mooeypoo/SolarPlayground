@@ -22,10 +22,10 @@ sp.Gui.Loader = function SpGuiInitializer( config ) {
 
 	this.settings = config.settings || {};
 
-	this.$container = config.$container;
+	this.container = config.container;
 	this.$spinner = $( '<div>' )
 		.addClass( 'sp-system-spinner' )
-		.appendTo( this.$container );
+		.appendTo( this.container.$container );
 };
 
 /* Inheritance */
@@ -42,7 +42,7 @@ sp.Gui.Loader.prototype.initialize = function () {
 	switch ( this.module ) {
 		case 'ooui':
 		default:
-			this.module = new sp.Gui.Module.ooui( this.$container, this.settings );
+			this.module = new sp.Gui.Module.ooui( this.container, this.settings );
 			break;
 	}
 

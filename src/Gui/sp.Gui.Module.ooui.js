@@ -3,14 +3,14 @@
  *
  * @class sp.Gui.Module.ooui
  *
- * @param {jQuery} $container The container to attach the GUI to
+ * @param {sp.Container} container The container to attach the GUI to
  * @param {Object} [config] Gui module definition
  */
-sp.Gui.Module.ooui = function SpGuiModuleOoui ( $container, config ) {
+sp.Gui.Module.ooui = function SpGuiModuleOoui ( container, config ) {
 	config = config || {};
 
 	// Parent constructor
-	sp.Gui.Module.ooui.super.call( this, $container, config );
+	sp.Gui.Module.ooui.super.call( this, container, config );
 
 	this.tools = {};
 };
@@ -88,7 +88,7 @@ sp.Gui.Module.ooui.prototype.initialize = function () {
 	}
 
 	// Attach toolbar to container
-	this.$container.prepend( this.toolbar.$element );
+	this.container.addToolbar( this.toolbar.$element );
 
 	// Events
 	this.toolbar.connect( this, { 'updateState': [ 'onToolbarEvent', 'updateToolbarState' ] } );

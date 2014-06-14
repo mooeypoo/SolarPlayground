@@ -4,16 +4,16 @@
  * @class sp.Gui.Module.Base
  * @abstract
  *
- * @param {jQuery} $container The container to attach the GUI to
+ * @param {sp.Container} container The container to attach the GUI to
  * @param {Object} [config] Gui module definition
  */
-sp.Gui.Module.Base = function SpGuiModuleOoui ( $container, config ) {
+sp.Gui.Module.Base = function SpGuiModuleOoui ( container, config ) {
 	config = config || {};
 
 	// Mixin constructors
 	OO.EventEmitter.call( this );
 
-	this.$container = $container;
+	this.container = container;
 
 	this.scenario = null;
 };

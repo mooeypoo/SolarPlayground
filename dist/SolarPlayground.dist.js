@@ -142,11 +142,11 @@ sp.Gui = {};
  * @class sp.Scenario
  * @mixins OO.EventEmitter
  *
- * @param {JQuery} $canvas Target canvas for the scenario
+ * @param {sp.Container} container Target container for the scenario
  * @param {Object} scenario Scenario configuration object
  */
-sp.Scenario = function SpScenario( $canvas, scenario ) {
-	var objects;
+sp.Scenario = function SpScenario( container, scenario ) {
+	var objects, centerPt;
 
 	// Mixin constructors
 	OO.EventEmitter.call( this );
@@ -154,10 +154,8 @@ sp.Scenario = function SpScenario( $canvas, scenario ) {
 	// TODO: Validate the scenario object to make sure all required
 	// elements exist.
 
-	// TODO: Create another canvas for trails so we can visualize the
-	// orbits with trails that remain for a bit on the screen
-	this.$canvas = $canvas;
-	this.context = $canvas[0].getContext( '2d' );
+	this.container = container;
+	this.context = this.container.getContext();
 
 	this.paused = true;
 	this.objects = {};
@@ -166,11 +164,12 @@ sp.Scenario = function SpScenario( $canvas, scenario ) {
 	this.config = scenario.config || {};
 
 	// Viewpoint controller
+	centerPt = this.container.getCanvasDimensions();
 	this.viewpoint = new sp.Viewpoint( {
 		'zoom': this.config.init_zoom || 1,
 		'centerPoint': {
-			x: this.$canvas.width() / 2,
-			y: this.$canvas.height() / 2
+			x: centerPt.width / 2,
+			y: centerPt.height / 2
 		},
 		'yaw': 0,
 		'pitch': 0,
@@ -341,7 +340,7 @@ sp.Scenario.prototype.drawCircle = function ( context, coords, radius, color, ha
 
 /**
  * Clear an area on the canvas
- * @param {Object} context Canvas context object
+ * @param {Object} [context] Canvas context object
  * @param {number} [square] Dimensions and coordinates of the square
  * to clear
  * @param {number} [square.top] Top coordinate of the square
@@ -350,14 +349,15 @@ sp.Scenario.prototype.drawCircle = function ( context, coords, radius, color, ha
  * @param {number} [square.height] Height of the square
  */
 sp.Scenario.prototype.clearCanvas = function ( context, square ) {
-	context = this.context;
+	var canvasDimensions = this.container.getCanvasDimensions();
+	context = context || this.context;
 	square = square || {};
 
 	// Fix optional values:
 	square.left = square.left || 0;
 	square.top = square.top || 0;
-	square.width = square.width || this.$canvas.width();
-	square.height = square.height || this.$canvas.height();
+	square.width = square.width || canvasDimensions.width;
+	square.height = square.height || canvasDimensions.height;
 
 	// Erase the square
 	context.clearRect( square.left, square.top, square.width, square.height );
@@ -474,6 +474,15 @@ sp.Scenario.prototype.getCenterPoint = function () {
 };
 
 /**
+ * Add to the center point
+ * @param {number} [x] Amount to add to X coordinate
+ * @param {number} [y] Amount to add to Y coordinate
+ */
+sp.Scenario.prototype.addToCenterPoint = function ( x, y ) {
+	this.viewpoint.addToCenterPoint( x, y );
+}
+
+/**
  * Solar Playground system
  *
  * @class sp.System
@@ -494,7 +503,7 @@ sp.System = function SpSystemInitialize( config ) {
 	config = config || {};
 
 	defaultConfig = {
-		container: '#solarSystem',
+//		container: '#solarSystem',
 		scenario_dir: 'scenarios', // Default directory unless otherwise specified
 		directory_sep: '/',
 		width: $( window ).width() - 100,
@@ -505,29 +514,21 @@ sp.System = function SpSystemInitialize( config ) {
 	this.config = $.extend( true, defaultConfig, config );
 
 	// Initialize
-	this.$container = $( this.config.container )
-		.addClass( 'sp-system-container' )
-
-	this.$canvas = $( '<canvas>' )
-		.addClass( 'sp-system-canvas' )
-		.attr( 'width', this.config.width )
-		.attr( 'height', this.config.height )
-		.appendTo( this.$container );
+	this.container = new sp.Container( {
+		'container': this.config.container || '#solarSystem',
+		'width': this.config.width,
+		'height': this.config.height
+	} );
 
 	// Gui
 	guiLoader = new sp.Gui.Loader( {
 		'module': 'ooui',
-		'$container': this.$container
+		'container': this.container
 	} );
 	this.gui = guiLoader.initialize();
 
-	this.canvasMoving = false;
-
 	// Events
-	this.$canvas.on( 'mousedown', $.proxy( this.onCanvasMouseDown, this ) );
-	this.$canvas.on( 'mousemove', $.proxy( this.onCanvasMouseMove, this ) );
-	this.$canvas.on( 'mouseup', $.proxy( this.onCanvasMouseUp, this ) );
-	this.$canvas.on( 'mouseout', $.proxy( this.onCanvasMouseUp, this ) );
+	this.container.connect( this, { 'canvasdrag': 'onCanvasDrag' } );
 
 	this.gui.connect( this, { 'play': 'onGuiPlay' } );
 	this.gui.connect( this, { 'zoom': 'onGuiZoom' } );
@@ -567,47 +568,28 @@ sp.System.prototype.onGuiZoom = function ( zoom ) {
 };
 
 /**
- * Respond to mouse down event
- * @param {Event} e Event
+ * Respond to canvas drag event
+ * @param {number} pageX X coordinate of the mouse
+ * @param {number} pageY Y coordinate of the mouse
+ * @param {Object} dragStartPos The starting position of the mouse
+ *  in the beginning of the drag event
+ * @param {Object} originalCenterPt The original canvas center point
  * @return {boolean} False
  */
-sp.System.prototype.onCanvasMouseDown = function ( e ) {
-	this.canvasMoving = true;
-	this.canvasCenter = this.scenario.getCenterPoint();
-	this.mouseStartingPoint = {
-		'x': e.pageX,
-		'y': e.pageY
-	};
-	return false;
-};
-
-/**
- * Respond to mouse move event
- * @param {Event} e Event
- * @return {boolean} False
- */
-sp.System.prototype.onCanvasMouseMove = function ( e ) {
+sp.System.prototype.onCanvasDrag = function ( pageX, pageY, dragStartPos, originalCenterPt ) {
 	var dx, dy;
-	if ( this.canvasMoving ) {
-		dx = e.pageX - this.mouseStartingPoint.x;
-		dy = e.pageY - this.mouseStartingPoint.y;
-		this.scenario.setCenterPoint(
-			this.canvasCenter.x + dx,
-			this.canvasCenter.y + dy
-		);
-	}
-	return false;
-};
 
-/**
- * Respond to mouse up event
- * @param {Event} e Event
- * @return {boolean} False
- */
-sp.System.prototype.onCanvasMouseUp = function ( e ) {
-	this.canvasMoving = false;
-	this.canvasCenter = {};
-	this.mouseStartingPoint = {};
+	dx = pageX - dragStartPos.x;
+	dy = pageY - dragStartPos.y;
+
+	this.scenario.setCenterPoint(
+		dx + originalCenterPt.x,
+		dy + originalCenterPt.y
+	);
+
+	this.scenario.flushAllTrails();
+	this.scenario.clearCanvas();
+	this.scenario.draw();
 	return false;
 };
 
@@ -644,7 +626,7 @@ sp.System.prototype.loadScenario = function ( scenarioObject ) {
 
 	scenarioObject = scenarioObject || {};
 
-	this.scenario = new sp.Scenario( this.$canvas, scenarioObject );
+	this.scenario = new sp.Scenario( this.container, scenarioObject );
 	// Link scenario to GUI
 	this.gui.setScenario( this.scenario );
 
@@ -659,13 +641,8 @@ sp.System.prototype.loadScenario = function ( scenarioObject ) {
 			objList[o].getName()
 		);
 	}
-/*	this.gui.addToToolbar(
-		'pov',
-		'earth',
-		'povTools',
-		'play',
-		'Earth'
-	);*/
+
+	this.container.attachScenario( this.scenario );
 
 	this.emit( 'scenarioLoaded', this.scenario );
 };
@@ -889,6 +866,129 @@ sp.Viewpoint.prototype.addToCenterPoint = function ( x, y ) {
 sp.Gui.Module = {};
 
 /**
+ * Solar Playground container
+ *
+ * @class sp.Container
+ * @mixins OO.EventEmitter
+ *
+ * @param {Object} [config] Configuration object
+ */
+sp.Container = function SpContainer( config ) {
+	config = config || {};
+
+	// Mixin constructors
+	OO.EventEmitter.call( this );
+
+	this.scenario = null;
+
+	// Initialize
+	this.$container = $( config.container )
+		.addClass( 'sp-container' )
+
+	this.$canvas = $( '<canvas>' )
+		.addClass( 'sp-container-canvas' )
+		.attr( 'width', config.width )
+		.attr( 'height', config.height )
+		.appendTo( this.$container );
+
+	this.canvasMouseMoving = false;
+	this.canvasMouseStartPosition = {};
+	// Events
+	this.$canvas.on( 'mousedown', $.proxy( this.onCanvasMouseDown, this ) );
+	this.$canvas.on( 'mousemove', $.proxy( this.onCanvasMouseMove, this ) );
+	this.$canvas.on( 'mouseup', $.proxy( this.onCanvasMouseUp, this ) );
+	this.$canvas.on( 'mouseout', $.proxy( this.onCanvasMouseUp, this ) );
+};
+
+/* Inheritance */
+OO.mixinClass( sp.Container, OO.EventEmitter );
+
+/**
+ * Propogate canvas mousedown event
+ * @param {Event} e Event
+ * @fires mousedown
+ */
+sp.Container.prototype.onCanvasMouseDown = function ( e ) {
+	this.canvasMouseMoving = true;
+	this.mouseStartingPoint = {
+		'x': e.pageX,
+		'y': e.pageY
+	};
+	if ( this.scenario ) {
+		this.scenarioCenterPoint = this.scenario.getCenterPoint();
+	}
+};
+
+/**
+ * Propogate canvas mousemove event
+ * @param {Event} e Event
+ * @fires canvasdrag
+ */
+sp.Container.prototype.onCanvasMouseMove = function ( e ) {
+	if ( this.canvasMouseMoving && !$.isEmptyObject( this.mouseStartingPoint ) ) {
+		this.emit(
+			'canvasdrag',
+			e.pageX,
+			e.pageY,
+			this.mouseStartingPoint,
+			this.scenarioCenterPoint
+		);
+	}
+};
+
+/**
+ * Propogate canvas mouseup event
+ * @param {Event} e Event
+ */
+sp.Container.prototype.onCanvasMouseUp = function ( e ) {
+	this.canvasMouseMoving = false;
+	this.mouseStartingPoint = {};
+	this.scenarioCenterPoint = {};
+};
+
+/**
+ * Add a toolbar to the container
+ * @param {jQuery} $toolbar jQuery toolbar element
+ * @param {string} [position] Position in the container; 'top' or 'bottom'
+ */
+sp.Container.prototype.addToolbar = function ( $toolbar, position ) {
+	position = position || 'top';
+
+	if ( position === 'top' ) {
+		this.$container.prepend( $toolbar );
+	} else {
+		this.$container.append( $toolbar );
+	}
+};
+
+/**
+ * Get the canvas context
+ * @returns {Object} Canvas context
+ */
+sp.Container.prototype.getContext = function () {
+	return this.$canvas[0].getContext( '2d' );
+};
+
+/**
+ * Get the canvas dimensions
+ * @returns {Object} Width and height of the canvas
+ */
+sp.Container.prototype.getCanvasDimensions = function () {
+	return {
+		'width': this.$canvas.width(),
+		'height': this.$canvas.height()
+	}
+};
+
+/**
+ * Attach scenario object to this container
+ * @param {sp.Scenario} s Scenario object
+ */
+sp.Container.prototype.attachScenario = function ( s ) {
+	this.scenario = s;
+};
+
+/**
  * Gui Loader. Creates the gui to be attached to
  * the SolarPlayground container.
  *
@@ -912,10 +1012,10 @@ sp.Gui.Loader = function SpGuiInitializer( config ) {
 
 	this.settings = config.settings || {};
 
-	this.$container = config.$container;
+	this.container = config.container;
 	this.$spinner = $( '<div>' )
 		.addClass( 'sp-system-spinner' )
-		.appendTo( this.$container );
+		.appendTo( this.container.$container );
 };
 
 /* Inheritance */
@@ -932,7 +1032,7 @@ sp.Gui.Loader.prototype.initialize = function () {
 	switch ( this.module ) {
 		case 'ooui':
 		default:
-			this.module = new sp.Gui.Module.ooui( this.$container, this.settings );
+			this.module = new sp.Gui.Module.ooui( this.container, this.settings );
 			break;
 	}
 
@@ -947,16 +1047,16 @@ sp.Gui.Loader.prototype.initialize = function () {
  * @class sp.Gui.Module.Base
  * @abstract
  *
- * @param {jQuery} $container The container to attach the GUI to
+ * @param {sp.Container} container The container to attach the GUI to
  * @param {Object} [config] Gui module definition
  */
-sp.Gui.Module.Base = function SpGuiModuleOoui ( $container, config ) {
+sp.Gui.Module.Base = function SpGuiModuleOoui ( container, config ) {
 	config = config || {};
 
 	// Mixin constructors
 	OO.EventEmitter.call( this );
 
-	this.$container = $container;
+	this.container = container;
 
 	this.scenario = null;
 };
@@ -1019,14 +1119,14 @@ sp.Gui.Module.Base.prototype.addToPOVList = function ( name, title, icon ) {
  *
  * @class sp.Gui.Module.ooui
  *
- * @param {jQuery} $container The container to attach the GUI to
+ * @param {sp.Container} container The container to attach the GUI to
  * @param {Object} [config] Gui module definition
  */
-sp.Gui.Module.ooui = function SpGuiModuleOoui ( $container, config ) {
+sp.Gui.Module.ooui = function SpGuiModuleOoui ( container, config ) {
 	config = config || {};
 
 	// Parent constructor
-	sp.Gui.Module.ooui.super.call( this, $container, config );
+	sp.Gui.Module.ooui.super.call( this, container, config );
 
 	this.tools = {};
 };
@@ -1104,7 +1204,7 @@ sp.Gui.Module.ooui.prototype.initialize = function () {
 	}
 
 	// Attach toolbar to container
-	this.$container.prepend( this.toolbar.$element );
+	this.container.addToolbar( this.toolbar.$element );
 
 	// Events
 	this.toolbar.connect( this, { 'updateState': [ 'onToolbarEvent', 'updateToolbarState' ] } );
