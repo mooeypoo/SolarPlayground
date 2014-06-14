@@ -43,6 +43,8 @@ sp.Scenario = function SpScenario( $canvas, scenario ) {
 	} );
 
 	this.showTrails = this.config.show_trails || false;
+	this.frameCounter = 0;
+	this.trailsFrameGap = 5;
 
 	this.pov_key = this.config.init_pov;
 	this.pov_object = null;
@@ -119,6 +121,7 @@ sp.Scenario.prototype.draw = function ( time ) {
 	for ( o in this.objects ) {
 		coords = this.objects[o].getSpaceCoordinates( time );
 
+		// TODO: Allow POV that isn't an object
 		// Update POV coordinates
 		if ( o === this.pov_key ) {
 			this.viewpoint.setPOV( coords );
@@ -135,17 +138,24 @@ sp.Scenario.prototype.draw = function ( time ) {
 			radius = this.viewpoint.getRadius( this.objects[o].getRadius(), this.objects[o].getType() );
 
 			// Draw planet trails
-			if ( this.showTrails ) {
+			if ( this.showTrails && o !== this.pov_key ) {
+				// Store trails
+				this.frameCounter++;
+				if ( this.frameCounter >= this.trailsFrameGap ) {
+					this.objects[o].storeTrailPoint( viewpointCoords );
+					this.frameCounter = 0;
+				}
+
 				// Get the trail points
 				trails = this.objects[o].getTrailPoints();
 				for ( i = 0; i < trails.length; i++ ) {
 					// Draw all trails as dots
 					this.drawCircle(
 						this.context,
-						this.viewpoint.getCoordinates( trails[i] ),
+						trails[i],
 						1,
 						// TODO: Consider making trail colors a configuration option
-						'#FF005D' // Bright pink
+						view.color || '#FF005D' // Bright pink
 					);
 				}
 			}
@@ -231,6 +241,14 @@ sp.Scenario.prototype.run = function () {
 		window.requestNextAnimationFrame( $.proxy( this.run, this ) );
 	}
 };
+
+/**
+ * Retrieve all the celestial objects attached to this scenario
+ * @returns {sp.Scenario.CelestialObject} All objects in the scenario
+ */
+sp.Scenario.prototype.getAllObjects = function () {
+	return this.objects;
+}
 
 /**
  * Toggle between pause and resume the scenario

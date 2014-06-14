@@ -181,6 +181,8 @@ sp.Scenario = function SpScenario( $canvas, scenario ) {
 	} );
 
 	this.showTrails = this.config.show_trails || false;
+	this.frameCounter = 0;
+	this.trailsFrameGap = 5;
 
 	this.pov_key = this.config.init_pov;
 	this.pov_object = null;
@@ -257,6 +259,7 @@ sp.Scenario.prototype.draw = function ( time ) {
 	for ( o in this.objects ) {
 		coords = this.objects[o].getSpaceCoordinates( time );
 
+		// TODO: Allow POV that isn't an object
 		// Update POV coordinates
 		if ( o === this.pov_key ) {
 			this.viewpoint.setPOV( coords );
@@ -273,17 +276,24 @@ sp.Scenario.prototype.draw = function ( time ) {
 			radius = this.viewpoint.getRadius( this.objects[o].getRadius(), this.objects[o].getType() );
 
 			// Draw planet trails
-			if ( this.showTrails ) {
+			if ( this.showTrails && o !== this.pov_key ) {
+				// Store trails
+				this.frameCounter++;
+				if ( this.frameCounter >= this.trailsFrameGap ) {
+					this.objects[o].storeTrailPoint( viewpointCoords );
+					this.frameCounter = 0;
+				}
+
 				// Get the trail points
 				trails = this.objects[o].getTrailPoints();
 				for ( i = 0; i < trails.length; i++ ) {
 					// Draw all trails as dots
 					this.drawCircle(
 						this.context,
-						this.viewpoint.getCoordinates( trails[i] ),
+						trails[i],
 						1,
 						// TODO: Consider making trail colors a configuration option
-						'#FF005D' // Bright pink
+						view.color || '#FF005D' // Bright pink
 					);
 				}
 			}
@@ -369,6 +379,14 @@ sp.Scenario.prototype.run = function () {
 		window.requestNextAnimationFrame( $.proxy( this.run, this ) );
 	}
 };
+
+/**
+ * Retrieve all the celestial objects attached to this scenario
+ * @returns {sp.Scenario.CelestialObject} All objects in the scenario
+ */
+sp.Scenario.prototype.getAllObjects = function () {
+	return this.objects;
+}
 
 /**
  * Toggle between pause and resume the scenario
@@ -532,6 +550,8 @@ sp.System.prototype.load = function ( scenarioName ) {
  * @fires scenarioLoaded
  */
 sp.System.prototype.loadScenario = function ( scenarioObject ) {
+	var objList;
+
 	scenarioObject = scenarioObject || {};
 
 	this.scenario = new sp.Scenario( this.$canvas, scenarioObject );
@@ -540,6 +560,22 @@ sp.System.prototype.loadScenario = function ( scenarioObject ) {
 
 	// Draw initial frame
 	this.scenario.draw( 0 );
+
+	// Add pov objects to gui
+	objList = this.scenario.getAllObjects();
+	for ( o in objList ) {
+		this.gui.addToPOVList(
+			o,
+			objList[o].getName()
+		);
+	}
+/*	this.gui.addToToolbar(
+		'pov',
+		'earth',
+		'povTools',
+		'play',
+		'Earth'
+	);*/
 
 	this.emit( 'scenarioLoaded', this.scenario );
 };
@@ -814,12 +850,13 @@ sp.Gui.Module.ooui.prototype.setScenario = function ( scenario ) {
  * @returns {OO.ui.Toolbar}
  */
 sp.Gui.Module.ooui.prototype.initialize = function () {
-	var i, tools, tname,
-		toolFactory = new OO.ui.ToolFactory(),
-		toolGroupFactory = new OO.ui.ToolGroupFactory();
+	var i, tools, tname;
+
+	this.toolFactory = new OO.ui.ToolFactory(),
+	this.toolGroupFactory = new OO.ui.ToolGroupFactory();
 
 	// Create toolbar
-	this.toolbar = new OO.ui.Toolbar( toolFactory, toolGroupFactory );
+	this.toolbar = new OO.ui.Toolbar( this.toolFactory, this.toolGroupFactory );
 	this.toolbar.setup( [
 		{
 			'type': 'bar',
@@ -828,6 +865,13 @@ sp.Gui.Module.ooui.prototype.initialize = function () {
 		{
 			'type': 'bar',
 			'include': [ { 'group': 'viewTools' } ]
+		},
+		{
+			'type': 'menu',
+			'indicator': 'down',
+			'label': 'POV',
+			'icon': 'picture',
+			'include': [ { 'group': 'povTools' } ]
 		}
 	] );
 	this.toolbar.emit( 'updateState' );
@@ -837,7 +881,6 @@ sp.Gui.Module.ooui.prototype.initialize = function () {
 	tools = {
 		// playTools
 		'play': [ 'playTool', 'playTools', 'play', 'Play scenario', null, this.onPlayButtonSelect ],
-//		'pause': [ 'pauseTool', 'playTools', 'pause', 'Pause scenario', null, this.onPlayButtonSelect ],
 		// viewTools
 		'zoomin': [ 'zoominTool', 'viewTools', 'zoomin', 'Zoom in', null, this.onZoomInButtonSelect ],
 		'zoomout': [ 'zoomoutTool', 'viewTools', 'zoomout', 'Zoom out', null, this.onZoomOutButtonSelect ]
@@ -846,22 +889,60 @@ sp.Gui.Module.ooui.prototype.initialize = function () {
 	this.tools = {};
 	for ( tname in tools ) {
 		this.tools[tname] = this.createTool.apply( this, tools[tname] );
-		toolFactory.register( this.tools[tname] );
+		this.toolFactory.register( this.tools[tname] );
 	}
-/*
-	for ( i = 0; i < tools.length; i++ ) {
-		toolFactory.register( this.createTool.apply( this, tools[i] ) );
-	}*/
+
 	// Attach toolbar to container
 	this.$container.prepend( this.toolbar.$element );
 
 	// Events
 	this.toolbar.connect( this, { 'updateState': [ 'onToolbarEvent', 'updateToolbarState' ] } );
 	this.toolbar.connect( this, { 'play': [ 'onToolbarEvent', 'play' ] } );
-//	this.toolbar.connect( this, { 'pause': [ 'onToolbarEvent', 'pause' ] } );
 	this.toolbar.connect( this, { 'zoom': [ 'onToolbarEvent', 'zoom' ] } );
+	this.toolbar.connect( this, { 'pov': [ 'onToolbarEvent', 'pov' ] } );
 
 	return this;
+};
+
+/**
+ * Add a tool to the POV list
+ * @param {string} name Tool name
+ * @param {string} title Title or alternate text
+ * @param {string} [icon] Tool icon
+ */
+sp.Gui.Module.ooui.prototype.addToPOVList = function ( name, title, icon ) {
+	var toolDefinition, onSelectFunc,
+		eventObject = {},
+		toolName = name + 'Tool';
+
+	onSelectFunc = function () {
+		this.toolbar.emit( 'pov',
+			this.constructor.static.object_name
+		);
+	}
+
+	eventObject[toolName] = [ 'onToolbarEvent', toolName ];
+
+	toolDefinition = [
+		// name
+		toolName,
+		// group
+		'povTools',
+		// icon
+		icon,
+		// title/label
+		title,
+		// init function
+		null,
+		// onSelect function
+		onSelectFunc
+	];
+
+	this.tools[toolName] = this.createTool.apply( this, toolDefinition );
+	this.tools[toolName].static.object_name = name;
+
+	this.toolFactory.register( this.tools[toolName] );
+	this.toolbar.connect( this, eventObject );
 };
 
 /**
@@ -1162,9 +1243,9 @@ sp.Scenario.CelestialObject = function SpScenarioCelestialObject( config ) {
 	this.frameCounter = 0;
 	// TODO: Consider adding these to the global scenario config
 	// Keep record of trail every X frames
-	this.trailsFrameGap = 10;
+	this.trailsFrameGap = 2;
 	// How many trail points to store
-	this.numTrailPoints = 30;
+	this.numTrailPoints = 80;
 
 	// Attributes
 	this.name = config.name || '';
@@ -1214,12 +1295,6 @@ sp.Scenario.CelestialObject.prototype.getSpaceCoordinates = function ( time ) {
 			this.vars,
 			time
 		);
-
-		this.frameCounter++;
-		if ( this.frameCounter >= this.trailsFrameGap ) {
-			this.storeTrailPoint( this.coordinates );
-			this.frameCounter = 0;
-		}
 	} else {
 		this.coordinates = { x: 0, y: 0, z: 0 };
 	}

@@ -20,9 +20,9 @@ sp.Scenario.CelestialObject = function SpScenarioCelestialObject( config ) {
 	this.frameCounter = 0;
 	// TODO: Consider adding these to the global scenario config
 	// Keep record of trail every X frames
-	this.trailsFrameGap = 10;
+	this.trailsFrameGap = 2;
 	// How many trail points to store
-	this.numTrailPoints = 30;
+	this.numTrailPoints = 80;
 
 	// Attributes
 	this.name = config.name || '';
@@ -72,12 +72,6 @@ sp.Scenario.CelestialObject.prototype.getSpaceCoordinates = function ( time ) {
 			this.vars,
 			time
 		);
-
-		this.frameCounter++;
-		if ( this.frameCounter >= this.trailsFrameGap ) {
-			this.storeTrailPoint( this.coordinates );
-			this.frameCounter = 0;
-		}
 	} else {
 		this.coordinates = { x: 0, y: 0, z: 0 };
 	}

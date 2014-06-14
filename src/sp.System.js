@@ -113,6 +113,8 @@ sp.System.prototype.load = function ( scenarioName ) {
  * @fires scenarioLoaded
  */
 sp.System.prototype.loadScenario = function ( scenarioObject ) {
+	var objList;
+
 	scenarioObject = scenarioObject || {};
 
 	this.scenario = new sp.Scenario( this.$canvas, scenarioObject );
@@ -121,6 +123,22 @@ sp.System.prototype.loadScenario = function ( scenarioObject ) {
 
 	// Draw initial frame
 	this.scenario.draw( 0 );
+
+	// Add pov objects to gui
+	objList = this.scenario.getAllObjects();
+	for ( o in objList ) {
+		this.gui.addToPOVList(
+			o,
+			objList[o].getName()
+		);
+	}
+/*	this.gui.addToToolbar(
+		'pov',
+		'earth',
+		'povTools',
+		'play',
+		'Earth'
+	);*/
 
 	this.emit( 'scenarioLoaded', this.scenario );
 };

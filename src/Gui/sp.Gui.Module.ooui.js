@@ -33,12 +33,13 @@ sp.Gui.Module.ooui.prototype.setScenario = function ( scenario ) {
  * @returns {OO.ui.Toolbar}
  */
 sp.Gui.Module.ooui.prototype.initialize = function () {
-	var i, tools, tname,
-		toolFactory = new OO.ui.ToolFactory(),
-		toolGroupFactory = new OO.ui.ToolGroupFactory();
+	var i, tools, tname;
+
+	this.toolFactory = new OO.ui.ToolFactory(),
+	this.toolGroupFactory = new OO.ui.ToolGroupFactory();
 
 	// Create toolbar
-	this.toolbar = new OO.ui.Toolbar( toolFactory, toolGroupFactory );
+	this.toolbar = new OO.ui.Toolbar( this.toolFactory, this.toolGroupFactory );
 	this.toolbar.setup( [
 		{
 			'type': 'bar',
@@ -47,6 +48,13 @@ sp.Gui.Module.ooui.prototype.initialize = function () {
 		{
 			'type': 'bar',
 			'include': [ { 'group': 'viewTools' } ]
+		},
+		{
+			'type': 'menu',
+			'indicator': 'down',
+			'label': 'POV',
+			'icon': 'picture',
+			'include': [ { 'group': 'povTools' } ]
 		}
 	] );
 	this.toolbar.emit( 'updateState' );
@@ -56,7 +64,6 @@ sp.Gui.Module.ooui.prototype.initialize = function () {
 	tools = {
 		// playTools
 		'play': [ 'playTool', 'playTools', 'play', 'Play scenario', null, this.onPlayButtonSelect ],
-//		'pause': [ 'pauseTool', 'playTools', 'pause', 'Pause scenario', null, this.onPlayButtonSelect ],
 		// viewTools
 		'zoomin': [ 'zoominTool', 'viewTools', 'zoomin', 'Zoom in', null, this.onZoomInButtonSelect ],
 		'zoomout': [ 'zoomoutTool', 'viewTools', 'zoomout', 'Zoom out', null, this.onZoomOutButtonSelect ]
@@ -65,22 +72,60 @@ sp.Gui.Module.ooui.prototype.initialize = function () {
 	this.tools = {};
 	for ( tname in tools ) {
 		this.tools[tname] = this.createTool.apply( this, tools[tname] );
-		toolFactory.register( this.tools[tname] );
+		this.toolFactory.register( this.tools[tname] );
 	}
-/*
-	for ( i = 0; i < tools.length; i++ ) {
-		toolFactory.register( this.createTool.apply( this, tools[i] ) );
-	}*/
+
 	// Attach toolbar to container
 	this.$container.prepend( this.toolbar.$element );
 
 	// Events
 	this.toolbar.connect( this, { 'updateState': [ 'onToolbarEvent', 'updateToolbarState' ] } );
 	this.toolbar.connect( this, { 'play': [ 'onToolbarEvent', 'play' ] } );
-//	this.toolbar.connect( this, { 'pause': [ 'onToolbarEvent', 'pause' ] } );
 	this.toolbar.connect( this, { 'zoom': [ 'onToolbarEvent', 'zoom' ] } );
+	this.toolbar.connect( this, { 'pov': [ 'onToolbarEvent', 'pov' ] } );
 
 	return this;
+};
+
+/**
+ * Add a tool to the POV list
+ * @param {string} name Tool name
+ * @param {string} title Title or alternate text
+ * @param {string} [icon] Tool icon
+ */
+sp.Gui.Module.ooui.prototype.addToPOVList = function ( name, title, icon ) {
+	var toolDefinition, onSelectFunc,
+		eventObject = {},
+		toolName = name + 'Tool';
+
+	onSelectFunc = function () {
+		this.toolbar.emit( 'pov',
+			this.constructor.static.object_name
+		);
+	}
+
+	eventObject[toolName] = [ 'onToolbarEvent', toolName ];
+
+	toolDefinition = [
+		// name
+		toolName,
+		// group
+		'povTools',
+		// icon
+		icon,
+		// title/label
+		title,
+		// init function
+		null,
+		// onSelect function
+		onSelectFunc
+	];
+
+	this.tools[toolName] = this.createTool.apply( this, toolDefinition );
+	this.tools[toolName].static.object_name = name;
+
+	this.toolFactory.register( this.tools[toolName] );
+	this.toolbar.connect( this, eventObject );
 };
 
 /**
