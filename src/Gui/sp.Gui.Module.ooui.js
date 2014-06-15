@@ -112,9 +112,10 @@ sp.Gui.Module.ooui.prototype.addToPOVList = function ( name, title, icon ) {
 
 	onSelectFunc = function () {
 		this.toolbar.emit( 'pov',
-			this.constructor.static.object_name
+			this.constructor.static.object_name,
+			this.constructor.static.toolName
 		);
-	}
+	};
 
 	eventObject[toolName] = [ 'onToolbarEvent', toolName ];
 
@@ -135,6 +136,7 @@ sp.Gui.Module.ooui.prototype.addToPOVList = function ( name, title, icon ) {
 
 	this.tools[toolName] = this.createTool.apply( this, toolDefinition );
 	this.tools[toolName].static.object_name = name;
+	this.tools[toolName].static.tool_name = toolName;
 
 	this.toolFactory.register( this.tools[toolName] );
 	this.toolbar.connect( this, eventObject );

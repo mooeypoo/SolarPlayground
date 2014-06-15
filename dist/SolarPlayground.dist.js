@@ -799,6 +799,7 @@ sp.Container = function SpContainer( config ) {
 	// Events
 	this.gui.connect( this, { 'play': 'onGuiPlay' } );
 	this.gui.connect( this, { 'zoom': 'onGuiZoom' } );
+	this.gui.connect( this, { 'pov': 'onGuiPOV' } );
 
 	this.$canvas.on( 'mousedown', $.proxy( this.onCanvasMouseDown, this ) );
 	this.$canvas.on( 'mousemove', $.proxy( this.onCanvasMouseMove, this ) );
@@ -887,6 +888,14 @@ sp.Container.prototype.onGuiZoom = function ( zoom ) {
 		this.scenario.clearCanvas()
 		this.scenario.draw();
 	}
+};
+
+/**
+ * Respond to pov button press
+ * @param {Boolean} newPov New POV object key
+ */
+sp.Container.prototype.onGuiPOV = function ( newPov ) {
+	console.log( 'pov', newPov );
 };
 
 /**
@@ -1233,9 +1242,10 @@ sp.Gui.Module.ooui.prototype.addToPOVList = function ( name, title, icon ) {
 
 	onSelectFunc = function () {
 		this.toolbar.emit( 'pov',
-			this.constructor.static.object_name
+			this.constructor.static.object_name,
+			this.constructor.static.toolName
 		);
-	}
+	};
 
 	eventObject[toolName] = [ 'onToolbarEvent', toolName ];
 
@@ -1256,6 +1266,7 @@ sp.Gui.Module.ooui.prototype.addToPOVList = function ( name, title, icon ) {
 
 	this.tools[toolName] = this.createTool.apply( this, toolDefinition );
 	this.tools[toolName].static.object_name = name;
+	this.tools[toolName].static.tool_name = toolName;
 
 	this.toolFactory.register( this.tools[toolName] );
 	this.toolbar.connect( this, eventObject );

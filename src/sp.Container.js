@@ -36,6 +36,7 @@ sp.Container = function SpContainer( config ) {
 	// Events
 	this.gui.connect( this, { 'play': 'onGuiPlay' } );
 	this.gui.connect( this, { 'zoom': 'onGuiZoom' } );
+	this.gui.connect( this, { 'pov': 'onGuiPOV' } );
 
 	this.$canvas.on( 'mousedown', $.proxy( this.onCanvasMouseDown, this ) );
 	this.$canvas.on( 'mousemove', $.proxy( this.onCanvasMouseMove, this ) );
@@ -124,6 +125,14 @@ sp.Container.prototype.onGuiZoom = function ( zoom ) {
 		this.scenario.clearCanvas()
 		this.scenario.draw();
 	}
+};
+
+/**
+ * Respond to pov button press
+ * @param {Boolean} newPov New POV object key
+ */
+sp.Container.prototype.onGuiPOV = function ( newPov ) {
+	console.log( 'pov', newPov );
 };
 
 /**
