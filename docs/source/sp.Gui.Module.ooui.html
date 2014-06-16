@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='sp-Gui-Module-ooui'>/**
+</span> * OOUI Gui module
+ *
+ * @class sp.Gui.Module.ooui
+ *
+ * @param {sp.Container} container The container to attach the GUI to
+ * @param {Object} [config] Gui module definition
+ */
+sp.Gui.Module.ooui = function SpGuiModuleOoui ( container, config ) {
+	config = config || {};
+
+	// Parent constructor
+	sp.Gui.Module.ooui.super.call( this, container, config );
+
+	this.tools = {};
+};
+
+/* Inheritance */
+OO.inheritClass( sp.Gui.Module.ooui, sp.Gui.Module.Base );
+
+/* Events */
+
+<span id='sp-Gui-Module-ooui-event-play'>/**
+</span> * Play or pause scenario
+ * @event play
+ * @param {boolean} isPlay Play scenario or pause
+ */
+
+<span id='sp-Gui-Module-ooui-event-zoom'>/**
+</span> * Zoom in or out
+ * @event zoom
+ * @param {number} zoomLevel How much to zoom. Negative to zoom out.
+ */
+
+<span id='sp-Gui-Module-ooui-event-pov'>/**
+</span> * Change point of view object
+ * @event pov
+ * @param {string} povObjName New POV object name or key
+ */
+
+/* Methods */
+
+<span id='sp-Gui-Module-ooui-method-initialize'>/**
+</span> * Initialize the Gui
+ * @returns {OO.ui.Toolbar}
+ */
+sp.Gui.Module.ooui.prototype.initialize = function () {
+	var i, tools, tname;
+
+	this.toolFactory = new OO.ui.ToolFactory(),
+	this.toolGroupFactory = new OO.ui.ToolGroupFactory();
+
+	// Create toolbar
+	this.toolbar = new OO.ui.Toolbar( this.toolFactory, this.toolGroupFactory );
+	this.toolbar.setup( [
+		{
+			&#39;type&#39;: &#39;bar&#39;,
+			&#39;include&#39;: [ { &#39;group&#39;: &#39;playTools&#39; } ]
+		},
+		{
+			&#39;type&#39;: &#39;bar&#39;,
+			&#39;include&#39;: [ { &#39;group&#39;: &#39;viewTools&#39; } ]
+		},
+		{
+			&#39;type&#39;: &#39;menu&#39;,
+			&#39;indicator&#39;: &#39;down&#39;,
+			&#39;label&#39;: &#39;POV&#39;,
+			&#39;icon&#39;: &#39;picture&#39;,
+			&#39;include&#39;: [ { &#39;group&#39;: &#39;povTools&#39; } ]
+		}
+	] );
+	this.toolbar.emit( &#39;updateState&#39; );
+
+	// Create buttons for the toolbar
+	// TODO: Disable all buttons until the scenario is loaded
+	tools = {
+		// playTools
+		&#39;play&#39;: [ &#39;playTool&#39;, &#39;playTools&#39;, &#39;play&#39;, &#39;Play scenario&#39;, null, this.onPlayButtonSelect ],
+		// viewTools
+		&#39;zoomin&#39;: [ &#39;zoominTool&#39;, &#39;viewTools&#39;, &#39;zoomin&#39;, &#39;Zoom in&#39;, null, this.onZoomInButtonSelect ],
+		&#39;zoomout&#39;: [ &#39;zoomoutTool&#39;, &#39;viewTools&#39;, &#39;zoomout&#39;, &#39;Zoom out&#39;, null, this.onZoomOutButtonSelect ]
+	}
+
+	this.tools = {};
+	for ( tname in tools ) {
+		this.tools[tname] = this.createTool.apply( this, tools[tname] );
+		this.toolFactory.register( this.tools[tname] );
+	}
+
+	// Attach toolbar to container
+	this.container.addToolbar( this.toolbar.$element );
+
+	// Events
+	this.toolbar.connect( this, { &#39;updateState&#39;: [ &#39;onToolbarEvent&#39;, &#39;updateToolbarState&#39; ] } );
+	this.toolbar.connect( this, { &#39;play&#39;: [ &#39;onToolbarEvent&#39;, &#39;play&#39; ] } );
+	this.toolbar.connect( this, { &#39;zoom&#39;: [ &#39;onToolbarEvent&#39;, &#39;zoom&#39; ] } );
+	this.toolbar.connect( this, { &#39;pov&#39;: [ &#39;onToolbarEvent&#39;, &#39;pov&#39; ] } );
+
+	return this;
+};
+
+<span id='sp-Gui-Module-ooui-method-addToPOVList'>/**
+</span> * Add a tool to the POV list
+ * @param {string} name Tool name
+ * @param {string} title Title or alternate text
+ * @param {string} [icon] Tool icon
+ */
+sp.Gui.Module.ooui.prototype.addToPOVList = function ( name, title, icon ) {
+	var toolDefinition, onSelectFunc,
+		eventObject = {},
+		toolName = name + &#39;Tool&#39;;
+
+	onSelectFunc = function () {
+		this.toolbar.emit( &#39;pov&#39;,
+			this.constructor.static.object_name,
+			this.constructor.static.toolName
+		);
+	};
+
+	eventObject[toolName] = [ &#39;onToolbarEvent&#39;, toolName ];
+
+	toolDefinition = [
+		// name
+		toolName,
+		// group
+		&#39;povTools&#39;,
+		// icon
+		icon,
+		// title/label
+		title,
+		// init function
+		null,
+		// onSelect function
+		onSelectFunc
+	];
+
+	this.tools[toolName] = this.createTool.apply( this, toolDefinition );
+	this.tools[toolName].static.object_name = name;
+	this.tools[toolName].static.tool_name = toolName;
+
+	this.toolFactory.register( this.tools[toolName] );
+	this.toolbar.connect( this, eventObject );
+};
+
+<span id='sp-Gui-Module-ooui-method-onToolbarEvent'>/**
+</span> * Propogate the event from the toolbar to the module.
+ * We want the system to listen to the module and not specific
+ * elements in it.
+ * @param {string} ev Type of event to emit
+ * @param {Object} [params] Parameters to attach to the event
+ */
+sp.Gui.Module.ooui.prototype.onToolbarEvent = function ( ev, params ) {
+	this.emit( ev, params );
+};
+
+<span id='sp-Gui-Module-ooui-method-onZoomInButtonSelect'>/**
+</span> * Respond to zoom in button click
+ * @fires zoom
+ */
+sp.Gui.Module.ooui.prototype.onZoomInButtonSelect = function () {
+	this.setActive( false );
+	this.toolbar.emit( &#39;zoom&#39;, 1000 );
+};
+
+<span id='sp-Gui-Module-ooui-method-onZoomOutButtonSelect'>/**
+</span> * Respond to zoom in button click
+ * @fires zoom
+ */
+sp.Gui.Module.ooui.prototype.onZoomOutButtonSelect = function () {
+	this.setActive( false );
+	this.toolbar.emit( &#39;zoom&#39;, -1000 );
+};
+
+<span id='sp-Gui-Module-ooui-method-onPlayButtonSelect'>/**
+</span> * Respond to play button click
+ * @fires play
+ */
+sp.Gui.Module.ooui.prototype.onPlayButtonSelect = function () {
+	// TODO: Activate the pause button and disable self
+	this.toggled = !this.toggled;
+	this.setActive( this.toggled );
+
+	this.toolbar.emit( &#39;play&#39;, this.toggled );
+};
+
+<span id='sp-Gui-Module-ooui-method-getToolbar'>/**
+</span> * Get the Gui toolbar
+ * @returns {OO.ui.Toolbar} The toolbar connected to the gui
+ */
+sp.Gui.Module.ooui.prototype.getToolbar = function () {
+	return this.toolbar;
+};
+
+<span id='sp-Gui-Module-ooui-method-createTool'>/**
+</span> * Create a toolbar tool.
+ * NOTE: Taken from the OOUI tools demo. This method should be adjusted
+ * to better suit this projects&#39; needs, it is only used as-is at
+ * the moment for basic testing.
+ *
+ * @param {string} name Tool name
+ * @param {string} group Tool group
+ * @param {string} icon Tool icon
+ * @param {string} title Title or alternate text
+ * @param {Function} init Initialization function
+ * @param {Function} onSelect Activation function
+ * @returns {OO.ui.Tool} Tool
+ */
+sp.Gui.Module.ooui.prototype.createTool = function ( name, group, icon, title, init, onSelect ) {
+	// TODO: The entire createTool method should be rewritten to
+	// better suit the needs of this particular toolbar
+	var Tool = function SpGuiTool() {
+		Tool.super.apply( this, arguments );
+		this.toggled = false;
+		if ( init ) {
+			init.call( this );
+		}
+	};
+
+	OO.inheritClass( Tool, OO.ui.Tool );
+
+	Tool.prototype.onSelect = function () {
+		if ( onSelect ) {
+			onSelect.call( this );
+		} else {
+			this.toggled = !this.toggled;
+			this.setActive( this.toggled );
+		}
+		this.toolbar.emit( &#39;updateState&#39; );
+	};
+	Tool.prototype.onUpdateState = function () {};
+
+	Tool.static.name = name;
+	Tool.static.group = group;
+	Tool.static.icon = icon;
+	Tool.static.title = title;
+	return Tool;
+};
+</pre>
+</body>
+</html>

@@ -109,6 +109,25 @@ sp.Scenario.prototype.processObjects = function ( scenarioObjects ) {
 };
 
 /**
+ * Set the POV object
+ * @param {string} povKey Object key for the pov
+ * @fires povChange
+ */
+sp.Scenario.prototype.setPOV = function ( povKey ) {
+	if ( povKey && this.objects[povKey] && this.pov_key !== povKey ) {
+		this.pov_key = povKey;
+
+		this.pov_object = this.objects[this.pov_key];
+		this.viewpoint.setPOV( this.objects[this.pov_key].getSpaceCoordinates( 0 ) );
+		this.clearCanvas();
+		this.flushAllTrails();
+		this.draw();
+
+		this.emit( 'povChange' );
+	}
+};
+
+/**
  * Draw all elements
  * @param {number} time Time
  * @param {boolean} ignoreTrails Ignore trails despite settings
@@ -304,7 +323,7 @@ sp.Scenario.prototype.resume = function () {
  * Increase or decrease scenario zoom levels
  * @param {number} z Zoom level, negative for zoom out
  */
-sp.Scenario.prototype.zoom = function ( z ) {
+sp.Scenario.prototype.setZoom = function ( z ) {
 	this.viewpoint.setZoom( z );
 	this.flushAllTrails();
 	if ( this.isPaused() ) {

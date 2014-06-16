@@ -1,5 +1,22 @@
-/**
- * Solar Playground container
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='sp-Container'>/**
+</span> * Solar Playground container
  *
  * @class sp.Container
  * @mixins OO.EventEmitter
@@ -15,18 +32,18 @@ sp.Container = function SpContainer( config ) {
 
 	// Initialize
 	this.$container = $( config.container )
-		.addClass( 'sp-container' )
+		.addClass( &#39;sp-container&#39; )
 
-	this.$canvas = $( '<canvas>' )
-		.addClass( 'sp-container-canvas' )
-		.attr( 'width', config.width )
-		.attr( 'height', config.height )
+	this.$canvas = $( &#39;&lt;canvas&gt;&#39; )
+		.addClass( &#39;sp-container-canvas&#39; )
+		.attr( &#39;width&#39;, config.width )
+		.attr( &#39;height&#39;, config.height )
 		.appendTo( this.$container );
 
 	// Gui
 	guiLoader = new sp.Gui.Loader( {
-		'module': 'ooui',
-		'container': this
+		&#39;module&#39;: &#39;ooui&#39;,
+		&#39;container&#39;: this
 	} );
 	this.gui = guiLoader.initialize();
 
@@ -34,31 +51,31 @@ sp.Container = function SpContainer( config ) {
 	this.canvasMouseStartPosition = {};
 
 	// Events
-	this.gui.connect( this, { 'play': 'onGuiPlay' } );
-	this.gui.connect( this, { 'zoom': 'onGuiZoom' } );
-	this.gui.connect( this, { 'pov': 'onGuiPOV' } );
+	this.gui.connect( this, { &#39;play&#39;: &#39;onGuiPlay&#39; } );
+	this.gui.connect( this, { &#39;zoom&#39;: &#39;onGuiZoom&#39; } );
+	this.gui.connect( this, { &#39;pov&#39;: &#39;onGuiPOV&#39; } );
 
-	this.$canvas.on( 'mousedown', $.proxy( this.onCanvasMouseDown, this ) );
-	this.$canvas.on( 'mousemove', $.proxy( this.onCanvasMouseMove, this ) );
-	this.$canvas.on( 'mouseup', $.proxy( this.onCanvasMouseUp, this ) );
-	this.$canvas.on( 'mouseout', $.proxy( this.onCanvasMouseUp, this ) );
+	this.$canvas.on( &#39;mousedown&#39;, $.proxy( this.onCanvasMouseDown, this ) );
+	this.$canvas.on( &#39;mousemove&#39;, $.proxy( this.onCanvasMouseMove, this ) );
+	this.$canvas.on( &#39;mouseup&#39;, $.proxy( this.onCanvasMouseUp, this ) );
+	this.$canvas.on( &#39;mouseout&#39;, $.proxy( this.onCanvasMouseUp, this ) );
 };
 
 /* Inheritance */
 OO.mixinClass( sp.Container, OO.EventEmitter );
 
-/**
- * @event scenarioLoaded
+<span id='sp-Container-event-scenarioLoaded'>/**
+</span> * @event scenarioLoaded
  * @param {sp.Scenario} scenario Reference to the loaded scenario
  * Scenario fully loaded and ready to be run.
  */
 
 /* Methods */
 
-/**
- * Load a scenario
+<span id='sp-Container-method-loadFromFile'>/**
+</span> * Load a scenario
  * @param {String} scenarioName Scenario name. The system will search for
- *  an ajax response from source 'scenario.[name].json' in the scenario
+ *  an ajax response from source &#39;scenario.[name].json&#39; in the scenario
  *  directory.
  * @chainable
  */
@@ -66,8 +83,8 @@ sp.Container.prototype.loadFromFile = function ( scenarioName ) {
 	var targetName,
 		targetDir = this.config.scenario_dir + this.config.directory_sep;
 
-	scenarioName = scenarioName || 'example';
-	targetName = 'scenario.' + scenarioName + '.json';
+	scenarioName = scenarioName || &#39;example&#39;;
+	targetName = &#39;scenario.&#39; + scenarioName + &#39;.json&#39;;
 
 	$.getJSON( targetDir + targetName )
 		.done( $.proxy( function ( response ) {
@@ -75,12 +92,12 @@ sp.Container.prototype.loadFromFile = function ( scenarioName ) {
 			this.loadFromObject( response );
 		}, this ) )
 		.fail( function () {
-			sp.log( 'Error', 'Scenario ' + targetName + ' not found in directory "' + targetDir + '"' );
+			sp.log( &#39;Error&#39;, &#39;Scenario &#39; + targetName + &#39; not found in directory &quot;&#39; + targetDir + &#39;&quot;&#39; );
 		} );
 };
 
-/**
- * Load and run a scenario
+<span id='sp-Container-method-loadFromObject'>/**
+</span> * Load and run a scenario
  * @param {Object} scenarioObject Scenario configuration object
  * @chainable
  * @fires scenarioLoaded
@@ -106,57 +123,57 @@ sp.Container.prototype.loadFromObject = function ( scenarioObject ) {
 		);
 	}
 
-	this.emit( 'scenarioLoaded', this.scenario );
+	this.emit( &#39;scenarioLoaded&#39;, this.scenario );
 	return this;
 };
 
-/**
- * Respond to play button press
+<span id='sp-Container-method-onGuiPlay'>/**
+</span> * Respond to play button press
  * @param {Boolean} isPlay Play or pause
  */
 sp.Container.prototype.onGuiPlay = function ( isPlay ) {
 	this.scenario.togglePaused( !isPlay );
 };
 
-/**
- * Respond to zoom button press
+<span id='sp-Container-method-onGuiZoom'>/**
+</span> * Respond to zoom button press
  * @param {Boolean} zoom Zoom level
  */
 sp.Container.prototype.onGuiZoom = function ( zoom ) {
 	this.scenario.setZoom( zoom );
 };
 
-/**
- * Respond to pov button press
+<span id='sp-Container-method-onGuiPOV'>/**
+</span> * Respond to pov button press
  * @param {Boolean} newPov New POV object key
  */
 sp.Container.prototype.onGuiPOV = function ( newPov ) {
 	this.scenario.setPOV( newPov );
 };
 
-/**
- * Propogate canvas mousedown event
+<span id='sp-Container-method-onCanvasMouseDown'>/**
+</span> * Propogate canvas mousedown event
  * @param {Event} e Event
  * @fires mousedown
  */
 sp.Container.prototype.onCanvasMouseDown = function ( e ) {
 	this.canvasMouseMoving = true;
 	this.mouseStartingPoint = {
-		'x': e.pageX,
-		'y': e.pageY
+		&#39;x&#39;: e.pageX,
+		&#39;y&#39;: e.pageY
 	};
 	if ( this.scenario ) {
 		this.scenarioCenterPoint = this.scenario.getCenterPoint();
 	}
 };
 
-/**
- * Respond to canvas mouse move
+<span id='sp-Container-method-onCanvasMouseMove'>/**
+</span> * Respond to canvas mouse move
  * @param {Event} e Event
  * @fires canvasdrag
  */
 sp.Container.prototype.onCanvasMouseMove = function ( e ) {
-	if ( this.canvasMouseMoving && !$.isEmptyObject( this.mouseStartingPoint ) ) {
+	if ( this.canvasMouseMoving &amp;&amp; !$.isEmptyObject( this.mouseStartingPoint ) ) {
 		dx = e.pageX - this.mouseStartingPoint.x;
 		dy = e.pageY - this.mouseStartingPoint.y;
 
@@ -171,8 +188,8 @@ sp.Container.prototype.onCanvasMouseMove = function ( e ) {
 	}
 };
 
-/**
- * Propogate canvas mouseup event
+<span id='sp-Container-method-onCanvasMouseUp'>/**
+</span> * Propogate canvas mouseup event
  * @param {Event} e Event
  */
 sp.Container.prototype.onCanvasMouseUp = function ( e ) {
@@ -181,67 +198,70 @@ sp.Container.prototype.onCanvasMouseUp = function ( e ) {
 	this.scenarioCenterPoint = {};
 };
 
-/**
- * Add a toolbar to the container
+<span id='sp-Container-method-addToolbar'>/**
+</span> * Add a toolbar to the container
  * @param {jQuery} $toolbar jQuery toolbar element
- * @param {string} [position] Position in the container; 'top' or 'bottom'
+ * @param {string} [position] Position in the container; &#39;top&#39; or &#39;bottom&#39;
  */
 sp.Container.prototype.addToolbar = function ( $toolbar, position ) {
-	position = position || 'top';
+	position = position || &#39;top&#39;;
 
-	if ( position === 'top' ) {
+	if ( position === &#39;top&#39; ) {
 		this.$container.prepend( $toolbar );
 	} else {
 		this.$container.append( $toolbar );
 	}
 };
 
-/**
- * Get the canvas context
+<span id='sp-Container-method-getContext'>/**
+</span> * Get the canvas context
  * @returns {Object} Canvas context
  */
 sp.Container.prototype.getContext = function () {
-	return this.$canvas[0].getContext( '2d' );
+	return this.$canvas[0].getContext( &#39;2d&#39; );
 };
 
-/**
- * Get the canvas dimensions
+<span id='sp-Container-method-getCanvasDimensions'>/**
+</span> * Get the canvas dimensions
  * @returns {Object} Width and height of the canvas
  */
 sp.Container.prototype.getCanvasDimensions = function () {
 	return {
-		'width': this.$canvas.width(),
-		'height': this.$canvas.height()
+		&#39;width&#39;: this.$canvas.width(),
+		&#39;height&#39;: this.$canvas.height()
 	}
 };
 
-/**
- * Attach scenario object to this container
+<span id='sp-Container-method-setScenario'>/**
+</span> * Attach scenario object to this container
  * @param {sp.Scenario} s Scenario object
  */
 sp.Container.prototype.setScenario = function ( s ) {
 	this.scenario = s;
 };
 
-/**
- * Toggle between pause and resume the scenario
+<span id='sp-Container-method-togglePaused'>/**
+</span> * Toggle between pause and resume the scenario
  * @param {boolean} [isPause] Optional. If supplied, pauses or resumes the scenario
  */
 sp.Container.prototype.togglePaused = function ( isPause ) {
 	this.scenario.togglePaused( isPause );
 };
 
-/**
- * Set scenario zoom
+<span id='sp-Container-method-setZoom'>/**
+</span> * Set scenario zoom
  * @param {number} zoom Zoom factor
  */
 sp.Container.prototype.setZoom = function ( zoom ) {
 	this.scenario.setZoom( zoom );
 };
 
-/**
- * Check whether the scenario is paused
+<span id='sp-Container-method-isPaused'>/**
+</span> * Check whether the scenario is paused
  */
 sp.Container.prototype.isPaused = function () {
 	return this.scenario.isPaused();
 };
+</pre>
+</body>
+</html>

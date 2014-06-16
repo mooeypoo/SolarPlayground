@@ -18,25 +18,27 @@
   <pre class="prettyprint lang-js"><span id='sp-System'>/**
 </span> * Solar Playground system
  *
- * @class
+ * @class sp.System
  * @mixins OO.EventEmitter
  *
  * @param {Object} [config] Configuration object
  */
 sp.System = function SpSystemInitialize( config ) {
-	var defaultConfig;
+	var defaultConfig, guiLoader;
 
 	// Mixin constructors
 	OO.EventEmitter.call( this );
 
+	// Containers holder
+	this.containers = {};
+
 	// Scenario holder
 	// TODO: Allow for multiple scenarios
-	this.scenario = null;
+//	this.scenario = null;
 
 	config = config || {};
 
 	defaultConfig = {
-		container: &#39;#solarSystem&#39;,
 		scenario_dir: &#39;scenarios&#39;, // Default directory unless otherwise specified
 		directory_sep: &#39;/&#39;,
 		width: $( window ).width() - 100,
@@ -44,23 +46,7 @@ sp.System = function SpSystemInitialize( config ) {
 	};
 
 	// Extend default global options
-	this.config = $.extend( true, config, defaultConfig );
-
-	// Initialize
-	this.$container = $( this.config.container )
-		.addClass( &#39;sp-system-container&#39; )
-
-	this.$spinner = $( &#39;&lt;div&gt;&#39; )
-		.addClass( &#39;sp-system-spinner&#39; )
-		.appendTo( this.$container );
-
-	this.$canvas = $( &#39;&lt;canvas&gt;&#39; )
-		.addClass( &#39;sp-system-canvas&#39; )
-		.attr( &#39;width&#39;, this.config.width )
-		.attr( &#39;height&#39;, this.config.height )
-		.appendTo( this.$container );
-
-	this.$spinner.hide().detach();
+	this.config = $.extend( true, defaultConfig, config );
 };
 
 /* Inheritance */
@@ -68,54 +54,39 @@ OO.mixinClass( sp.System, OO.EventEmitter );
 
 /* Methods */
 
-<span id='sp-System-method-load'>/**
-</span> * Load a scenario
- * @param {String} scenarioName Scenario name. The system will search for
- *  an ajax response from source &#39;scenario.[name].json&#39; in the scenario
- *  directory.
+<span id='sp-System-method-setContainer'>/**
+</span> * Add a container
+ * @param {string} container_id The id of the DOM that this container
+ * will be attached to
+ * @param {Object} [config] Configuration object
+ * @throws {Error} If container_id is undefined or empty
+ * @return {sp.Container} The new container
  */
-sp.System.prototype.load = function ( scenarioName ) {
-	var targetName,
-		targetDir = this.config.scenario_dir + this.config.directory_sep;
+sp.System.prototype.setContainer = function ( container_id, config ) {
+	if ( !container_id ) {
+		throw Error( &#39;sp.System.setContainer must supply a valid container_id.&#39; );
+	}
 
-	scenarioName = scenarioName || &#39;example&#39;;
-	targetName = &#39;scenario.&#39; + scenarioName + &#39;.json&#39;;
+	// Add a container
+	this.containers[container_id] = new sp.Container( {
+		&#39;container&#39;: &#39;#&#39; + container_id,
+		&#39;width&#39;: config.width || this.config.width,
+		&#39;height&#39;: config.height || this.config.height,
+		scenario_dir: this.config.scenario_dir,
+		directory_sep: this.config.directory_sep
+	} );
 
-	$.getJSON( targetDir + targetName )
-		.done( $.proxy( function ( response ) {
-			// Load the scenario
-			this.loadScenario( response );
-		}, this ) )
-		.fail( function () {
-			sp.log( &#39;Error&#39;, &#39;Scenario &#39; + targetName + &#39; not found in directory &quot;&#39; + targetDir + &#39;&quot;&#39; );
-		} );
+	return this.containers[container_id];
 };
 
-<span id='sp-System-method-loadScenario'>/**
-</span> * Load and run a scenario
- * @param {Object} scenarioObject Scenario configuration object
+<span id='sp-System-method-getContainer'>/**
+</span> * Retrueve the container by its id
+ * @param {string} container_id The id of the DOM that this container
+ * is attached to
+ * @returns {sp.Container|null} The container
  */
-sp.System.prototype.loadScenario = function ( scenarioObject ) {
-	scenarioObject = scenarioObject || {};
-
-	this.scenario = new sp.Scenario( this.$canvas, scenarioObject );
-
-	this.scenario.run();
-};
-
-<span id='sp-System-method-togglePaused'>/**
-</span> * Toggle between pause and resume the scenario
- * @param {boolean} [isPause] Optional. If supplied, pauses or resumes the scenario
- */
-sp.System.prototype.togglePaused = function ( isPause ) {
-	this.scenario.togglePaused( isPause );
-};
-
-<span id='sp-System-method-isPaused'>/**
-</span> * Check whether the scenario is paused
- */
-sp.System.prototype.isPaused = function () {
-	return this.scenario.isPaused();
+sp.System.prototype.getContainer = function ( container_id ) {
+	return this.containers[container_id] || null;
 };
 
 <span id='sp-System-method-getConfig'>/**

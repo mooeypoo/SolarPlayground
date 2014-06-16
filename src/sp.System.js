@@ -35,8 +35,6 @@ sp.System = function SpSystemInitialize( config ) {
 /* Inheritance */
 OO.mixinClass( sp.System, OO.EventEmitter );
 
-/* Events */
-
 /* Methods */
 
 /**

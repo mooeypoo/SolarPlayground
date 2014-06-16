@@ -247,6 +247,25 @@ sp.Scenario.prototype.processObjects = function ( scenarioObjects ) {
 };
 
 /**
+ * Set the POV object
+ * @param {string} povKey Object key for the pov
+ * @fires povChange
+ */
+sp.Scenario.prototype.setPOV = function ( povKey ) {
+	if ( povKey && this.objects[povKey] && this.pov_key !== povKey ) {
+		this.pov_key = povKey;
+
+		this.pov_object = this.objects[this.pov_key];
+		this.viewpoint.setPOV( this.objects[this.pov_key].getSpaceCoordinates( 0 ) );
+		this.clearCanvas();
+		this.flushAllTrails();
+		this.draw();
+
+		this.emit( 'povChange' );
+	}
+};
+
+/**
  * Draw all elements
  * @param {number} time Time
  * @param {boolean} ignoreTrails Ignore trails despite settings
@@ -442,7 +461,7 @@ sp.Scenario.prototype.resume = function () {
  * Increase or decrease scenario zoom levels
  * @param {number} z Zoom level, negative for zoom out
  */
-sp.Scenario.prototype.zoom = function ( z ) {
+sp.Scenario.prototype.setZoom = function ( z ) {
 	this.viewpoint.setZoom( z );
 	this.flushAllTrails();
 	if ( this.isPaused() ) {
@@ -518,8 +537,6 @@ sp.System = function SpSystemInitialize( config ) {
 
 /* Inheritance */
 OO.mixinClass( sp.System, OO.EventEmitter );
-
-/* Events */
 
 /* Methods */
 
@@ -823,6 +840,7 @@ OO.mixinClass( sp.Container, OO.EventEmitter );
  * @param {String} scenarioName Scenario name. The system will search for
  *  an ajax response from source 'scenario.[name].json' in the scenario
  *  directory.
+ * @chainable
  */
 sp.Container.prototype.loadFromFile = function ( scenarioName ) {
 	var targetName,
@@ -844,6 +862,7 @@ sp.Container.prototype.loadFromFile = function ( scenarioName ) {
 /**
  * Load and run a scenario
  * @param {Object} scenarioObject Scenario configuration object
+ * @chainable
  * @fires scenarioLoaded
  */
 sp.Container.prototype.loadFromObject = function ( scenarioObject ) {
@@ -868,6 +887,7 @@ sp.Container.prototype.loadFromObject = function ( scenarioObject ) {
 	}
 
 	this.emit( 'scenarioLoaded', this.scenario );
+	return this;
 };
 
 /**
@@ -883,11 +903,7 @@ sp.Container.prototype.onGuiPlay = function ( isPlay ) {
  * @param {Boolean} zoom Zoom level
  */
 sp.Container.prototype.onGuiZoom = function ( zoom ) {
-	this.scenario.zoom( zoom );
-	if ( this.isPaused() ) {
-		this.scenario.clearCanvas()
-		this.scenario.draw();
-	}
+	this.scenario.setZoom( zoom );
 };
 
 /**
@@ -895,7 +911,7 @@ sp.Container.prototype.onGuiZoom = function ( zoom ) {
  * @param {Boolean} newPov New POV object key
  */
 sp.Container.prototype.onGuiPOV = function ( newPov ) {
-	console.log( 'pov', newPov );
+	this.scenario.setPOV( newPov );
 };
 
 /**
@@ -983,7 +999,7 @@ sp.Container.prototype.getCanvasDimensions = function () {
  * Attach scenario object to this container
  * @param {sp.Scenario} s Scenario object
  */
-sp.Container.prototype.attachScenario = function ( s ) {
+sp.Container.prototype.setScenario = function ( s ) {
 	this.scenario = s;
 };
 
@@ -993,6 +1009,14 @@ sp.Container.prototype.attachScenario = function ( s ) {
  */
 sp.Container.prototype.togglePaused = function ( isPause ) {
 	this.scenario.togglePaused( isPause );
+};
+
+/**
+ * Set scenario zoom
+ * @param {number} zoom Zoom factor
+ */
+sp.Container.prototype.setZoom = function ( zoom ) {
+	this.scenario.setZoom( zoom );
 };
 
 /**

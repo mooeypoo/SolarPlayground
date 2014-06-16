@@ -18,7 +18,7 @@
   <pre class="prettyprint lang-js"><span id='sp-Scenario-CelestialObject'>/**
 </span> * Celestial object, defines a moving object in space.
  *
- * @class
+ * @class sp.Scenario.CelestialObject
  * @mixins OO.EventEmitter
  *
  * @param {Object} config Celestial object definition
@@ -37,9 +37,9 @@ sp.Scenario.CelestialObject = function SpScenarioCelestialObject( config ) {
 	this.frameCounter = 0;
 	// TODO: Consider adding these to the global scenario config
 	// Keep record of trail every X frames
-	this.trailsFrameGap = 10;
+	this.trailsFrameGap = 2;
 	// How many trail points to store
-	this.numTrailPoints = 50;
+	this.numTrailPoints = 80;
 
 	// Attributes
 	this.name = config.name || &#39;&#39;;
@@ -89,12 +89,6 @@ sp.Scenario.CelestialObject.prototype.getSpaceCoordinates = function ( time ) {
 			this.vars,
 			time
 		);
-
-		this.frameCounter++;
-		if ( this.frameCounter &gt;= this.trailsFrameGap ) {
-			this.storeTrailPoint( this.coordinates );
-			this.frameCounter = 0;
-		}
 	} else {
 		this.coordinates = { x: 0, y: 0, z: 0 };
 	}
@@ -121,6 +115,14 @@ sp.Scenario.CelestialObject.prototype.storeTrailPoint = function ( coordinates )
  */
 sp.Scenario.CelestialObject.prototype.getTrailPoints = function () {
 	return this.trails;
+};
+
+<span id='sp-Scenario-CelestialObject-method-flushTrailPoints'>/**
+</span> * Flush the trails queue completely.
+ */
+sp.Scenario.CelestialObject.prototype.flushTrailPoints = function () {
+	this.trails = [];
+	this.frameCounter = 0;
 };
 
 <span id='sp-Scenario-CelestialObject-method-getType'>/**

@@ -19,7 +19,7 @@
 </span> * Solar Playground viewpoint controller.
  * Controls the presentation of the objects on the canvas.
  *
- * @class
+ * @class sp.Viewpoint
  * @mixins OO.EventEmitter
  *
  * @param {Object} [config] Configuration object
@@ -42,8 +42,8 @@ sp.Viewpoint = function SpViewpoint( config ) {
 
 	// Set up visible canvas-scaled radius steps in pixels
 	this.radii = {
-		&#39;star&#39;: [ 15, 17, 20, 22, 25, 30, 32, 35, 37 ],
-		&#39;planet&#39;: [ 2, 3, 4, 5, 6, 7, 8, 9, 10 ]
+		&#39;star&#39;: [ 25, 30, 32, 35 ],
+		&#39;planet&#39;: [ 4, 8, 10, 12, 14, 16 ]
 	};
 	// Define the step between each value
 	this.radius_step = {
@@ -151,9 +151,53 @@ sp.Viewpoint.prototype.getRadius = function ( orig_radius, type ) {
 		index = this.radii[type].length - 1;
 	}
 
-	radius = this.radii[type][ index ];
+	radius = Math.sqrt( this.radii[type][ index ] * this.zoom ) / 100;
 
 	return ( radius &gt;= 2 ) ? radius : 2;
+};
+
+<span id='sp-Viewpoint-method-setZoom'>/**
+</span> * Increase or decrease scenario zoom levels
+ * @param {number} z Zoom level, negative for zoom out
+ */
+sp.Viewpoint.prototype.setZoom = function ( z ) {
+	this.zoom += z;
+};
+
+<span id='sp-Viewpoint-method-setCenterPoint'>/**
+</span> * Set the canvas center point
+ * @param {number} x X coordinate of the center of the system
+ * @param {number} y Y coordinate of the center of the system
+ */
+sp.Viewpoint.prototype.setCenterPoint = function ( x, y ) {
+	x = x || this.centerPoint.x;
+	y = y || this.centerPoint.y;
+
+	this.centerPoint = {
+		&#39;x&#39;: x,
+		&#39;y&#39;: y
+	};
+};
+
+<span id='sp-Viewpoint-method-getCenterPoint'>/**
+</span> * Get the current center point of the view
+ * @returns {Object} x/y coordinates of the current center point
+ */
+sp.Viewpoint.prototype.getCenterPoint = function () {
+	return this.centerPoint;
+};
+
+<span id='sp-Viewpoint-method-addToCenterPoint'>/**
+</span> * Add to the center point
+ * @param {number} [x] Amount to add to X coordinate
+ * @param {number} [y] Amount to add to Y coordinate
+ */
+sp.Viewpoint.prototype.addToCenterPoint = function ( x, y ) {
+	x = x || 0;
+	y = y || 0;
+
+	this.centerPoint.x += x;
+	this.centerPoint.y += y;
 };
 </pre>
 </body>
