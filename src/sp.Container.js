@@ -90,9 +90,8 @@ sp.Container.prototype.loadFromObject = function ( scenarioObject ) {
 
 	scenarioObject = scenarioObject || {};
 
-	this.scenario = new sp.Scenario( this, scenarioObject );
-	// Link scenario to GUI
-	this.gui.setScenario( this.scenario );
+	scenario = new sp.Scenario( this, scenarioObject );
+	this.setScenario( scenario );
 
 	// Draw initial frame
 	this.scenario.draw( 0 );
@@ -107,7 +106,17 @@ sp.Container.prototype.loadFromObject = function ( scenarioObject ) {
 	}
 
 	this.emit( 'scenarioLoaded', this.scenario );
+
 	return this;
+};
+
+/**
+ * Propogate scenario event
+ * @param {Boolean} isPaused Scenario paused
+ * @fires pause
+ */
+sp.Container.prototype.onScenarioPause = function ( isPaused ) {
+	this.emit( 'pause', isPaused );
 };
 
 /**
@@ -224,6 +233,9 @@ sp.Container.prototype.getCanvasDimensions = function () {
  */
 sp.Container.prototype.setScenario = function ( s ) {
 	this.scenario = s;
+
+	// Propogate scenario events
+	this.scenario.connect( this, { 'pause': 'onScenarioPause' } );
 };
 
 /**

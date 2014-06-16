@@ -140,8 +140,16 @@ sp.Scenario.prototype.setPOV = function ( povKey ) {
 		this.flushAllTrails();
 		this.draw();
 
-		this.emit( &#39;povChange&#39; );
+		this.emit( &#39;povChange&#39;, this.pov_key );
 	}
+};
+
+<span id='sp-Scenario-method-getPOV'>/**
+</span> * Get the POV key currently set
+ * @returns {string} POV key
+ */
+sp.Scenario.prototype.getPOV = function () {
+	return this.pov_key;
 };
 
 <span id='sp-Scenario-method-draw'>/**
@@ -311,7 +319,7 @@ sp.Scenario.prototype.togglePaused = function ( isPause ) {
 	this.paused = isPause;
 	this.run();
 
-	this.emit( &#39;paused&#39;, isPause );
+	this.emit( &#39;pause&#39;, this.paused );
 };
 
 <span id='sp-Scenario-method-isPaused'>/**
@@ -347,6 +355,14 @@ sp.Scenario.prototype.setZoom = function ( z ) {
 		this.clearCanvas();
 		this.draw( this.time, true );
 	}
+};
+
+<span id='sp-Scenario-method-getZoom'>/**
+</span> * Retrieve the zoom level
+ * @returns {numver} Current zoom level
+ */
+sp.Scenario.prototype.getZoom = function () {
+	return this.viewpoint.getZoom();
 };
 
 <span id='sp-Scenario-method-setCenterPoint'>/**

@@ -302,7 +302,7 @@ sp.Scenario.prototype.togglePaused = function ( isPause ) {
 	this.paused = isPause;
 	this.run();
 
-	this.emit( 'paused', isPause );
+	this.emit( 'pause', this.paused );
 };
 
 /**

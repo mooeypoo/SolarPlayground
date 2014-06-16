@@ -107,9 +107,8 @@ sp.Container.prototype.loadFromObject = function ( scenarioObject ) {
 
 	scenarioObject = scenarioObject || {};
 
-	this.scenario = new sp.Scenario( this, scenarioObject );
-	// Link scenario to GUI
-	this.gui.setScenario( this.scenario );
+	scenario = new sp.Scenario( this, scenarioObject );
+	this.setScenario( scenario );
 
 	// Draw initial frame
 	this.scenario.draw( 0 );
@@ -124,7 +123,17 @@ sp.Container.prototype.loadFromObject = function ( scenarioObject ) {
 	}
 
 	this.emit( &#39;scenarioLoaded&#39;, this.scenario );
+
 	return this;
+};
+
+<span id='sp-Container-method-onScenarioPause'>/**
+</span> * Propogate scenario event
+ * @param {Boolean} isPaused Scenario paused
+ * @fires pause
+ */
+sp.Container.prototype.onScenarioPause = function ( isPaused ) {
+	this.emit( &#39;pause&#39;, isPaused );
 };
 
 <span id='sp-Container-method-onGuiPlay'>/**
@@ -154,7 +163,7 @@ sp.Container.prototype.onGuiPOV = function ( newPov ) {
 <span id='sp-Container-method-onCanvasMouseDown'>/**
 </span> * Propogate canvas mousedown event
  * @param {Event} e Event
- * @fires mousedown
+ * @fires canvasMouseDown
  */
 sp.Container.prototype.onCanvasMouseDown = function ( e ) {
 	this.canvasMouseMoving = true;
@@ -165,6 +174,7 @@ sp.Container.prototype.onCanvasMouseDown = function ( e ) {
 	if ( this.scenario ) {
 		this.scenarioCenterPoint = this.scenario.getCenterPoint();
 	}
+	this.emit( &#39;canvasMouseDown&#39; );
 };
 
 <span id='sp-Container-method-onCanvasMouseMove'>/**
@@ -191,11 +201,13 @@ sp.Container.prototype.onCanvasMouseMove = function ( e ) {
 <span id='sp-Container-method-onCanvasMouseUp'>/**
 </span> * Propogate canvas mouseup event
  * @param {Event} e Event
+ * @fires canvasMouseUp
  */
 sp.Container.prototype.onCanvasMouseUp = function ( e ) {
 	this.canvasMouseMoving = false;
 	this.mouseStartingPoint = {};
 	this.scenarioCenterPoint = {};
+	this.emit( &#39;canvasMouseUp&#39; );
 };
 
 <span id='sp-Container-method-addToolbar'>/**
@@ -238,22 +250,40 @@ sp.Container.prototype.getCanvasDimensions = function () {
  */
 sp.Container.prototype.setScenario = function ( s ) {
 	this.scenario = s;
+
+	// Propogate scenario events
+	this.scenario.connect( this, { &#39;pause&#39;: &#39;onScenarioPause&#39; } );
 };
 
+<span id='sp-Container-method-getScenario'>/**
+</span> * Retrieve the scenario attached to this container
+ * @returns {sp.Scenario} s Scenario object
+ */
+sp.Container.prototype.getScenario = function () {
+	return this.scenario;
+};
 <span id='sp-Container-method-togglePaused'>/**
 </span> * Toggle between pause and resume the scenario
- * @param {boolean} [isPause] Optional. If supplied, pauses or resumes the scenario
+ * @param {boolean} [isPaused] Optional. If supplied, pauses or resumes the scenario
+ * @fires pause
  */
-sp.Container.prototype.togglePaused = function ( isPause ) {
-	this.scenario.togglePaused( isPause );
+sp.Container.prototype.togglePaused = function ( isPaused ) {
+	if ( this.isPaused() !== isPaused ) {
+		this.scenario.togglePaused( isPaused );
+		this.emit( &#39;pause&#39;, isPaused );
+	}
 };
 
 <span id='sp-Container-method-setZoom'>/**
 </span> * Set scenario zoom
  * @param {number} zoom Zoom factor
+ * @fires zoom
  */
 sp.Container.prototype.setZoom = function ( zoom ) {
-	this.scenario.setZoom( zoom );
+	if ( this.scenario.getZoom() !== zoom ) {
+		this.scenario.setZoom( zoom );
+		this.emit( &#39;zoom&#39;, zoom );
+	}
 };
 
 <span id='sp-Container-method-isPaused'>/**

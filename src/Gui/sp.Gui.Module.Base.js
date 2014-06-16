@@ -14,8 +14,6 @@ sp.Gui.Module.Base = function SpGuiModuleOoui ( container, config ) {
 	OO.EventEmitter.call( this );
 
 	this.container = container;
-
-	this.scenario = null;
 };
 
 /* Inheritance */
@@ -42,17 +40,6 @@ OO.mixinClass( sp.Gui.Module.Base, OO.EventEmitter );
  */
 
 /* Methods */
-
-/**
- * Connect the GUI to the scenario it controls
- * @param {sp.Scenario} scenario The scenario object this GUI controls
- * @fires scenarioUpdate
- */
-sp.Gui.Module.Base.prototype.setScenario = function ( scenario ) {
-	this.scenario = scenario;
-
-	this.emit( 'scenarioUpdate', this.scenario );
-};
 
 /**
  * Initialize the Gui

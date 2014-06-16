@@ -68,7 +68,7 @@ sp.Gui.Module.ooui.prototype.initialize = function () {
 	this.toolGroupFactory = new OO.ui.ToolGroupFactory();
 
 	// Create toolbar
-	this.toolbar = new OO.ui.Toolbar( this.toolFactory, this.toolGroupFactory );
+	this.toolbar = new sp.Gui.Module.ooui.Toolbar( this.container, this.toolFactory, this.toolGroupFactory );
 	this.toolbar.setup( [
 		{
 			&#39;type&#39;: &#39;bar&#39;,
@@ -92,7 +92,9 @@ sp.Gui.Module.ooui.prototype.initialize = function () {
 	// TODO: Disable all buttons until the scenario is loaded
 	tools = {
 		// playTools
-		&#39;play&#39;: [ &#39;playTool&#39;, &#39;playTools&#39;, &#39;play&#39;, &#39;Play scenario&#39;, null, this.onPlayButtonSelect ],
+		&#39;play&#39;: [ &#39;playTool&#39;, &#39;playTools&#39;, &#39;play&#39;, &#39;Play scenario&#39;, null, this.onPlayButtonSelect, function ( isPaused ) {
+			this.setActive( !isPaused );
+		}, &#39;pause&#39; ],
 		// viewTools
 		&#39;zoomin&#39;: [ &#39;zoominTool&#39;, &#39;viewTools&#39;, &#39;zoomin&#39;, &#39;Zoom in&#39;, null, this.onZoomInButtonSelect ],
 		&#39;zoomout&#39;: [ &#39;zoomoutTool&#39;, &#39;viewTools&#39;, &#39;zoomout&#39;, &#39;Zoom out&#39;, null, this.onZoomOutButtonSelect ]
@@ -108,7 +110,6 @@ sp.Gui.Module.ooui.prototype.initialize = function () {
 	this.container.addToolbar( this.toolbar.$element );
 
 	// Events
-	this.toolbar.connect( this, { &#39;updateState&#39;: [ &#39;onToolbarEvent&#39;, &#39;updateToolbarState&#39; ] } );
 	this.toolbar.connect( this, { &#39;play&#39;: [ &#39;onToolbarEvent&#39;, &#39;play&#39; ] } );
 	this.toolbar.connect( this, { &#39;zoom&#39;: [ &#39;onToolbarEvent&#39;, &#39;zoom&#39; ] } );
 	this.toolbar.connect( this, { &#39;pov&#39;: [ &#39;onToolbarEvent&#39;, &#39;pov&#39; ] } );
@@ -123,40 +124,21 @@ sp.Gui.Module.ooui.prototype.initialize = function () {
  * @param {string} [icon] Tool icon
  */
 sp.Gui.Module.ooui.prototype.addToPOVList = function ( name, title, icon ) {
-	var toolDefinition, onSelectFunc,
+	var toolDefinition, onSelectFunc, tool, toolGroup,
 		eventObject = {},
 		toolName = name + &#39;Tool&#39;;
 
-	onSelectFunc = function () {
-		this.toolbar.emit( &#39;pov&#39;,
-			this.constructor.static.object_name,
-			this.constructor.static.toolName
-		);
-	};
-
-	eventObject[toolName] = [ &#39;onToolbarEvent&#39;, toolName ];
-
 	toolDefinition = [
 		// name
-		toolName,
-		// group
-		&#39;povTools&#39;,
+		name,
 		// icon
 		icon,
 		// title/label
-		title,
-		// init function
-		null,
-		// onSelect function
-		onSelectFunc
+		title
 	];
 
-	this.tools[toolName] = this.createTool.apply( this, toolDefinition );
-	this.tools[toolName].static.object_name = name;
-	this.tools[toolName].static.tool_name = toolName;
-
+	this.tools[toolName] = this.createPOVTool.apply( this, toolDefinition );
 	this.toolFactory.register( this.tools[toolName] );
-	this.toolbar.connect( this, eventObject );
 };
 
 <span id='sp-Gui-Module-ooui-method-onToolbarEvent'>/**
@@ -176,7 +158,7 @@ sp.Gui.Module.ooui.prototype.onToolbarEvent = function ( ev, params ) {
  */
 sp.Gui.Module.ooui.prototype.onZoomInButtonSelect = function () {
 	this.setActive( false );
-	this.toolbar.emit( &#39;zoom&#39;, 1000 );
+	this.toolbar.emit( &#39;zoom&#39;, 2000 );
 };
 
 <span id='sp-Gui-Module-ooui-method-onZoomOutButtonSelect'>/**
@@ -185,7 +167,7 @@ sp.Gui.Module.ooui.prototype.onZoomInButtonSelect = function () {
  */
 sp.Gui.Module.ooui.prototype.onZoomOutButtonSelect = function () {
 	this.setActive( false );
-	this.toolbar.emit( &#39;zoom&#39;, -1000 );
+	this.toolbar.emit( &#39;zoom&#39;, -2000 );
 };
 
 <span id='sp-Gui-Module-ooui-method-onPlayButtonSelect'>/**
@@ -193,11 +175,12 @@ sp.Gui.Module.ooui.prototype.onZoomOutButtonSelect = function () {
  * @fires play
  */
 sp.Gui.Module.ooui.prototype.onPlayButtonSelect = function () {
-	// TODO: Activate the pause button and disable self
-	this.toggled = !this.toggled;
-	this.setActive( this.toggled );
+	if ( this.toggled !== this.toolbar.getContainer().isPaused() ) {
+		this.toggled = !this.toggled;
+		this.setActive( this.toggled );
 
-	this.toolbar.emit( &#39;play&#39;, this.toggled );
+		this.toolbar.emit( &#39;play&#39;, this.toggled );
+	}
 };
 
 <span id='sp-Gui-Module-ooui-method-getToolbar'>/**
@@ -220,16 +203,24 @@ sp.Gui.Module.ooui.prototype.getToolbar = function () {
  * @param {string} title Title or alternate text
  * @param {Function} init Initialization function
  * @param {Function} onSelect Activation function
+ * @param {Function} updateFunc Function on update state
+ * @param {string} eventName Name of event to connect to in scenario object
  * @returns {OO.ui.Tool} Tool
  */
-sp.Gui.Module.ooui.prototype.createTool = function ( name, group, icon, title, init, onSelect ) {
+sp.Gui.Module.ooui.prototype.createTool = function ( name, group, icon, title, init, onSelect, updateFunc, eventName ) {
 	// TODO: The entire createTool method should be rewritten to
 	// better suit the needs of this particular toolbar
 	var Tool = function SpGuiTool() {
+		var eventDef = {}, scenario;
 		Tool.super.apply( this, arguments );
 		this.toggled = false;
+		scenario = scenario = this.toolbar.getContainer().getScenario();
 		if ( init ) {
 			init.call( this );
+		}
+		if ( eventName ) {
+			eventDef[eventName] = &#39;onToolbarUpdate&#39;;
+			this.toolbar.getContainer().connect( this, eventDef );
 		}
 	};
 
@@ -245,12 +236,75 @@ sp.Gui.Module.ooui.prototype.createTool = function ( name, group, icon, title, i
 		this.toolbar.emit( &#39;updateState&#39; );
 	};
 	Tool.prototype.onUpdateState = function () {};
+	Tool.prototype.onToolbarUpdate = function ( params ) {
+		if ( updateFunc ) {
+			updateFunc.call( this, params );
+		}
+	};
 
 	Tool.static.name = name;
 	Tool.static.group = group;
 	Tool.static.icon = icon;
 	Tool.static.title = title;
 	return Tool;
+};
+
+<span id='sp-Gui-Module-ooui-method-createPOVTool'>/**
+</span> * Create a POV tool
+ * @param {string} name Tool name
+ * @param {string} icon Tool icon
+ * @param {string} title Title or alternate text
+ * @returns {OO.ui.Tool} Tool
+ */
+sp.Gui.Module.ooui.prototype.createPOVTool = function ( name, icon, title ) {
+	// TODO: The entire createTool method should be rewritten to
+	// better suit the needs of this particular toolbar
+	var Tool = function SpGuiPOVTool() {
+		Tool.super.apply( this, arguments );
+		this.toggled = this.toolbar.getContainer().getScenario().getPOV() === name;
+		this.setActive( this.toggled );
+		this.objectName = name;
+		this.toolbar.getContainer().getScenario().connect( this, { &#39;povChange&#39;: &#39;onUpdateState&#39; } );
+	};
+
+	OO.inheritClass( Tool, OO.ui.Tool );
+
+	Tool.prototype.onSelect = function () {
+		if ( this.toolbar.getContainer().getScenario().getPOV() !== this.getObjectName() ) {
+			this.toolbar.emit( &#39;pov&#39;, this.getObjectName() );
+		}
+	};
+	Tool.prototype.getObjectName = function () {
+		return this.objectName;
+	}
+	Tool.prototype.onUpdateState = function ( pov ) {
+		this.setActive( pov === this.getObjectName() );
+	};
+
+	Tool.static.name = name;
+	Tool.static.group = &#39;povTools&#39;;
+	Tool.static.icon = icon;
+	Tool.static.title = title;
+	return Tool;
+};
+
+/* Toolbar */
+sp.Gui.Module.ooui.Toolbar = function ( container, toolFactory, toolGroupFactory ) {
+	// Parent constructor
+	sp.Gui.Module.ooui.Toolbar.super.call( this, toolFactory, toolGroupFactory );
+
+	this.container = container;
+};
+
+/* Inheritance */
+OO.inheritClass( sp.Gui.Module.ooui.Toolbar, OO.ui.Toolbar );
+
+<span id='sp-Gui-Module-ooui-method-getContainer'>/**
+</span> * Get the container attached to this toolbar
+ * @returns {sp.Container} Container
+ */
+sp.Gui.Module.ooui.Toolbar.prototype.getContainer = function () {
+	return this.container;
 };
 </pre>
 </body>
