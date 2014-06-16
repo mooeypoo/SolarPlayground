@@ -148,6 +148,14 @@ sp.Viewpoint.prototype.setZoom = function ( z ) {
 };
 
 /**
+ * Get the current zoom factor
+ * @returns {number} zoom Zoom factor
+ */
+sp.Viewpoint.prototype.getZoom = function () {
+	return this.zoom;
+};
+
+/**
  * Set the canvas center point
  * @param {number} x X coordinate of the center of the system
  * @param {number} y Y coordinate of the center of the system

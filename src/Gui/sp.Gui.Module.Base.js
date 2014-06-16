@@ -46,9 +46,12 @@ OO.mixinClass( sp.Gui.Module.Base, OO.EventEmitter );
 /**
  * Connect the GUI to the scenario it controls
  * @param {sp.Scenario} scenario The scenario object this GUI controls
+ * @fires scenarioUpdate
  */
 sp.Gui.Module.Base.prototype.setScenario = function ( scenario ) {
 	this.scenario = scenario;
+
+	this.emit( 'scenarioUpdate', this.scenario );
 };
 
 /**

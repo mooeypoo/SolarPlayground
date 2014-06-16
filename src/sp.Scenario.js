@@ -123,8 +123,16 @@ sp.Scenario.prototype.setPOV = function ( povKey ) {
 		this.flushAllTrails();
 		this.draw();
 
-		this.emit( 'povChange' );
+		this.emit( 'povChange', this.pov_key );
 	}
+};
+
+/**
+ * Get the POV key currently set
+ * @returns {string} POV key
+ */
+sp.Scenario.prototype.getPOV = function () {
+	return this.pov_key;
 };
 
 /**
@@ -330,6 +338,14 @@ sp.Scenario.prototype.setZoom = function ( z ) {
 		this.clearCanvas();
 		this.draw( this.time, true );
 	}
+};
+
+/**
+ * Retrieve the zoom level
+ * @returns {numver} Current zoom level
+ */
+sp.Scenario.prototype.getZoom = function () {
+	return this.viewpoint.getZoom();
 };
 
 /**

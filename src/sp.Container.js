@@ -137,7 +137,7 @@ sp.Container.prototype.onGuiPOV = function ( newPov ) {
 /**
  * Propogate canvas mousedown event
  * @param {Event} e Event
- * @fires mousedown
+ * @fires canvasMouseDown
  */
 sp.Container.prototype.onCanvasMouseDown = function ( e ) {
 	this.canvasMouseMoving = true;
@@ -148,6 +148,7 @@ sp.Container.prototype.onCanvasMouseDown = function ( e ) {
 	if ( this.scenario ) {
 		this.scenarioCenterPoint = this.scenario.getCenterPoint();
 	}
+	this.emit( 'canvasMouseDown' );
 };
 
 /**
@@ -174,11 +175,13 @@ sp.Container.prototype.onCanvasMouseMove = function ( e ) {
 /**
  * Propogate canvas mouseup event
  * @param {Event} e Event
+ * @fires canvasMouseUp
  */
 sp.Container.prototype.onCanvasMouseUp = function ( e ) {
 	this.canvasMouseMoving = false;
 	this.mouseStartingPoint = {};
 	this.scenarioCenterPoint = {};
+	this.emit( 'canvasMouseUp' );
 };
 
 /**
@@ -224,19 +227,34 @@ sp.Container.prototype.setScenario = function ( s ) {
 };
 
 /**
- * Toggle between pause and resume the scenario
- * @param {boolean} [isPause] Optional. If supplied, pauses or resumes the scenario
+ * Retrieve the scenario attached to this container
+ * @returns {sp.Scenario} s Scenario object
  */
-sp.Container.prototype.togglePaused = function ( isPause ) {
-	this.scenario.togglePaused( isPause );
+sp.Container.prototype.getScenario = function () {
+	return this.scenario;
+};
+/**
+ * Toggle between pause and resume the scenario
+ * @param {boolean} [isPaused] Optional. If supplied, pauses or resumes the scenario
+ * @fires pause
+ */
+sp.Container.prototype.togglePaused = function ( isPaused ) {
+	if ( this.isPaused() !== isPaused ) {
+		this.scenario.togglePaused( isPaused );
+		this.emit( 'pause', isPaused );
+	}
 };
 
 /**
  * Set scenario zoom
  * @param {number} zoom Zoom factor
+ * @fires zoom
  */
 sp.Container.prototype.setZoom = function ( zoom ) {
-	this.scenario.setZoom( zoom );
+	if ( this.scenario.getZoom() !== zoom ) {
+		this.scenario.setZoom( zoom );
+		this.emit( 'zoom', zoom );
+	}
 };
 
 /**
