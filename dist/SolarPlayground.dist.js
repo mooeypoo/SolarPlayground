@@ -1459,7 +1459,9 @@ sp.Gui.Module.ooui.prototype.createPOVTool = function ( name, icon, title ) {
 		return this.objectName;
 	}
 	Tool.prototype.onUpdateState = function ( pov ) {
-		this.setActive( pov === this.getObjectName() );
+		if ( pov ) {
+			this.setActive( pov === this.getObjectName() );
+		}
 	};
 
 	Tool.static.name = name;
