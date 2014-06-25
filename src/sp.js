@@ -8,7 +8,23 @@
  * Solar Playground system.
  */
 ( function () {
-	var solarPlayground = {};
+	/**
+	 * Definition of the namespace with its sub-namespaces
+	 * @property {Object}
+	 */
+	var solarPlayground = {
+		'container': {
+			'elements': {}
+		},
+		'data': {
+			'items': {}
+		},
+		'calc': {},
+		'view': {},
+		'ui': {
+			'ext': {}
+		}
+	};
 
 	/**
 	 * General method to produce logs into the console
@@ -29,6 +45,9 @@
 } )();
 
 /*
+ * Animation requestNextAnimationFrame based on available
+ * technology in the browser.
+ *
  * Copyright (C) 2012 David Geary. This code is from the book
  * Core HTML5 Canvas, published by Prentice-Hall in 2012.
  *

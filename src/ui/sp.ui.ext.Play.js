@@ -1,13 +1,13 @@
 /**
  * General Gui module
  *
- * @class sp.Gui.Module.Base
+ * @class sp.ui.ext.Play
  * @abstract
  *
  * @param {sp.Container} container The container to attach the GUI to
  * @param {Object} [config] Gui module definition
  */
-sp.Gui.Module.Base = function SpGuiModuleOoui ( container, config ) {
+sp.ui.ext.Play = function SpUiExtPlay ( container, config ) {
 	config = config || {};
 
 	// Mixin constructors
@@ -17,7 +17,7 @@ sp.Gui.Module.Base = function SpGuiModuleOoui ( container, config ) {
 };
 
 /* Inheritance */
-OO.mixinClass( sp.Gui.Module.Base, OO.EventEmitter );
+OO.mixinClass( sp.ui.ext.Play, OO.EventEmitter );
 
 /* Events */
 
@@ -46,7 +46,7 @@ OO.mixinClass( sp.Gui.Module.Base, OO.EventEmitter );
  * @abstract
  * @returns {OO.ui.Toolbar}
  */
-sp.Gui.Module.Base.prototype.initialize = function () {
+sp.ui.ext.Play.prototype.initialize = function () {
 	throw new Error( 'sp.Gui.Module.Initialize must be implemented in child class.' );
 };
 
@@ -57,6 +57,6 @@ sp.Gui.Module.Base.prototype.initialize = function () {
  * @param {string} title Title or alternate text
  * @param {string} [icon] Tool icon
  */
-sp.Gui.Module.Base.prototype.addToPOVList = function ( name, title, icon ) {
+sp.ui.ext.Play.prototype.addToPOVList = function ( name, title, icon ) {
 	throw new Error( 'sp.Gui.Module.addToPOVList must be implemented in child class.' );
 };

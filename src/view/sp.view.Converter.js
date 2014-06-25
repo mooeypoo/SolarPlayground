@@ -7,7 +7,7 @@
  *
  * @param {Object} [config] Configuration object
  */
-sp.Viewpoint = function SpViewpoint( config ) {
+sp.view.Converter = function SpViewConverter( config ) {
 	// Mixin constructors
 	OO.EventEmitter.call( this );
 
@@ -36,7 +36,7 @@ sp.Viewpoint = function SpViewpoint( config ) {
 };
 
 /* Inheritance */
-OO.mixinClass( sp.Viewpoint, OO.EventEmitter );
+OO.mixinClass( sp.view.Converter, OO.EventEmitter );
 
 /* Events */
 
@@ -53,7 +53,7 @@ OO.mixinClass( sp.Viewpoint, OO.EventEmitter );
  * @param {Object} pov_coords The 3d coordinates of the current POV
  * @fires changePOV
  */
-sp.Viewpoint.prototype.setPOV = function ( pov_coords ) {
+sp.view.Converter.prototype.setPOV = function ( pov_coords ) {
 	if ( !pov_coords ) {
 		return;
 	}
@@ -69,7 +69,7 @@ sp.Viewpoint.prototype.setPOV = function ( pov_coords ) {
  * @param {Object} spaceCoords Original 3D space coordinates
  * @returns {Object} Canvas 2d coordinates
  */
-sp.Viewpoint.prototype.getCoordinates = function ( spaceCoords ) {
+sp.view.Converter.prototype.getCoordinates = function ( spaceCoords ) {
 	var ca = Math.cos( this.yaw ),
 		sa = Math.sin( this.yaw ),
 		cb = Math.cos( this.pitch ),
@@ -99,7 +99,7 @@ sp.Viewpoint.prototype.getCoordinates = function ( spaceCoords ) {
  * @param {Object} rList Actual size radii of all celestial objects
  * divided into 'stars' and 'planets' to distinguish relative sizes better
  */
-sp.Viewpoint.prototype.setRadiiList = function ( rList ) {
+sp.view.Converter.prototype.setRadiiList = function ( rList ) {
 	var type, diff;
 
 	this.radii_list = rList;
@@ -123,7 +123,7 @@ sp.Viewpoint.prototype.setRadiiList = function ( rList ) {
  * @param {number} orig_radius Object's original radius
  * @returns {number} Actual radius in pixels
  */
-sp.Viewpoint.prototype.getRadius = function ( orig_radius, type ) {
+sp.view.Converter.prototype.getRadius = function ( orig_radius, type ) {
 	var radius, index,
 		step = this.radius_step[type] || 1;
 
@@ -143,7 +143,7 @@ sp.Viewpoint.prototype.getRadius = function ( orig_radius, type ) {
  * Increase or decrease scenario zoom levels
  * @param {number} z Zoom level, negative for zoom out
  */
-sp.Viewpoint.prototype.setZoom = function ( z ) {
+sp.view.Converter.prototype.setZoom = function ( z ) {
 	this.zoom += z;
 };
 
@@ -151,7 +151,7 @@ sp.Viewpoint.prototype.setZoom = function ( z ) {
  * Get the current zoom factor
  * @returns {number} zoom Zoom factor
  */
-sp.Viewpoint.prototype.getZoom = function () {
+sp.view.Converter.prototype.getZoom = function () {
 	return this.zoom;
 };
 
@@ -160,9 +160,11 @@ sp.Viewpoint.prototype.getZoom = function () {
  * @param {number} x X coordinate of the center of the system
  * @param {number} y Y coordinate of the center of the system
  */
-sp.Viewpoint.prototype.setCenterPoint = function ( x, y ) {
-	x = x || this.centerPoint.x;
-	y = y || this.centerPoint.y;
+sp.view.Converter.prototype.setCenterPoint = function ( coords ) {
+	coords = coords || {}:
+
+	x = coords.x || 0;
+	y = coords.y || 0;
 
 	this.centerPoint = {
 		'x': x,
@@ -174,7 +176,7 @@ sp.Viewpoint.prototype.setCenterPoint = function ( x, y ) {
  * Get the current center point of the view
  * @returns {Object} x/y coordinates of the current center point
  */
-sp.Viewpoint.prototype.getCenterPoint = function () {
+sp.view.Converter.prototype.getCenterPoint = function () {
 	return this.centerPoint;
 };
 
@@ -183,7 +185,7 @@ sp.Viewpoint.prototype.getCenterPoint = function () {
  * @param {number} [x] Amount to add to X coordinate
  * @param {number} [y] Amount to add to Y coordinate
  */
-sp.Viewpoint.prototype.addToCenterPoint = function ( x, y ) {
+sp.view.Converter.prototype.addToCenterPoint = function ( x, y ) {
 	x = x || 0;
 	y = y || 0;
 

@@ -1,12 +1,12 @@
 /**
  * Celestial object, defines a moving object in space.
  *
- * @class sp.Scenario.CelestialObject
+ * @class sp.data.CelestialBody
  * @mixins OO.EventEmitter
  *
  * @param {Object} config Celestial object definition
  */
-sp.Scenario.CelestialObject = function SpScenarioCelestialObject( config ) {
+sp.data.CelestialBody = function SpDataScenarioCelestialObject( config ) {
 	config = config || {};
 
 	// Mixin constructors
@@ -45,13 +45,13 @@ sp.Scenario.CelestialObject = function SpScenarioCelestialObject( config ) {
 };
 
 /* Inheritance */
-OO.mixinClass( sp.Scenario.CelestialObject, OO.EventEmitter );
+OO.mixinClass( sp.data.CelestialBody, OO.EventEmitter );
 
 /**
  * Get space coordinates per time.
  * @param {number} time Time unit
  */
-sp.Scenario.CelestialObject.prototype.getSpaceCoordinates = function ( time ) {
+sp.data.CelestialBody.prototype.getSpaceCoordinates = function ( time ) {
 	var dest, M, G, period;
 
 	time = time || 0;
@@ -61,14 +61,14 @@ sp.Scenario.CelestialObject.prototype.getSpaceCoordinates = function ( time ) {
 		if ( !this.vars.p ) {
 			// Calculate period
 			a = this.vars.a[0];// * sp.Scenario.Calculator.constants.AU;
-			G = sp.Scenario.Calculator.constants.G;
+			G = sp.calc.Calculator.constants.G;
 			M = this.orbiting.getMass();
 			this.vars.p = 2 * Math.PI * Math.sqrt( Math.pow( a, 3) / ( G * M ) );
 		}
 
 		// TODO: Cache coordinates
 
-		this.coordinates = sp.Scenario.Calculator.solveKepler(
+		this.coordinates = sp.calc.Calculator.solveKepler(
 			this.vars,
 			time
 		);
@@ -83,7 +83,7 @@ sp.Scenario.CelestialObject.prototype.getSpaceCoordinates = function ( time ) {
  * Dequeue the first when trail number cap is reached.
  * @param {Object} coordinates Coordinates of the trails
  */
-sp.Scenario.CelestialObject.prototype.storeTrailPoint = function ( coordinates ) {
+sp.data.CelestialBody.prototype.storeTrailPoint = function ( coordinates ) {
 	// Store coordinates for trails
 	this.trails.push( coordinates );
 	if ( this.trails.length > this.numTrailPoints ) {
@@ -96,14 +96,14 @@ sp.Scenario.CelestialObject.prototype.storeTrailPoint = function ( coordinates )
  * Get the trail points.
  * @returns {Object[]} Space coordinates for the trails
  */
-sp.Scenario.CelestialObject.prototype.getTrailPoints = function () {
+sp.data.CelestialBody.prototype.getTrailPoints = function () {
 	return this.trails;
 };
 
 /**
  * Flush the trails queue completely.
  */
-sp.Scenario.CelestialObject.prototype.flushTrailPoints = function () {
+sp.data.CelestialBody.prototype.flushTrailPoints = function () {
 	this.trails = [];
 	this.frameCounter = 0;
 };
@@ -112,7 +112,7 @@ sp.Scenario.CelestialObject.prototype.flushTrailPoints = function () {
  * Get object type
  * @returns {string} Celestial object type, 'star' or 'planet'
  */
-sp.Scenario.CelestialObject.prototype.getType = function () {
+sp.data.CelestialBody.prototype.getType = function () {
 	return this.type;
 };
 
@@ -120,7 +120,7 @@ sp.Scenario.CelestialObject.prototype.getType = function () {
  * Get object name
  * @returns {string} Celestial object name
  */
-sp.Scenario.CelestialObject.prototype.getName = function () {
+sp.data.CelestialBody.prototype.getName = function () {
 	return this.name;
 };
 
@@ -128,23 +128,23 @@ sp.Scenario.CelestialObject.prototype.getName = function () {
  * Get object description
  * @returns {string} Celestial object description
  */
-sp.Scenario.CelestialObject.prototype.getDescription = function () {
+sp.data.CelestialBody.prototype.getDescription = function () {
 	return this.description;
 };
 
 /**
  * Set the object this object is orbiting
- * @param {sp.Scenario.CelestialObject} obj Object that is the center of the orbit
+ * @param {sp.data.CelestialBody} obj Object that is the center of the orbit
  */
-sp.Scenario.CelestialObject.prototype.setOrbit = function ( obj ) {
+sp.data.CelestialBody.prototype.setOrbit = function ( obj ) {
 	this.orbiting = obj;
 };
 
 /**
  * Retrieve the object that is the center of orbit
- * @returns {sp.Scenario.CelestialObject} obj Object that is the center of the orbit
+ * @returns {sp.data.CelestialBody} obj Object that is the center of the orbit
  */
-sp.Scenario.CelestialObject.prototype.getOrbit = function () {
+sp.data.CelestialBody.prototype.getOrbit = function () {
 	return this.orbiting;
 };
 
@@ -152,7 +152,7 @@ sp.Scenario.CelestialObject.prototype.getOrbit = function () {
  * Set object name
  * @param {string} name New object name
  */
-sp.Scenario.CelestialObject.prototype.setName = function ( name ) {
+sp.data.CelestialBody.prototype.setName = function ( name ) {
 	this.name = name;
 };
 
@@ -160,15 +160,15 @@ sp.Scenario.CelestialObject.prototype.setName = function ( name ) {
  * Set object description
  * @param {string} desc New object description
  */
-sp.Scenario.CelestialObject.prototype.setDescription = function ( desc ) {
+sp.data.CelestialBody.prototype.setDescription = function ( desc ) {
 	this.description = desc;
 };
 
-sp.Scenario.CelestialObject.prototype.getMass = function () {
+sp.data.CelestialBody.prototype.getMass = function () {
 	return this.vars.m;
 };
 
-sp.Scenario.CelestialObject.prototype.getView = function () {
+sp.data.CelestialBody.prototype.getView = function () {
 	return this.view;
 }
 
@@ -176,6 +176,6 @@ sp.Scenario.CelestialObject.prototype.getView = function () {
  * Get the planet radius if it exists.
  * @returns {number|null} Planet radius in km
  */
-sp.Scenario.CelestialObject.prototype.getRadius = function () {
+sp.data.CelestialBody.prototype.getRadius = function () {
 	return this.vars.r;
 };

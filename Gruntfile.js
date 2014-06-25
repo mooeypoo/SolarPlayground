@@ -10,15 +10,26 @@ module.exports = function ( grunt ) {
       dist: {
         src: [
           'src/sp.js',
-          'src/sp.Gui.js',
-          'src/sp.Scenario.js',
-          'src/sp.System.js',
-          'src/sp.Viewpoint.js',
-          'src/Gui/sp.Gui.Module.js',
           'src/*.js',
-          'src/**/*.js'
+          'src/calc/*.js',
+          'src/container/*.js',
+          'src/data/*.js',
+          'src/ui/*.js',
+          'src/ui/ext.ooui/sp.ui.ext.ooui.Mod.Play.js',
+          'src/ui/ext.ooui/sp.ui.ext.ooui.Toolbar.js',
+          'src/view/*.js',
         ],
         dest: 'dist/SolarPlayground.dist.js'
+      }
+    },
+    uglify: {
+      options: {
+        banner: '/*! <%= pkg.name %> <%= grunt.template.today("dd-mm-yyyy") %> */\n'
+      },
+      dist: {
+        files: {
+          'dist/<%= pkg.name %>.min.js': ['<%= concat.dist.dest %>']
+        }
       }
     },
     jshint: {
@@ -65,13 +76,16 @@ module.exports = function ( grunt ) {
 
   // These plugins provide necessary tasks.
   grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-contrib-uglify');
 //  grunt.loadNpmTasks('grunt-contrib-qunit');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-jscs-checker');
   grunt.loadNpmTasks('grunt-jsduck');
 
   // Default task.
-  grunt.registerTask('default', ['jshint', 'jscs', 'concat' ]);
-//  grunt.registerTask('default', ['jshint', 'jcsc', 'qunit', 'concat']);
+  grunt.registerTask( 'default', ['jshint', 'jscs', 'concat' ] );
+  // Build
+  grunt.registerTask( 'build', ['jshint', 'jscs', 'concat', 'uglify' ] );
+  grunt.registerTask( 'all', ['jshint', 'jscs', 'concat', 'uglify', 'jsduck' ] );
 
 };

@@ -1,22 +1,32 @@
 /**
+ * UI OOUI Module namespace
+ * @property {Object}
+ */
+sp.ui.ext.ooui = {
+	'Mod': {}
+};
+
+/**
  * OOUI Gui module
  *
- * @class sp.Gui.Module.ooui
+ * @class sp.ui.ext.ooui.Mod.Play
  *
  * @param {sp.Container} container The container to attach the GUI to
  * @param {Object} [config] Gui module definition
  */
-sp.Gui.Module.ooui = function SpGuiModuleOoui ( container, config ) {
+sp.ui.ext.ooui.Mod.Play = function SpUiExtOouiModPlay( container, config ) {
 	config = config || {};
 
 	// Parent constructor
-	sp.Gui.Module.ooui.super.call( this, container, config );
+	sp.ui.ext.ooui.Mod.Play.super.call( this, container, config );
 
 	this.tools = {};
+
+	return this;
 };
 
 /* Inheritance */
-OO.inheritClass( sp.Gui.Module.ooui, sp.Gui.Module.Base );
+OO.inheritClass( sp.ui.ext.ooui.Mod.Play, sp.ui.ext.Play );
 
 /* Events */
 
@@ -44,14 +54,14 @@ OO.inheritClass( sp.Gui.Module.ooui, sp.Gui.Module.Base );
  * Initialize the Gui
  * @returns {OO.ui.Toolbar}
  */
-sp.Gui.Module.ooui.prototype.initialize = function () {
+sp.ui.ext.ooui.Mod.Play.prototype.initialize = function () {
 	var i, tools, tname;
 
 	this.toolFactory = new OO.ui.ToolFactory(),
 	this.toolGroupFactory = new OO.ui.ToolGroupFactory();
 
 	// Create toolbar
-	this.toolbar = new sp.Gui.Module.ooui.Toolbar( this.container, this.toolFactory, this.toolGroupFactory );
+	this.toolbar = new sp.ui.ext.ooui.Toolbar( this.container, this.toolFactory, this.toolGroupFactory );
 	this.toolbar.setup( [
 		{
 			'type': 'bar',
@@ -106,7 +116,7 @@ sp.Gui.Module.ooui.prototype.initialize = function () {
  * @param {string} title Title or alternate text
  * @param {string} [icon] Tool icon
  */
-sp.Gui.Module.ooui.prototype.addToPOVList = function ( name, title, icon ) {
+sp.ui.ext.ooui.Mod.Play.prototype.addToPOVList = function ( name, title, icon ) {
 	var toolDefinition, onSelectFunc, tool, toolGroup,
 		eventObject = {},
 		toolName = name + 'Tool';
@@ -131,7 +141,7 @@ sp.Gui.Module.ooui.prototype.addToPOVList = function ( name, title, icon ) {
  * @param {string} ev Type of event to emit
  * @param {Object} [params] Parameters to attach to the event
  */
-sp.Gui.Module.ooui.prototype.onToolbarEvent = function ( ev, params ) {
+sp.ui.ext.ooui.Mod.Play.prototype.onToolbarEvent = function ( ev, params ) {
 	this.emit( ev, params );
 };
 
@@ -139,7 +149,7 @@ sp.Gui.Module.ooui.prototype.onToolbarEvent = function ( ev, params ) {
  * Respond to zoom in button click
  * @fires zoom
  */
-sp.Gui.Module.ooui.prototype.onZoomInButtonSelect = function () {
+sp.ui.ext.ooui.Mod.Play.prototype.onZoomInButtonSelect = function () {
 	this.setActive( false );
 	this.toolbar.emit( 'zoom', 2000 );
 };
@@ -148,7 +158,7 @@ sp.Gui.Module.ooui.prototype.onZoomInButtonSelect = function () {
  * Respond to zoom in button click
  * @fires zoom
  */
-sp.Gui.Module.ooui.prototype.onZoomOutButtonSelect = function () {
+sp.ui.ext.ooui.Mod.Play.prototype.onZoomOutButtonSelect = function () {
 	this.setActive( false );
 	this.toolbar.emit( 'zoom', -2000 );
 };
@@ -157,7 +167,7 @@ sp.Gui.Module.ooui.prototype.onZoomOutButtonSelect = function () {
  * Respond to play button click
  * @fires play
  */
-sp.Gui.Module.ooui.prototype.onPlayButtonSelect = function () {
+sp.ui.ext.ooui.Mod.Play.prototype.onPlayButtonSelect = function () {
 	if ( this.toggled !== this.toolbar.getContainer().isPaused() ) {
 		this.toggled = !this.toggled;
 		this.setActive( this.toggled );
@@ -170,7 +180,7 @@ sp.Gui.Module.ooui.prototype.onPlayButtonSelect = function () {
  * Get the Gui toolbar
  * @returns {OO.ui.Toolbar} The toolbar connected to the gui
  */
-sp.Gui.Module.ooui.prototype.getToolbar = function () {
+sp.ui.ext.ooui.Mod.Play.prototype.getToolbar = function () {
 	return this.toolbar;
 };
 
@@ -190,7 +200,7 @@ sp.Gui.Module.ooui.prototype.getToolbar = function () {
  * @param {string} eventName Name of event to connect to in scenario object
  * @returns {OO.ui.Tool} Tool
  */
-sp.Gui.Module.ooui.prototype.createTool = function ( name, group, icon, title, init, onSelect, updateFunc, eventName ) {
+sp.ui.ext.ooui.Mod.Play.prototype.createTool = function ( name, group, icon, title, init, onSelect, updateFunc, eventName ) {
 	// TODO: The entire createTool method should be rewritten to
 	// better suit the needs of this particular toolbar
 	var Tool = function SpGuiTool() {
@@ -239,7 +249,7 @@ sp.Gui.Module.ooui.prototype.createTool = function ( name, group, icon, title, i
  * @param {string} title Title or alternate text
  * @returns {OO.ui.Tool} Tool
  */
-sp.Gui.Module.ooui.prototype.createPOVTool = function ( name, icon, title ) {
+sp.ui.ext.ooui.Mod.Play.prototype.createPOVTool = function ( name, icon, title ) {
 	// TODO: The entire createTool method should be rewritten to
 	// better suit the needs of this particular toolbar
 	var Tool = function SpGuiPOVTool() {
@@ -271,23 +281,4 @@ sp.Gui.Module.ooui.prototype.createPOVTool = function ( name, icon, title ) {
 	Tool.static.icon = icon;
 	Tool.static.title = title;
 	return Tool;
-};
-
-/* Toolbar */
-sp.Gui.Module.ooui.Toolbar = function ( container, toolFactory, toolGroupFactory ) {
-	// Parent constructor
-	sp.Gui.Module.ooui.Toolbar.super.call( this, toolFactory, toolGroupFactory );
-
-	this.container = container;
-};
-
-/* Inheritance */
-OO.inheritClass( sp.Gui.Module.ooui.Toolbar, OO.ui.Toolbar );
-
-/**
- * Get the container attached to this toolbar
- * @returns {sp.Container} Container
- */
-sp.Gui.Module.ooui.Toolbar.prototype.getContainer = function () {
-	return this.container;
 };

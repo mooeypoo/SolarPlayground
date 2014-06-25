@@ -1,13 +1,13 @@
 /**
- * Solar playground scenario container
+ * Solar playground scenario
  *
- * @class sp.Scenario
+ * @class sp.data.Scenario
  * @mixins OO.EventEmitter
  *
- * @param {sp.Container} container Target container for the scenario
+ * @param {sp.container.Screen} screen Target screen for the scenario
  * @param {Object} scenario Scenario configuration object
  */
-sp.Scenario = function SpScenario( container, scenario ) {
+sp.data.Scenario = function SpDataScenario( screen, scenario ) {
 	var objects, centerPt;
 
 	// Mixin constructors
@@ -16,8 +16,7 @@ sp.Scenario = function SpScenario( container, scenario ) {
 	// TODO: Validate the scenario object to make sure all required
 	// elements exist.
 
-	this.container = container;
-	this.context = this.container.getContext();
+	this.screen = screen;
 
 	this.paused = true;
 	this.objects = {};
@@ -25,9 +24,9 @@ sp.Scenario = function SpScenario( container, scenario ) {
 	// Prepare general configuration
 	this.config = scenario.config || {};
 
-	// Viewpoint controller
-	centerPt = this.container.getCanvasDimensions();
-	this.viewpoint = new sp.Viewpoint( {
+	// view controller
+	centerPt = this.screen.getDimensions();
+	this.view = new sp.view.Converter( {
 		'zoom': this.config.init_zoom || 1,
 		'centerPoint': {
 			x: centerPt.width / 2,
@@ -54,10 +53,13 @@ sp.Scenario = function SpScenario( container, scenario ) {
 
 	// Prepare the objects
 	this.processObjects( scenario.objects || {} );
+
+	// Events
+	this.screen.connect( this, { 'drag': 'onScreenDrag' } );
 };
 
 /* Inheritance */
-OO.mixinClass( sp.Scenario, OO.EventEmitter );
+OO.mixinClass( sp.data.Scenario, OO.EventEmitter );
 
 /**
  * @event paused
@@ -66,10 +68,28 @@ OO.mixinClass( sp.Scenario, OO.EventEmitter );
  */
 
 /**
+ * Respond to screen drag
+ * @param {string} action Action parameter for 'start', 'during', and 'end'
+ * @param {Object} [coords] Coordinates
+ */
+sp.data.Scenario.prototype.onScreenDrag = function ( action, coords ) {
+	if ( action === 'start' ) {
+		this.screen.setCenterPoint( this.getCenterPoint() );
+	} else if ( action === 'during' ) {
+		this.setCenterPoint( { 'x': coords.x, 'y': coords.y );
+		this.flushAllTrails();
+		this.screen.clear();
+		this.draw();
+	} else if ( action === 'end' ) {
+		this.screen.setCenterPoint( this.getCenterPoint() );
+	}
+};
+
+/**
  * Process the solar playground simulator objects
  * @param {Object} scenarioObjects Simulation objects definition
  */
-sp.Scenario.prototype.processObjects = function ( scenarioObjects ) {
+sp.data.Scenario.prototype.processObjects = function ( scenarioObjects ) {
 	var o, co, radii_diff, step_size, radius, circle_radius, smallest_radii,
 		radii = {
 			'star': [],
@@ -78,7 +98,7 @@ sp.Scenario.prototype.processObjects = function ( scenarioObjects ) {
 
 	// Initialize celestial objects
 	for ( o in scenarioObjects ) {
-		this.objects[o] = new sp.Scenario.CelestialObject( scenarioObjects[o] );
+		this.objects[o] = new sp.data.CelestialBody( scenarioObjects[o] );
 
 		// Collect all radii
 		if ( scenarioObjects[o].vars.r ) {
@@ -90,8 +110,8 @@ sp.Scenario.prototype.processObjects = function ( scenarioObjects ) {
 		}
 	}
 
-	// Send the radii list to the viewpoint
-	this.viewpoint.setRadiiList( radii );
+	// Send the radii list to the view
+	this.view.setRadiiList( radii );
 
 	// Figure out which objects orbit what
 	for ( co in this.objects ) {
@@ -104,7 +124,7 @@ sp.Scenario.prototype.processObjects = function ( scenarioObjects ) {
 	// Set initial POV
 	if ( this.pov_key && this.objects[this.pov_key] ) {
 		this.pov_object = this.objects[this.pov_key];
-		this.viewpoint.setPOV( this.objects[this.pov_key].getSpaceCoordinates( 0 ) );
+		this.view.setPOV( this.objects[this.pov_key].getSpaceCoordinates( 0 ) );
 	}
 };
 
@@ -113,13 +133,13 @@ sp.Scenario.prototype.processObjects = function ( scenarioObjects ) {
  * @param {string} povKey Object key for the pov
  * @fires povChange
  */
-sp.Scenario.prototype.setPOV = function ( povKey ) {
+sp.data.Scenario.prototype.setPOV = function ( povKey ) {
 	if ( povKey && this.objects[povKey] && this.pov_key !== povKey ) {
 		this.pov_key = povKey;
 
 		this.pov_object = this.objects[this.pov_key];
-		this.viewpoint.setPOV( this.objects[this.pov_key].getSpaceCoordinates( 0 ) );
-		this.clearCanvas();
+		this.view.setPOV( this.objects[this.pov_key].getSpaceCoordinates( 0 ) );
+		this.screen.clear();
 		this.flushAllTrails();
 		this.draw();
 
@@ -131,7 +151,7 @@ sp.Scenario.prototype.setPOV = function ( povKey ) {
  * Get the POV key currently set
  * @returns {string} POV key
  */
-sp.Scenario.prototype.getPOV = function () {
+sp.data.Scenario.prototype.getPOV = function () {
 	return this.pov_key;
 };
 
@@ -140,7 +160,7 @@ sp.Scenario.prototype.getPOV = function () {
  * @param {number} time Time
  * @param {boolean} ignoreTrails Ignore trails despite settings
  */
-sp.Scenario.prototype.draw = function ( time, ignoreTrails ) {
+sp.data.Scenario.prototype.draw = function ( time, ignoreTrails ) {
 	var o, coords, viewpointCoords, view, radius, trails;
 
 	time = time || this.time;
@@ -151,10 +171,10 @@ sp.Scenario.prototype.draw = function ( time, ignoreTrails ) {
 		// TODO: Allow POV that isn't an object
 		// Update POV coordinates
 		if ( o === this.pov_key ) {
-			this.viewpoint.setPOV( coords );
+			this.view.setPOV( coords );
 		}
 		// Translate coordinates to canvas
-		viewpointCoords = this.viewpoint.getCoordinates( coords );
+		viewpointCoords = this.view.getCoordinates( coords );
 
 		if ( viewpointCoords ) {
 			// Get graphic details
@@ -162,7 +182,7 @@ sp.Scenario.prototype.draw = function ( time, ignoreTrails ) {
 
 			// TODO: Allow the user to choose between relative radii and preset radius value
 			// in the view parameters, instead of having the view take precedence randomly
-			radius = this.viewpoint.getRadius( this.objects[o].getRadius(), this.objects[o].getType() );
+			radius = this.view.getRadius( this.objects[o].getRadius(), this.objects[o].getType() );
 
 			// Draw planet trails
 			if ( !ignoreTrails && this.showTrails && o !== this.pov_key ) {
@@ -177,8 +197,7 @@ sp.Scenario.prototype.draw = function ( time, ignoreTrails ) {
 				trails = this.objects[o].getTrailPoints();
 				for ( i = 0; i < trails.length; i++ ) {
 					// Draw all trails as dots
-					this.drawCircle(
-						this.context,
+					this.screen.drawCircle(
 						trails[i],
 						1,
 						// TODO: Consider making trail colors a configuration option
@@ -188,7 +207,7 @@ sp.Scenario.prototype.draw = function ( time, ignoreTrails ) {
 			}
 
 			// Draw the object
-			this.drawCircle( this.context,
+			this.screen.drawCircle(
 				viewpointCoords,
 				radius,
 				view.color,
@@ -200,62 +219,9 @@ sp.Scenario.prototype.draw = function ( time, ignoreTrails ) {
 };
 
 /**
- * Draw a circle on the canvas
- * @param {Object} context Canvas context object
- * @param {Object} coords Canvas coordinates
- * @param {number} [radius] Circle radius
- * @param {string} [color] Circle color
- * @param {boolean} [hasShadow] Add a shadow
- */
-sp.Scenario.prototype.drawCircle = function ( context, coords, radius, color, hasShadow ) {
-	context.save();
-	context.beginPath();
-	context.arc(
-		coords.x,
-		coords.y,
-		radius || 5, 0, 2 * Math.PI,
-		false
-	);
-	context.fillStyle = color || 'white';
-	if ( hasShadow ) {
-		context.shadowColor = color || 'white';
-		context.shadowBlur = 20;
-		context.shadowOffsetX = 0;
-		context.shadowOffsetY = 0;
-	}
-	context.fill();
-	context.restore();
-};
-
-/**
- * Clear an area on the canvas
- * @param {Object} [context] Canvas context object
- * @param {number} [square] Dimensions and coordinates of the square
- * to clear
- * @param {number} [square.top] Top coordinate of the square
- * @param {number} [square.left] Left coordinate of the square
- * @param {number} [square.width] Width of the square
- * @param {number} [square.height] Height of the square
- */
-sp.Scenario.prototype.clearCanvas = function ( context, square ) {
-	var canvasDimensions = this.container.getCanvasDimensions();
-	context = context || this.context;
-	square = square || {};
-
-	// Fix optional values:
-	square.left = square.left || 0;
-	square.top = square.top || 0;
-	square.width = square.width || canvasDimensions.width;
-	square.height = square.height || canvasDimensions.height;
-
-	// Erase the square
-	context.clearRect( square.left, square.top, square.width, square.height );
-};
-
-/**
  * Flush all trails from all objects
  */
-sp.Scenario.prototype.flushAllTrails = function () {
+sp.data.Scenario.prototype.flushAllTrails = function () {
 	var o;
 	for ( o in this.objects ) {
 		this.objects[o].flushTrailPoints()
@@ -265,10 +231,10 @@ sp.Scenario.prototype.flushAllTrails = function () {
 /**
  * Run the scenario
  */
-sp.Scenario.prototype.run = function () {
+sp.data.Scenario.prototype.run = function () {
 	if ( !this.paused ) {
 		// Clear canvas
-		this.clearCanvas( this.context );
+		this.screen.clear();
 
 		// Draw canvas
 		this.draw( this.time );
@@ -282,9 +248,9 @@ sp.Scenario.prototype.run = function () {
 
 /**
  * Retrieve all the celestial objects attached to this scenario
- * @returns {sp.Scenario.CelestialObject} All objects in the scenario
+ * @returns {sp.data.Scenario.CelestialObject} All objects in the scenario
  */
-sp.Scenario.prototype.getAllObjects = function () {
+sp.data.Scenario.prototype.getAllObjects = function () {
 	return this.objects;
 }
 
@@ -293,7 +259,7 @@ sp.Scenario.prototype.getAllObjects = function () {
  * @param {boolean} [isPause] Optional. If supplied, pauses or resumes the scenario
  * @fires paused
  */
-sp.Scenario.prototype.togglePaused = function ( isPause ) {
+sp.data.Scenario.prototype.togglePaused = function ( isPause ) {
 	if ( isPause === undefined ) {
 		isPause = !this.paused;
 	}
@@ -308,21 +274,21 @@ sp.Scenario.prototype.togglePaused = function ( isPause ) {
 /**
  * Check whether the scenario is paused
  */
-sp.Scenario.prototype.isPaused = function () {
+sp.data.Scenario.prototype.isPaused = function () {
 	return this.paused;
 };
 
 /**
  * Pause the scenario
  */
-sp.Scenario.prototype.pause = function () {
+sp.data.Scenario.prototype.pause = function () {
 	this.togglePaused( true );
 };
 
 /**
  * Resume the scenario
  */
-sp.Scenario.prototype.resume = function () {
+sp.data.Scenario.prototype.resume = function () {
 	this.togglePaused( false );
 	this.run();
 };
@@ -331,11 +297,11 @@ sp.Scenario.prototype.resume = function () {
  * Increase or decrease scenario zoom levels
  * @param {number} z Zoom level, negative for zoom out
  */
-sp.Scenario.prototype.setZoom = function ( z ) {
-	this.viewpoint.setZoom( z );
+sp.data.Scenario.prototype.setZoom = function ( z ) {
+	this.view.setZoom( z );
 	this.flushAllTrails();
 	if ( this.isPaused() ) {
-		this.clearCanvas();
+		this.screen.clear();
 		this.draw( this.time, true );
 	}
 };
@@ -344,8 +310,8 @@ sp.Scenario.prototype.setZoom = function ( z ) {
  * Retrieve the zoom level
  * @returns {numver} Current zoom level
  */
-sp.Scenario.prototype.getZoom = function () {
-	return this.viewpoint.getZoom();
+sp.data.Scenario.prototype.getZoom = function () {
+	return this.view.getZoom();
 };
 
 /**
@@ -353,11 +319,11 @@ sp.Scenario.prototype.getZoom = function () {
  * @param {number} x X coordinate of the center of the system
  * @param {number} y Y coordinate of the center of the system
  */
-sp.Scenario.prototype.setCenterPoint = function ( x, y ) {
-	this.viewpoint.setCenterPoint( x, y );
+sp.data.Scenario.prototype.setCenterPoint = function ( coords ) {
+	this.view.setCenterPoint( coords );
 	this.flushAllTrails();
 	if ( this.isPaused() ) {
-		this.clearCanvas();
+		this.screen.clear();
 		this.draw( this.time, true );
 	}
 };
@@ -366,8 +332,8 @@ sp.Scenario.prototype.setCenterPoint = function ( x, y ) {
  * Get the current center point of the view
  * @returns {Object} x/y coordinates of the current center point
  */
-sp.Scenario.prototype.getCenterPoint = function () {
-	return this.viewpoint.getCenterPoint();
+sp.data.Scenario.prototype.getCenterPoint = function () {
+	return this.view.getCenterPoint();
 };
 
 /**
@@ -375,6 +341,6 @@ sp.Scenario.prototype.getCenterPoint = function () {
  * @param {number} [x] Amount to add to X coordinate
  * @param {number} [y] Amount to add to Y coordinate
  */
-sp.Scenario.prototype.addToCenterPoint = function ( x, y ) {
-	this.viewpoint.addToCenterPoint( x, y );
+sp.data.Scenario.prototype.addToCenterPoint = function ( x, y ) {
+	this.view.addToCenterPoint( x, y );
 }

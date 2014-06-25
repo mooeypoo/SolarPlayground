@@ -1,13 +1,13 @@
 /**
- * Solar Playground system
+ * Solar Playground system controller
  *
  * @class sp.System
  * @mixins OO.EventEmitter
  *
  * @param {Object} [config] Configuration object
  */
-sp.System = function SpSystemInitialize( config ) {
-	var defaultConfig, guiLoader;
+sp.System = function SpSystem( config ) {
+	var defaultConfig;
 
 	// Mixin constructors
 	OO.EventEmitter.call( this );
@@ -15,14 +15,11 @@ sp.System = function SpSystemInitialize( config ) {
 	// Containers holder
 	this.containers = {};
 
-	// Scenario holder
-	// TODO: Allow for multiple scenarios
-//	this.scenario = null;
-
 	config = config || {};
 
 	defaultConfig = {
 		scenario_dir: 'scenarios', // Default directory unless otherwise specified
+		scenario_prefix: 'scenario.', // Default scenario file prefix
 		directory_sep: '/',
 		width: $( window ).width() - 100,
 		height: $( window ).height() - 100
@@ -51,12 +48,16 @@ sp.System.prototype.setContainer = function ( container_id, config ) {
 	}
 
 	// Add a container
-	this.containers[container_id] = new sp.Container( {
+	this.containers[container_id] = new sp.container.Manager( {
 		'container': '#' + container_id,
 		'width': config.width || this.config.width,
 		'height': config.height || this.config.height,
 		scenario_dir: this.config.scenario_dir,
-		directory_sep: this.config.directory_sep
+		directory_sep: this.config.directory_sep,
+		scenario_prefix: config.scenario_prefix || this.config.scenario_prefix,
+		// TODO: When 'build' mode is created, it should be either
+		// enabled right on instantiation or allow to be added later
+		buildMode: false
 	} );
 
 	return this.containers[container_id];
@@ -66,10 +67,14 @@ sp.System.prototype.setContainer = function ( container_id, config ) {
  * Retrueve the container by its id
  * @param {string} container_id The id of the DOM that this container
  * is attached to
+ * @throws {Error} If there are no containers defined
  * @returns {sp.Container|null} The container
  */
 sp.System.prototype.getContainer = function ( container_id ) {
-	return this.containers[container_id] || null;
+	if ( !this.containers ) {
+		throw Error( 'Cannot get container, no containers are defined.' );
+	}
+	return this.containers[container_id];
 };
 
 /**
@@ -78,7 +83,7 @@ sp.System.prototype.getContainer = function ( container_id ) {
  * @returns {string|Object} Configuration object
  */
 sp.System.prototype.getConfig = function ( option ) {
-	if ( this.config[option] ) {
+	if ( this.config && option ) {
 		return this.config[option];
 	}
 	return this.config;
