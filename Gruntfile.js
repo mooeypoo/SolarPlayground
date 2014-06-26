@@ -17,6 +17,7 @@ module.exports = function ( grunt ) {
           'src/ui/*.js',
           'src/ui/ext.ooui/sp.ui.ext.ooui.Mod.Play.js',
           'src/ui/ext.ooui/sp.ui.ext.ooui.Toolbar.js',
+          'src/ui/ext.ooui/sp.ui.ext.ooui.SliderTool.js',
           'src/view/*.js',
         ],
         dest: 'dist/SolarPlayground.dist.js'

@@ -47,6 +47,28 @@ sp.calc.Calculator.translateTime = function ( year, month, day, time_of_day ) {
 };
 
 /**
+ * Translate date to th enumber of centuries from J2000.0
+ * @param {number} year Requested year (yyyy)
+ * @param {number} [month] Requested month
+ * @param {number} [day] Requested day of the month
+ * @param {number} [hours] Hour of the day in 24h format
+ * @param {number} [minutes] Minutes after the hour
+ * @param {number} [seconds] Seconds after the minute
+ * @returns {number} Number of centuries from epoch J2000.0
+ */
+sp.calc.Calculator.getCenturies = function ( year, month, day, hours, minutes, seconds ) {
+	var D,
+		h = hour + minutes / 60 + second / 3600;
+
+	day = day || 1;
+	month = month || 1;
+
+	D = 367 * year - 7 * Math.floor( ( year + Math.floor( ( month + 9 ) / 12 ) ) / 4 ) + day - 730531.5 + h / 24;
+
+	return D / 36525;
+};
+
+/**
  * Return a JDN (Julian Day Number) from J2000.0, converted from a Gregorian date and time
  * @param {number} year Requested year (yyyy)
  * @param {number} month Requested month
@@ -90,12 +112,12 @@ sp.calc.Calculator.getJDNTime = function ( year, month, day, hours, minutes, sec
  * https://gist.github.com/bartolsthoorn/7913357
  *
  * @param {Object} vars Variables necessary for calculation.
- * @param {number[]} vars.a Semi-major axis (au and au/seconds)
- * @param {number[]} vars.e Eccentricity ( no units and no units/seconds)
- * @param {number[]} vars.I Inclination (degrees and degrees/seconds)
- * @param {number[]} vars.L Mean longitude (degrees and degrees/seconds)
- * @param {number[]} vars.long_peri Longitude of perihelion (degree and degrees/seconds)
- * @param {number[]} vars.long_node Longitude of the ascending node (degrees and degrees/seconds)
+ * @param {number[]} vars.a Semi-major axis (au and au/cy)
+ * @param {number[]} vars.e Eccentricity ( no units and no units/cy)
+ * @param {number[]} vars.I Inclination (degrees and degrees/cy)
+ * @param {number[]} vars.L Mean longitude (degrees and degrees/cy)
+ * @param {number[]} vars.long_peri Longitude of perihelion (degree and degrees/cy)
+ * @param {number[]} vars.long_node Longitude of the ascending node (degrees and degrees/cy)
  * @param {number} [jd] Julian Days from J2000.0. If not given, calculated for J2000.0
  * @returns {Object} Three-dimensional position in space, values in km
  */

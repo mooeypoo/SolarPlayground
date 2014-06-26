@@ -76,7 +76,7 @@ sp.data.Scenario.prototype.onScreenDrag = function ( action, coords ) {
 	if ( action === 'start' ) {
 		this.screen.setCenterPoint( this.getCenterPoint() );
 	} else if ( action === 'during' ) {
-		this.setCenterPoint( { 'x': coords.x, 'y': coords.y );
+		this.setCenterPoint( { 'x': coords.x, 'y': coords.y } );
 		this.flushAllTrails();
 		this.screen.clear();
 		this.draw();
@@ -316,8 +316,7 @@ sp.data.Scenario.prototype.getZoom = function () {
 
 /**
  * Set the viewpoint's center point
- * @param {number} x X coordinate of the center of the system
- * @param {number} y Y coordinate of the center of the system
+ * @param {Object} coords x/y coordinates of the center of the system
  */
 sp.data.Scenario.prototype.setCenterPoint = function ( coords ) {
 	this.view.setCenterPoint( coords );

@@ -290,6 +290,28 @@ sp.calc.Calculator.translateTime = function ( year, month, day, time_of_day ) {
 };
 
 /**
+ * Translate date to th enumber of centuries from J2000.0
+ * @param {number} year Requested year (yyyy)
+ * @param {number} [month] Requested month
+ * @param {number} [day] Requested day of the month
+ * @param {number} [hours] Hour of the day in 24h format
+ * @param {number} [minutes] Minutes after the hour
+ * @param {number} [seconds] Seconds after the minute
+ * @returns {number} Number of centuries from epoch J2000.0
+ */
+sp.calc.Calculator.getCenturies = function ( year, month, day, hours, minutes, seconds ) {
+	var D,
+		h = hour + minutes / 60 + second / 3600;
+
+	day = day || 1;
+	month = month || 1;
+
+	D = 367 * year - 7 * Math.floor( ( year + Math.floor( ( month + 9 ) / 12 ) ) / 4 ) + day - 730531.5 + h / 24;
+
+	return D / 36525;
+};
+
+/**
  * Return a JDN (Julian Day Number) from J2000.0, converted from a Gregorian date and time
  * @param {number} year Requested year (yyyy)
  * @param {number} month Requested month
@@ -333,12 +355,12 @@ sp.calc.Calculator.getJDNTime = function ( year, month, day, hours, minutes, sec
  * https://gist.github.com/bartolsthoorn/7913357
  *
  * @param {Object} vars Variables necessary for calculation.
- * @param {number[]} vars.a Semi-major axis (au and au/seconds)
- * @param {number[]} vars.e Eccentricity ( no units and no units/seconds)
- * @param {number[]} vars.I Inclination (degrees and degrees/seconds)
- * @param {number[]} vars.L Mean longitude (degrees and degrees/seconds)
- * @param {number[]} vars.long_peri Longitude of perihelion (degree and degrees/seconds)
- * @param {number[]} vars.long_node Longitude of the ascending node (degrees and degrees/seconds)
+ * @param {number[]} vars.a Semi-major axis (au and au/cy)
+ * @param {number[]} vars.e Eccentricity ( no units and no units/cy)
+ * @param {number[]} vars.I Inclination (degrees and degrees/cy)
+ * @param {number[]} vars.L Mean longitude (degrees and degrees/cy)
+ * @param {number[]} vars.long_peri Longitude of perihelion (degree and degrees/cy)
+ * @param {number[]} vars.long_node Longitude of the ascending node (degrees and degrees/cy)
  * @param {number} [jd] Julian Days from J2000.0. If not given, calculated for J2000.0
  * @returns {Object} Three-dimensional position in space, values in km
  */
@@ -805,13 +827,12 @@ sp.container.Screen.prototype.clear = function ( square ) {
 
 /**
  * Set the center point of the center of the scenario.
- * @param {number} x X coordinate
- * @param {number} y Y coordinate
+ * @param {Object} coords Center of scenario coordinates
  */
-sp.container.Screen.prototype.setCenterPoint = function ( x, y ) {
+sp.container.Screen.prototype.setCenterPoint = function ( coords ) {
 	this.canvasCenterPoint = {
-		'x': x,
-		'y': y
+		'x': coords.x,
+		'y': coords.y
 	};
 };
 
@@ -1102,7 +1123,7 @@ sp.data.Scenario.prototype.onScreenDrag = function ( action, coords ) {
 	if ( action === 'start' ) {
 		this.screen.setCenterPoint( this.getCenterPoint() );
 	} else if ( action === 'during' ) {
-		this.setCenterPoint( coords.x, coords.y );
+		this.setCenterPoint( { 'x': coords.x, 'y': coords.y } );
 		this.flushAllTrails();
 		this.screen.clear();
 		this.draw();
@@ -1342,11 +1363,10 @@ sp.data.Scenario.prototype.getZoom = function () {
 
 /**
  * Set the viewpoint's center point
- * @param {number} x X coordinate of the center of the system
- * @param {number} y Y coordinate of the center of the system
+ * @param {Object} coords x/y coordinates of the center of the system
  */
-sp.data.Scenario.prototype.setCenterPoint = function ( x, y ) {
-	this.view.setCenterPoint( x, y );
+sp.data.Scenario.prototype.setCenterPoint = function ( coords ) {
+	this.view.setCenterPoint( coords );
 	this.flushAllTrails();
 	if ( this.isPaused() ) {
 		this.screen.clear();
@@ -1577,6 +1597,8 @@ sp.ui.ext.ooui.Mod.Play.prototype.initialize = function () {
 		'play': [ 'playTool', 'playTools', 'play', 'Play scenario', null, this.onPlayButtonSelect, function ( isPaused ) {
 			this.setActive( !isPaused );
 		}, 'pause' ],
+//		'speed': [ 'speedTool', 'playTools', 'speed', 'Change speed', null, this.onSpeedButtonSelect, null, 'pause' ],
+
 		// viewTools
 		'zoomin': [ 'zoominTool', 'viewTools', 'zoomin', 'Zoom in', null, this.onZoomInButtonSelect ],
 		'zoomout': [ 'zoomoutTool', 'viewTools', 'zoomout', 'Zoom out', null, this.onZoomOutButtonSelect ]
@@ -1587,6 +1609,16 @@ sp.ui.ext.ooui.Mod.Play.prototype.initialize = function () {
 		this.tools[tname] = this.createTool.apply( this, tools[tname] );
 		this.toolFactory.register( this.tools[tname] );
 	}
+
+	// Unique tools
+	// Create speed slider tool
+	this.speedSlider = new sp.ui.ext.ooui.SliderTool( this.toolbar );
+	this.toolFactory.register( this.speedSlider );
+
+/*	sliderTool.static.name = 'speed';
+	sliderTool.static.group = 'playTools';
+	sliderTool.static.title = 'Change speed';
+*/
 
 	// Attach toolbar to container
 	this.container.addToolbar( this.toolbar.$element );
@@ -1792,6 +1824,53 @@ sp.ui.ext.ooui.Toolbar.prototype.getContainer = function () {
 };
 
 /**
+ * A slider tool
+ *
+ * @class
+ * @extends OO.ui.Tool
+ *
+ * @constructor
+ * @param {OO.ui.Toolbar} toolbar
+ * @param {Object} [config] Configuration options
+ */
+sp.ui.ext.ooui.SliderTool = function SpUiExtOouiSliderTool( toolbar, config ) {
+	// Parent constructor
+	sp.ui.ext.ooui.SliderTool.super.call( this, toolbar, config );
+
+	// Initialization
+	this.$slider = this.$( '<input>' )
+		.addClass( 'sp-ui-ooui-sliderHandle' )
+		.attr( 'type', 'range' )
+		.attr( 'min', '1' )
+		.attr( 'max', '10' );
+
+	this.$element
+		.addClass( 'sp-ui-ooui-sliderTool' )
+		.prepend( this.$slider );
+};
+
+/* Setup */
+
+OO.inheritClass( sp.ui.ext.ooui.SliderTool, OO.ui.Tool );
+
+/* Static Properties */
+
+sp.ui.ext.ooui.SliderTool.static.accelTooltips = true;
+sp.ui.ext.ooui.SliderTool.static.name = 'slider';
+sp.ui.ext.ooui.SliderTool.static.group = 'playTools';
+sp.ui.ext.ooui.SliderTool.static.title = 'Change speed';
+
+/* Methods */
+
+sp.ui.ext.ooui.SliderTool.prototype.setDisabled = function ( isDisabled ) {
+	// Having this temporarily because the tool seems to insist on it
+	console.log( isDisabled );
+};
+
+sp.ui.ext.ooui.SliderTool.prototype.onUpdateState = function () {
+};
+
+/**
  * Solar Playground viewpoint controller.
  * Controls the presentation of the objects on the canvas.
  *
@@ -1950,12 +2029,13 @@ sp.view.Converter.prototype.getZoom = function () {
 
 /**
  * Set the canvas center point
- * @param {number} x X coordinate of the center of the system
- * @param {number} y Y coordinate of the center of the system
+ * @param {Object} coords x/y coordinates of the center of the system
  */
-sp.view.Converter.prototype.setCenterPoint = function ( x, y ) {
-	x = x || this.centerPoint.x;
-	y = y || this.centerPoint.y;
+sp.view.Converter.prototype.setCenterPoint = function ( coords ) {
+	coords = coords || {};
+
+	x = coords.x || 0;
+	y = coords.y || 0;
 
 	this.centerPoint = {
 		'x': x,

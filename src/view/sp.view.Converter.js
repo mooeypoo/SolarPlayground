@@ -157,11 +157,10 @@ sp.view.Converter.prototype.getZoom = function () {
 
 /**
  * Set the canvas center point
- * @param {number} x X coordinate of the center of the system
- * @param {number} y Y coordinate of the center of the system
+ * @param {Object} coords x/y coordinates of the center of the system
  */
 sp.view.Converter.prototype.setCenterPoint = function ( coords ) {
-	coords = coords || {}:
+	coords = coords || {};
 
 	x = coords.x || 0;
 	y = coords.y || 0;

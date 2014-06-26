@@ -88,6 +88,8 @@ sp.ui.ext.ooui.Mod.Play.prototype.initialize = function () {
 		'play': [ 'playTool', 'playTools', 'play', 'Play scenario', null, this.onPlayButtonSelect, function ( isPaused ) {
 			this.setActive( !isPaused );
 		}, 'pause' ],
+//		'speed': [ 'speedTool', 'playTools', 'speed', 'Change speed', null, this.onSpeedButtonSelect, null, 'pause' ],
+
 		// viewTools
 		'zoomin': [ 'zoominTool', 'viewTools', 'zoomin', 'Zoom in', null, this.onZoomInButtonSelect ],
 		'zoomout': [ 'zoomoutTool', 'viewTools', 'zoomout', 'Zoom out', null, this.onZoomOutButtonSelect ]
@@ -98,6 +100,16 @@ sp.ui.ext.ooui.Mod.Play.prototype.initialize = function () {
 		this.tools[tname] = this.createTool.apply( this, tools[tname] );
 		this.toolFactory.register( this.tools[tname] );
 	}
+
+	// Unique tools
+	// Create speed slider tool
+	this.speedSlider = new sp.ui.ext.ooui.SliderTool( this.toolbar );
+	this.toolFactory.register( this.speedSlider );
+
+/*	sliderTool.static.name = 'speed';
+	sliderTool.static.group = 'playTools';
+	sliderTool.static.title = 'Change speed';
+*/
 
 	// Attach toolbar to container
 	this.container.addToolbar( this.toolbar.$element );
