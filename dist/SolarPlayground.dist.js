@@ -591,7 +591,7 @@ sp.container.Manager.prototype.loadFromFile = function ( scenarioName ) {
 					objList[o].getName()
 				);
 			}
-
+			this.emit( 'scenarioLoaded' );
 			deferred.resolve();
 		}, this ) );
 
@@ -636,13 +636,13 @@ sp.container.Manager.prototype.onGuiPOV = function ( newPov ) {
  * @param {jQuery} $toolbar jQuery toolbar element
  * @param {string} [position] Position in the container; 'top' or 'bottom'
  */
-sp.container.Manager.prototype.addToolbar = function ( toolbar, position ) {
+sp.container.Manager.prototype.addToolbar = function ( $toolbar, position ) {
 	position = position || 'top';
 
 	if ( position === 'top' ) {
-		this.$container.prepend( toolbar.$element );
+		this.$container.prepend( $toolbar );
 	} else {
-		this.$container.append( toolbar.$element );
+		this.$container.append( $toolbar );
 	}
 };
 
@@ -705,7 +705,7 @@ sp.container.Manager.prototype.isPaused = function () {
  * @method
  * @param {string} action Symbolic name of action
  * @param {string} [method] Action method name
- * @param {Mixed...} [args] Additional arguments for action
+ * @param {Mixed} [args] Additional arguments for action
  * @returns {boolean} Action or command was executed
  */
 sp.container.Manager.prototype.execute = function ( action, method ) {
@@ -764,7 +764,6 @@ sp.container.Manager.prototype.addCommands = function ( names ) {
 		this.emit( 'addCommand', names[i], command, triggers );
 	}
 };
-
 
 /**
  * Container canvas and context controller
@@ -1459,43 +1458,6 @@ sp.data.Scenario.prototype.addToCenterPoint = function ( x, y ) {
 }
 
 /**
- * Action factory.
- *
- * @class
- * @extends OO.Factory
- * @constructor
- */
-sp.ui.ActionFactory = function SpUiActionFactory() {
-	// Parent constructor
-	OO.Factory.call( this );
-};
-
-/* Inheritance */
-
-OO.inheritClass( sp.ui.ActionFactory, OO.Factory );
-
-/* Methods */
-
-/**
- * Check if an action supports a method.
- *
- * @method
- * @param {string} action Name of action
- * @param {string} method Name of method
- * @returns {boolean} The action supports the method
- */
-sp.ui.ActionFactory.prototype.doesActionSupportMethod = function ( action, method ) {
-	if ( action in this.registry ) {
-		return this.registry[action].static.methods.indexOf( method ) !== -1;
-	}
-	throw new Error( 'Unknown action: ' + action );
-};
-
-/* Initialization */
-
-sp.ui.actionFactory = new sp.ui.ActionFactory();
-
-/**
  * Command that executes an action.
  *
  * @class
@@ -1504,7 +1466,7 @@ sp.ui.actionFactory = new sp.ui.ActionFactory();
  * @param {string} name Symbolic name for the command
  * @param {string} action Action to execute when command is triggered
  * @param {string} method Method to call on action when executing
- * @param {Mixed...} [data] Additional data to pass to the action when executing
+ * @param {Mixed} [data] Additional data to pass to the action when executing
  */
 sp.ui.Command = function SpUiCommand( name, action, method ) {
 	this.name = name;
@@ -1606,7 +1568,7 @@ sp.ui.commandRegistry = new sp.ui.CommandRegistry();
 sp.ui.commandRegistry.register(
 	new sp.ui.Command( 'play', 'playTools', 'play' )
 );
-sp.ui.commandRegistry.register(
+/*sp.ui.commandRegistry.register(
 	new sp.ui.Command( 'speed', 'playTools', 'speed' )
 );
 sp.ui.commandRegistry.register(
@@ -1615,6 +1577,7 @@ sp.ui.commandRegistry.register(
 sp.ui.commandRegistry.register(
 	new sp.ui.Command( 'zoomout', 'viewTools', 'zoom', 1000 )
 );
+*/
 
 /**
  * Gui Loader. Creates the gui to be attached to
@@ -1740,8 +1703,8 @@ sp.ui.ext.ooui = {
 	'Mod': {}
 };
 
-sp.ui.ext.ooui.toolFactory = new OO.ui.ToolFactory();
-sp.ui.ext.ooui.toolGroupFactory = new OO.ui.ToolGroupFactory();
+sp.ui.toolFactory = new OO.ui.ToolFactory();
+sp.ui.toolGroupFactory = new OO.ui.ToolGroupFactory();
 
 /**
  * OOUI Gui module
@@ -1776,8 +1739,8 @@ sp.ui.ext.ooui.Mod.Play.static.toolbarGroups = [
 	{
 		'type': 'bar',
 		'include': [ { 'group': 'playTools' } ]
-	},
-	// View tools
+	}
+/*	// View tools
 	{
 		'type': 'bar',
 		'include': [ { 'group': 'viewTools' }, 'speed' ]
@@ -1789,14 +1752,14 @@ sp.ui.ext.ooui.Mod.Play.static.toolbarGroups = [
 		'label': 'POV',
 		'icon': 'picture',
 		'include': [ { 'group': 'povTools' } ]
-	}
+	}*/
 ];
 
 sp.ui.ext.ooui.Mod.Play.static.commands = [
 	'play',
-	'speed',
-	'zoomin',
-	'zoomout'
+	'speed'
+//	'zoomin',
+//	'zoomout'
 ];
 
 /* Events */
@@ -1830,71 +1793,39 @@ sp.ui.ext.ooui.Mod.Play.prototype.initialize = function () {
 
 	this.toolbar = new sp.ui.ext.ooui.Toolbar( this, this.container );
 	this.toolbar.setup( this.constructor.static.toolbarGroups );
-	this.container.addCommands( this.constructor.static.commands );
-	this.container.addToolbar( this.toolbar );
-
-	return this;
-/*
-	// Create toolbar
-	this.toolbar = new sp.ui.ext.ooui.Toolbar( this.container );
-	this.toolbar.setup( [
-		{
-			'type': 'bar',
-			'include': [ { 'group': 'playTools' } ]
-		},
-		{
-			'type': 'bar',
-			'include': [ { 'group': 'viewTools' } ]
-		},
-		{
-			'type': 'menu',
-			'indicator': 'down',
-			'label': 'POV',
-			'icon': 'picture',
-			'include': [ { 'group': 'povTools' } ]
-		}
-	] );
-	this.toolbar.emit( 'updateState' );
-
-	// Create buttons for the toolbar
-	// TODO: Disable all buttons until the scenario is loaded
-	tools = {
-		// playTools
-		'play': [ 'playTool', 'playTools', 'play', 'Play scenario', null, this.onPlayButtonSelect, function ( isPaused ) {
-			this.setActive( !isPaused );
-		}, 'pause' ],
-//		'speed': [ 'speedTool', 'playTools', 'speed', 'Change speed', null, this.onSpeedButtonSelect, null, 'pause' ],
-
-		// viewTools
-		'zoomin': [ 'zoominTool', 'viewTools', 'zoomin', 'Zoom in', null, this.onZoomInButtonSelect ],
-		'zoomout': [ 'zoomoutTool', 'viewTools', 'zoomout', 'Zoom out', null, this.onZoomOutButtonSelect ]
-	}
-
-	this.tools = {};
-	for ( tname in tools ) {
-		this.tools[tname] = this.createTool.apply( this, tools[tname] );
-		sp.ui.ext.ooui.toolFactory.register( this.tools[tname] );
-	}
-
-	// Unique tools
-	// Create speed slider tool
-//	this.speedSlider = new sp.ui.ext.ooui.SliderTool( this.toolbar );
-//	sp.ui.ext.ooui.toolFactory.register( this.speedSlider );
-
-/*	sliderTool.static.name = 'speed';
-	sliderTool.static.group = 'playTools';
-	sliderTool.static.title = 'Change speed';
-
-
-	// Attach toolbar to container
+	// TODO: Add commands to container (future!)
+//	this.container.addCommands( this.constructor.static.commands );
 	this.container.addToolbar( this.toolbar.$element );
 
-	// Events
-	this.toolbar.connect( this, { 'play': [ 'onToolbarEvent', 'play' ] } );
-	this.toolbar.connect( this, { 'zoom': [ 'onToolbarEvent', 'zoom' ] } );
-	this.toolbar.connect( this, { 'pov': [ 'onToolbarEvent', 'pov' ] } );
+	this.toolbar.emit( 'updateState' );
 
-	return this;*/
+	// Events
+	this.container.connect( this, { 'scenarioLoaded': 'onScenarioLoaded' } );
+
+	return this;
+};
+
+/**
+ * Respond to new scenario loaded
+ * @fires updateState
+ */
+sp.ui.ext.ooui.Mod.Play.prototype.onScenarioLoaded = function () {
+	if ( this.container.getScenario() ) {
+		this.container.getScenario().disconnect( this );
+	}
+	// Events
+	this.container.getScenario().connect( this, { 'pause': [ 'onScenarioChanged', 'play' ] } );
+
+	// Update the toolbar
+	this.toolbar.emit( 'updateState' );
+};
+
+/**
+ * Respond to change in scenario state
+ * @fires updateState
+ */
+sp.ui.ext.ooui.Mod.Play.prototype.onScenarioChanged = function ( event ) {
+	this.toolbar.emit( 'updateState' );
 };
 
 /**
@@ -2076,8 +2007,8 @@ sp.ui.ext.ooui.Toolbar = function SpUiExtOouiToolbar( target, container, config 
 	// Parent constructor
 	OO.ui.Toolbar.call(
 		this,
-		sp.ui.ext.ooui.toolFactory,
-		sp.ui.ext.ooui.toolGroupFactory,
+		sp.ui.toolFactory,
+		sp.ui.toolGroupFactory,
 		config
 	);
 
@@ -2103,14 +2034,134 @@ sp.ui.ext.ooui.Toolbar.prototype.getContainer = function () {
  * If a matching tool is present, it's label will be updated.
  *
  * @param {string} name Symbolic name of command and trigger
- * @param {ve.ui.Command} command Command that's been registered
- * @param {ve.ui.Trigger} trigger Trigger to associate with command
  */
 sp.ui.ext.ooui.Toolbar.prototype.onContainerAddCommand = function ( name ) {
 	if ( this.tools[name] ) {
 		this.tools[name].updateTitle();
 	}
 };
+
+/**
+ * Regular button tool.
+ *
+ * @class
+ * @extends OO.ui.Tool
+ * @constructor
+ * @param {OO.ui.ToolGroup} toolGroup
+ * @param {Object} [config] Configuration options
+ */
+sp.ui.ext.ooui.Tool = function SpUiExtOouiTool( toolGroup, config ) {
+	// Parent constructor
+	OO.ui.Tool.call( this, toolGroup, config );
+};
+
+/* Inheritance */
+
+OO.inheritClass( sp.ui.ext.ooui.Tool, OO.ui.Tool );
+
+/* Static Properties */
+
+/**
+ * Surface model method to check state with.
+ *
+ * @abstract
+ * @static
+ * @property {string}
+ * @inheritable
+ */
+sp.ui.ext.ooui.Tool.static.check = '';
+
+/* Methods */
+/**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.Tool.prototype.onUpdateState = function () {
+	this.setDisabled( !this.toolbar.getContainer().getScenario() );
+};
+
+/**
+ * UserInterface play tool.
+ *
+ * @class
+ * @extends sp.ui.ext.ooui.Tool
+ * @constructor
+ * @param {OO.ui.ToolGroup} toolGroup
+ * @param {Object} [config] Configuration options
+ */
+sp.ui.ext.ooui.PlayTool = function SpUiExtOouiPlayTool( toolGroup, config ) {
+	sp.ui.ext.ooui.Tool.call( this, toolGroup, config );
+};
+OO.inheritClass( sp.ui.ext.ooui.PlayTool, sp.ui.ext.ooui.Tool );
+sp.ui.ext.ooui.PlayTool.static.name = 'play';
+sp.ui.ext.ooui.PlayTool.static.group = 'playTools';
+sp.ui.ext.ooui.PlayTool.static.icon = 'play';
+sp.ui.ext.ooui.PlayTool.static.title = 'Play';
+sp.ui.ext.ooui.PlayTool.static.commandName = 'play';
+
+/**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.PlayTool.prototype.onUpdateState = function () {
+	var isPaused = false;
+	// Parent
+	sp.ui.ext.ooui.Tool.prototype.onUpdateState.apply( this, arguments );
+
+	if ( this.toolbar.getContainer().getScenario() ) {
+		this.setActive( !this.toolbar.getContainer().getScenario().isPaused() );
+	}
+};
+
+/**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.PlayTool.prototype.onSelect = function () {
+	// Pause the scenario
+	this.toolbar.getContainer().getScenario().togglePaused();
+};
+
+sp.ui.toolFactory.register( sp.ui.ext.ooui.PlayTool );
+
+/**
+ * UserInterface pause tool.
+ *
+ * @class
+ * @extends sp.ui.ext.ooui.Tool
+ * @constructor
+ * @param {OO.ui.ToolGroup} toolGroup
+ * @param {Object} [config] Configuration options
+ */
+sp.ui.ext.ooui.PauseTool = function SpUiExtOouiPauseTool( toolGroup, config ) {
+	sp.ui.ext.ooui.Tool.call( this, toolGroup, config );
+};
+OO.inheritClass( sp.ui.ext.ooui.PauseTool, sp.ui.ext.ooui.Tool );
+sp.ui.ext.ooui.PauseTool.static.name = 'pause';
+sp.ui.ext.ooui.PauseTool.static.group = 'playTools';
+sp.ui.ext.ooui.PauseTool.static.icon = 'pause';
+sp.ui.ext.ooui.PauseTool.static.title = 'pause';
+sp.ui.ext.ooui.PauseTool.static.commandName = 'pause';
+
+/**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.PauseTool.prototype.onUpdateState = function () {
+	var isPaused = false;
+	// Parent
+	sp.ui.ext.ooui.Tool.prototype.onUpdateState.apply( this, arguments );
+
+	if ( this.toolbar.getContainer().getScenario() ) {
+		this.setActive( this.toolbar.getContainer().getScenario().isPaused() );
+	}
+};
+
+/**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.PauseTool.prototype.onSelect = function () {
+	// Pause the scenario
+	this.toolbar.getContainer().getScenario().togglePaused();
+};
+
+sp.ui.toolFactory.register( sp.ui.ext.ooui.PauseTool );
 
 /**
  * Solar Playground viewpoint controller.

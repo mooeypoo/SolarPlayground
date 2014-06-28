@@ -75,7 +75,7 @@ sp.container.Manager.prototype.loadFromFile = function ( scenarioName ) {
 					objList[o].getName()
 				);
 			}
-
+			this.emit( 'scenarioLoaded' );
 			deferred.resolve();
 		}, this ) );
 
@@ -120,13 +120,13 @@ sp.container.Manager.prototype.onGuiPOV = function ( newPov ) {
  * @param {jQuery} $toolbar jQuery toolbar element
  * @param {string} [position] Position in the container; 'top' or 'bottom'
  */
-sp.container.Manager.prototype.addToolbar = function ( toolbar, position ) {
+sp.container.Manager.prototype.addToolbar = function ( $toolbar, position ) {
 	position = position || 'top';
 
 	if ( position === 'top' ) {
-		this.$container.prepend( toolbar.$element );
+		this.$container.prepend( $toolbar );
 	} else {
-		this.$container.append( toolbar.$element );
+		this.$container.append( $toolbar );
 	}
 };
 
@@ -189,7 +189,7 @@ sp.container.Manager.prototype.isPaused = function () {
  * @method
  * @param {string} action Symbolic name of action
  * @param {string} [method] Action method name
- * @param {Mixed...} [args] Additional arguments for action
+ * @param {Mixed} [args] Additional arguments for action
  * @returns {boolean} Action or command was executed
  */
 sp.container.Manager.prototype.execute = function ( action, method ) {
@@ -248,4 +248,3 @@ sp.container.Manager.prototype.addCommands = function ( names ) {
 		this.emit( 'addCommand', names[i], command, triggers );
 	}
 };
-

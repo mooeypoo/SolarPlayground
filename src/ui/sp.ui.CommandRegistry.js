@@ -20,8 +20,8 @@ OO.inheritClass( sp.ui.CommandRegistry, OO.Registry );
  * Register a constructor with the factory.
  *
  * @method
- * @param {ve.ui.Command} command Command object
- * @throws {Error} If command is not an instance of ve.ui.Command
+ * @param {sp.ui.Command} command Command object
+ * @throws {Error} If command is not an instance of sp.ui.Command
  */
 sp.ui.CommandRegistry.prototype.register = function ( command ) {
 	// Validate arguments
@@ -43,7 +43,7 @@ sp.ui.commandRegistry = new sp.ui.CommandRegistry();
 sp.ui.commandRegistry.register(
 	new sp.ui.Command( 'play', 'playTools', 'play' )
 );
-sp.ui.commandRegistry.register(
+/*sp.ui.commandRegistry.register(
 	new sp.ui.Command( 'speed', 'playTools', 'speed' )
 );
 sp.ui.commandRegistry.register(
@@ -52,3 +52,4 @@ sp.ui.commandRegistry.register(
 sp.ui.commandRegistry.register(
 	new sp.ui.Command( 'zoomout', 'viewTools', 'zoom', 1000 )
 );
+*/

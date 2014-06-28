@@ -3,8 +3,8 @@ sp.ui.ext.ooui.Toolbar = function SpUiExtOouiToolbar( target, container, config 
 	// Parent constructor
 	OO.ui.Toolbar.call(
 		this,
-		sp.ui.ext.ooui.toolFactory,
-		sp.ui.ext.ooui.toolGroupFactory,
+		sp.ui.toolFactory,
+		sp.ui.toolGroupFactory,
 		config
 	);
 
@@ -30,8 +30,6 @@ sp.ui.ext.ooui.Toolbar.prototype.getContainer = function () {
  * If a matching tool is present, it's label will be updated.
  *
  * @param {string} name Symbolic name of command and trigger
- * @param {ve.ui.Command} command Command that's been registered
- * @param {ve.ui.Trigger} trigger Trigger to associate with command
  */
 sp.ui.ext.ooui.Toolbar.prototype.onContainerAddCommand = function ( name ) {
 	if ( this.tools[name] ) {

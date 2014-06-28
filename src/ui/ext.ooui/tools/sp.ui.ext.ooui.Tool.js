@@ -1,5 +1,5 @@
 /**
- * UserInterface regular ui tool.
+ * Regular button tool.
  *
  * @class
  * @extends OO.ui.Tool
@@ -7,11 +7,9 @@
  * @param {OO.ui.ToolGroup} toolGroup
  * @param {Object} [config] Configuration options
  */
-sp.ui.ext.ooui.Tool = function SpUiTool( toolGroup, config ) {
+sp.ui.ext.ooui.Tool = function SpUiExtOouiTool( toolGroup, config ) {
 	// Parent constructor
 	OO.ui.Tool.call( this, toolGroup, config );
-
-	// TODO: Connect to proper event in the container
 };
 
 /* Inheritance */
@@ -31,15 +29,11 @@ OO.inheritClass( sp.ui.ext.ooui.Tool, OO.ui.Tool );
 sp.ui.ext.ooui.Tool.static.check = '';
 
 /* Methods */
-
 /**
  * @inheritdoc
  */
 sp.ui.ext.ooui.Tool.prototype.onUpdateState = function () {
-	// Parent method
-	OO.ui.Tool.prototype.onUpdateState.apply( this, arguments );
-
-//	this.setDisabled( !this.toolbar.getSurface().getModel()[this.constructor.static.check]() );
+	this.setDisabled( !this.toolbar.getContainer().getScenario() );
 };
 
 /**
@@ -56,11 +50,33 @@ sp.ui.ext.ooui.PlayTool = function SpUiExtOouiPlayTool( toolGroup, config ) {
 };
 OO.inheritClass( sp.ui.ext.ooui.PlayTool, sp.ui.ext.ooui.Tool );
 sp.ui.ext.ooui.PlayTool.static.name = 'play';
-ve.ui.UndoHistoryTool.static.group = 'playTools';
-ve.ui.UndoHistoryTool.static.icon = 'play';
-ve.ui.UndoHistoryTool.static.title = 'Play';
-ve.ui.UndoHistoryTool.static.commandName = 'play';
-ve.ui.toolFactory.register( sp.ui.ext.ooui.PlayTool );
+sp.ui.ext.ooui.PlayTool.static.group = 'playTools';
+sp.ui.ext.ooui.PlayTool.static.icon = 'play';
+sp.ui.ext.ooui.PlayTool.static.title = 'Play';
+sp.ui.ext.ooui.PlayTool.static.commandName = 'play';
+
+/**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.PlayTool.prototype.onUpdateState = function () {
+	var isPaused = false;
+	// Parent
+	sp.ui.ext.ooui.Tool.prototype.onUpdateState.apply( this, arguments );
+
+	if ( this.toolbar.getContainer().getScenario() ) {
+		this.setActive( !this.toolbar.getContainer().getScenario().isPaused() );
+	}
+};
+
+/**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.PlayTool.prototype.onSelect = function () {
+	// Pause the scenario
+	this.toolbar.getContainer().getScenario().togglePaused();
+};
+
+sp.ui.toolFactory.register( sp.ui.ext.ooui.PlayTool );
 
 /**
  * UserInterface pause tool.
@@ -75,9 +91,31 @@ sp.ui.ext.ooui.PauseTool = function SpUiExtOouiPauseTool( toolGroup, config ) {
 	sp.ui.ext.ooui.Tool.call( this, toolGroup, config );
 };
 OO.inheritClass( sp.ui.ext.ooui.PauseTool, sp.ui.ext.ooui.Tool );
-sp.ui.ext.ooui.PlayTool.static.name = 'pause';
-ve.ui.UndoHistoryTool.static.group = 'playTools';
-ve.ui.UndoHistoryTool.static.icon = 'pause';
-ve.ui.UndoHistoryTool.static.title = 'pause';
-ve.ui.UndoHistoryTool.static.commandName = 'pause';
-ve.ui.toolFactory.register( sp.ui.ext.ooui.PlayTool );
+sp.ui.ext.ooui.PauseTool.static.name = 'pause';
+sp.ui.ext.ooui.PauseTool.static.group = 'playTools';
+sp.ui.ext.ooui.PauseTool.static.icon = 'pause';
+sp.ui.ext.ooui.PauseTool.static.title = 'pause';
+sp.ui.ext.ooui.PauseTool.static.commandName = 'pause';
+
+/**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.PauseTool.prototype.onUpdateState = function () {
+	var isPaused = false;
+	// Parent
+	sp.ui.ext.ooui.Tool.prototype.onUpdateState.apply( this, arguments );
+
+	if ( this.toolbar.getContainer().getScenario() ) {
+		this.setActive( this.toolbar.getContainer().getScenario().isPaused() );
+	}
+};
+
+/**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.PauseTool.prototype.onSelect = function () {
+	// Pause the scenario
+	this.toolbar.getContainer().getScenario().togglePaused();
+};
+
+sp.ui.toolFactory.register( sp.ui.ext.ooui.PauseTool );
