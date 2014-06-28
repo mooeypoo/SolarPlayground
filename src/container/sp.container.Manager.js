@@ -120,13 +120,13 @@ sp.container.Manager.prototype.onGuiPOV = function ( newPov ) {
  * @param {jQuery} $toolbar jQuery toolbar element
  * @param {string} [position] Position in the container; 'top' or 'bottom'
  */
-sp.container.Manager.prototype.addToolbar = function ( $toolbar, position ) {
+sp.container.Manager.prototype.addToolbar = function ( toolbar, position ) {
 	position = position || 'top';
 
 	if ( position === 'top' ) {
-		this.$container.prepend( $toolbar );
+		this.$container.prepend( toolbar.$element );
 	} else {
-		this.$container.append( $toolbar );
+		this.$container.append( toolbar.$element );
 	}
 };
 
@@ -182,3 +182,70 @@ sp.container.Manager.prototype.setZoom = function ( zoom ) {
 sp.container.Manager.prototype.isPaused = function () {
 	return this.scenario.isPaused();
 };
+
+/**
+ * Execute an action or command.
+ *
+ * @method
+ * @param {string} action Symbolic name of action
+ * @param {string} [method] Action method name
+ * @param {Mixed...} [args] Additional arguments for action
+ * @returns {boolean} Action or command was executed
+ */
+sp.container.Manager.prototype.execute = function ( action, method ) {
+	var trigger, obj, ret;
+
+	if ( !this.enabled ) {
+		return;
+	}
+
+	// Validate method
+	if ( sp.ui.actionFactory.doesActionSupportMethod( action, method ) ) {
+		// Create an action object and execute the method on it
+		obj = sp.ui.actionFactory.create( action, this );
+		ret = obj[method].apply( obj, Array.prototype.slice.call( arguments, 2 ) );
+		return ret === undefined || !!ret;
+	}
+	return false;
+};
+
+/**
+ * Add all commands from initialization options.
+ *
+ * Commands and triggers must be registered under the same name prior to adding them to the surface.
+ *
+ * @method
+ * @param {string[]} names List of symbolic names of commands in the command registry
+ * @throws {Error} If command has not been registered
+ * @throws {Error} If trigger has not been registered
+ * @throws {Error} If trigger is not complete
+ * @fires addCommand
+ */
+sp.container.Manager.prototype.addCommands = function ( names ) {
+	var i, j, len, key, command, triggers, trigger;
+
+	for ( i = 0, len = names.length; i < len; i++ ) {
+		command = sp.ui.commandRegistry.lookup( names[i] );
+		if ( !command ) {
+			throw new Error( 'No command registered by that name: ' + names[i] );
+		}
+
+/*		// Normalize trigger key
+		triggers = ve.ui.triggerRegistry.lookup( names[i] );
+		if ( !triggers ) {
+			throw new Error( 'No triggers registered by that name: ' + names[i] );
+		}
+		for ( j = triggers.length - 1; j >= 0; j-- ) {
+			trigger = triggers[j];
+			key = trigger.toString();
+			// Validate trigger
+			if ( key.length === 0 ) {
+				throw new Error( 'Incomplete trigger: ' + trigger );
+			}
+			this.commands[key] = command;
+		}*/
+/*		this.triggers[names[i]] = triggers;*/
+		this.emit( 'addCommand', names[i], command, triggers );
+	}
+};
+

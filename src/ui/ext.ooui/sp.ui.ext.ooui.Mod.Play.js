@@ -6,6 +6,9 @@ sp.ui.ext.ooui = {
 	'Mod': {}
 };
 
+sp.ui.ext.ooui.toolFactory = new OO.ui.ToolFactory();
+sp.ui.ext.ooui.toolGroupFactory = new OO.ui.ToolGroupFactory();
+
 /**
  * OOUI Gui module
  *
@@ -21,12 +24,46 @@ sp.ui.ext.ooui.Mod.Play = function SpUiExtOouiModPlay( container, config ) {
 	sp.ui.ext.ooui.Mod.Play.super.call( this, container, config );
 
 	this.tools = {};
-
+	this.container = container;
 	return this;
 };
 
 /* Inheritance */
 OO.inheritClass( sp.ui.ext.ooui.Mod.Play, sp.ui.ext.Play );
+
+/* Static */
+
+/**
+ * Define toolbar groups for OOUI
+ * @property {Array}
+ */
+sp.ui.ext.ooui.Mod.Play.static.toolbarGroups = [
+	// Play tools
+	{
+		'type': 'bar',
+		'include': [ { 'group': 'playTools' } ]
+	},
+	// View tools
+	{
+		'type': 'bar',
+		'include': [ { 'group': 'viewTools' }, 'speed' ]
+	},
+	// POV Tools
+	{
+		'type': 'menu',
+		'indicator': 'down',
+		'label': 'POV',
+		'icon': 'picture',
+		'include': [ { 'group': 'povTools' } ]
+	}
+];
+
+sp.ui.ext.ooui.Mod.Play.static.commands = [
+	'play',
+	'speed',
+	'zoomin',
+	'zoomout'
+];
 
 /* Events */
 
@@ -57,11 +94,15 @@ OO.inheritClass( sp.ui.ext.ooui.Mod.Play, sp.ui.ext.Play );
 sp.ui.ext.ooui.Mod.Play.prototype.initialize = function () {
 	var i, tools, tname;
 
-	this.toolFactory = new OO.ui.ToolFactory(),
-	this.toolGroupFactory = new OO.ui.ToolGroupFactory();
+	this.toolbar = new sp.ui.ext.ooui.Toolbar( this, this.container );
+	this.toolbar.setup( this.constructor.static.toolbarGroups );
+	this.container.addCommands( this.constructor.static.commands );
+	this.container.addToolbar( this.toolbar );
 
+	return this;
+/*
 	// Create toolbar
-	this.toolbar = new sp.ui.ext.ooui.Toolbar( this.container, this.toolFactory, this.toolGroupFactory );
+	this.toolbar = new sp.ui.ext.ooui.Toolbar( this.container );
 	this.toolbar.setup( [
 		{
 			'type': 'bar',
@@ -98,18 +139,18 @@ sp.ui.ext.ooui.Mod.Play.prototype.initialize = function () {
 	this.tools = {};
 	for ( tname in tools ) {
 		this.tools[tname] = this.createTool.apply( this, tools[tname] );
-		this.toolFactory.register( this.tools[tname] );
+		sp.ui.ext.ooui.toolFactory.register( this.tools[tname] );
 	}
 
 	// Unique tools
 	// Create speed slider tool
-	this.speedSlider = new sp.ui.ext.ooui.SliderTool( this.toolbar );
-	this.toolFactory.register( this.speedSlider );
+//	this.speedSlider = new sp.ui.ext.ooui.SliderTool( this.toolbar );
+//	sp.ui.ext.ooui.toolFactory.register( this.speedSlider );
 
 /*	sliderTool.static.name = 'speed';
 	sliderTool.static.group = 'playTools';
 	sliderTool.static.title = 'Change speed';
-*/
+
 
 	// Attach toolbar to container
 	this.container.addToolbar( this.toolbar.$element );
@@ -119,7 +160,7 @@ sp.ui.ext.ooui.Mod.Play.prototype.initialize = function () {
 	this.toolbar.connect( this, { 'zoom': [ 'onToolbarEvent', 'zoom' ] } );
 	this.toolbar.connect( this, { 'pov': [ 'onToolbarEvent', 'pov' ] } );
 
-	return this;
+	return this;*/
 };
 
 /**
@@ -129,7 +170,7 @@ sp.ui.ext.ooui.Mod.Play.prototype.initialize = function () {
  * @param {string} [icon] Tool icon
  */
 sp.ui.ext.ooui.Mod.Play.prototype.addToPOVList = function ( name, title, icon ) {
-	var toolDefinition, onSelectFunc, tool, toolGroup,
+/*	var toolDefinition, onSelectFunc, tool,
 		eventObject = {},
 		toolName = name + 'Tool';
 
@@ -143,7 +184,8 @@ sp.ui.ext.ooui.Mod.Play.prototype.addToPOVList = function ( name, title, icon ) 
 	];
 
 	this.tools[toolName] = this.createPOVTool.apply( this, toolDefinition );
-	this.toolFactory.register( this.tools[toolName] );
+	sp.ui.ext.ooui.toolFactory.register( this.tools[toolName] );*/
+	return true;
 };
 
 /**
@@ -154,7 +196,7 @@ sp.ui.ext.ooui.Mod.Play.prototype.addToPOVList = function ( name, title, icon ) 
  * @param {Object} [params] Parameters to attach to the event
  */
 sp.ui.ext.ooui.Mod.Play.prototype.onToolbarEvent = function ( ev, params ) {
-	this.emit( ev, params );
+/*	this.emit( ev, params );*/
 };
 
 /**
@@ -162,8 +204,8 @@ sp.ui.ext.ooui.Mod.Play.prototype.onToolbarEvent = function ( ev, params ) {
  * @fires zoom
  */
 sp.ui.ext.ooui.Mod.Play.prototype.onZoomInButtonSelect = function () {
-	this.setActive( false );
-	this.toolbar.emit( 'zoom', 2000 );
+/*	this.setActive( false );
+	this.toolbar.emit( 'zoom', 2000 );*/
 };
 
 /**
@@ -171,8 +213,8 @@ sp.ui.ext.ooui.Mod.Play.prototype.onZoomInButtonSelect = function () {
  * @fires zoom
  */
 sp.ui.ext.ooui.Mod.Play.prototype.onZoomOutButtonSelect = function () {
-	this.setActive( false );
-	this.toolbar.emit( 'zoom', -2000 );
+/*	this.setActive( false );
+	this.toolbar.emit( 'zoom', -2000 );*/
 };
 
 /**
@@ -180,12 +222,12 @@ sp.ui.ext.ooui.Mod.Play.prototype.onZoomOutButtonSelect = function () {
  * @fires play
  */
 sp.ui.ext.ooui.Mod.Play.prototype.onPlayButtonSelect = function () {
-	if ( this.toggled !== this.toolbar.getContainer().isPaused() ) {
+/*	if ( this.toggled !== this.toolbar.getContainer().isPaused() ) {
 		this.toggled = !this.toggled;
 		this.setActive( this.toggled );
 
 		this.toolbar.emit( 'play', this.toggled );
-	}
+	}*/
 };
 
 /**

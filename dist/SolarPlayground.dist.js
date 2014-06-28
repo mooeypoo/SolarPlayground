@@ -636,13 +636,13 @@ sp.container.Manager.prototype.onGuiPOV = function ( newPov ) {
  * @param {jQuery} $toolbar jQuery toolbar element
  * @param {string} [position] Position in the container; 'top' or 'bottom'
  */
-sp.container.Manager.prototype.addToolbar = function ( $toolbar, position ) {
+sp.container.Manager.prototype.addToolbar = function ( toolbar, position ) {
 	position = position || 'top';
 
 	if ( position === 'top' ) {
-		this.$container.prepend( $toolbar );
+		this.$container.prepend( toolbar.$element );
 	} else {
-		this.$container.append( $toolbar );
+		this.$container.append( toolbar.$element );
 	}
 };
 
@@ -698,6 +698,73 @@ sp.container.Manager.prototype.setZoom = function ( zoom ) {
 sp.container.Manager.prototype.isPaused = function () {
 	return this.scenario.isPaused();
 };
+
+/**
+ * Execute an action or command.
+ *
+ * @method
+ * @param {string} action Symbolic name of action
+ * @param {string} [method] Action method name
+ * @param {Mixed...} [args] Additional arguments for action
+ * @returns {boolean} Action or command was executed
+ */
+sp.container.Manager.prototype.execute = function ( action, method ) {
+	var trigger, obj, ret;
+
+	if ( !this.enabled ) {
+		return;
+	}
+
+	// Validate method
+	if ( sp.ui.actionFactory.doesActionSupportMethod( action, method ) ) {
+		// Create an action object and execute the method on it
+		obj = sp.ui.actionFactory.create( action, this );
+		ret = obj[method].apply( obj, Array.prototype.slice.call( arguments, 2 ) );
+		return ret === undefined || !!ret;
+	}
+	return false;
+};
+
+/**
+ * Add all commands from initialization options.
+ *
+ * Commands and triggers must be registered under the same name prior to adding them to the surface.
+ *
+ * @method
+ * @param {string[]} names List of symbolic names of commands in the command registry
+ * @throws {Error} If command has not been registered
+ * @throws {Error} If trigger has not been registered
+ * @throws {Error} If trigger is not complete
+ * @fires addCommand
+ */
+sp.container.Manager.prototype.addCommands = function ( names ) {
+	var i, j, len, key, command, triggers, trigger;
+
+	for ( i = 0, len = names.length; i < len; i++ ) {
+		command = sp.ui.commandRegistry.lookup( names[i] );
+		if ( !command ) {
+			throw new Error( 'No command registered by that name: ' + names[i] );
+		}
+
+/*		// Normalize trigger key
+		triggers = ve.ui.triggerRegistry.lookup( names[i] );
+		if ( !triggers ) {
+			throw new Error( 'No triggers registered by that name: ' + names[i] );
+		}
+		for ( j = triggers.length - 1; j >= 0; j-- ) {
+			trigger = triggers[j];
+			key = trigger.toString();
+			// Validate trigger
+			if ( key.length === 0 ) {
+				throw new Error( 'Incomplete trigger: ' + trigger );
+			}
+			this.commands[key] = command;
+		}*/
+/*		this.triggers[names[i]] = triggers;*/
+		this.emit( 'addCommand', names[i], command, triggers );
+	}
+};
+
 
 /**
  * Container canvas and context controller
@@ -1392,6 +1459,164 @@ sp.data.Scenario.prototype.addToCenterPoint = function ( x, y ) {
 }
 
 /**
+ * Action factory.
+ *
+ * @class
+ * @extends OO.Factory
+ * @constructor
+ */
+sp.ui.ActionFactory = function SpUiActionFactory() {
+	// Parent constructor
+	OO.Factory.call( this );
+};
+
+/* Inheritance */
+
+OO.inheritClass( sp.ui.ActionFactory, OO.Factory );
+
+/* Methods */
+
+/**
+ * Check if an action supports a method.
+ *
+ * @method
+ * @param {string} action Name of action
+ * @param {string} method Name of method
+ * @returns {boolean} The action supports the method
+ */
+sp.ui.ActionFactory.prototype.doesActionSupportMethod = function ( action, method ) {
+	if ( action in this.registry ) {
+		return this.registry[action].static.methods.indexOf( method ) !== -1;
+	}
+	throw new Error( 'Unknown action: ' + action );
+};
+
+/* Initialization */
+
+sp.ui.actionFactory = new sp.ui.ActionFactory();
+
+/**
+ * Command that executes an action.
+ *
+ * @class
+ *
+ * @constructor
+ * @param {string} name Symbolic name for the command
+ * @param {string} action Action to execute when command is triggered
+ * @param {string} method Method to call on action when executing
+ * @param {Mixed...} [data] Additional data to pass to the action when executing
+ */
+sp.ui.Command = function SpUiCommand( name, action, method ) {
+	this.name = name;
+	this.action = action;
+	this.method = method;
+	this.data = Array.prototype.slice.call( arguments, 3 );
+};
+
+/* Methods */
+
+/**
+ * Execute command on a surface.
+ *
+ * @param {ve.ui.Surface} surface Surface to execute command on
+ * @returns {Mixed} Result of command execution.
+ */
+sp.ui.Command.prototype.execute = function ( surface ) {
+	return surface.execute.apply( surface, [ this.action, this.method ].concat( this.data ) );
+};
+
+/**
+ * Get command action.
+ *
+ * @returns {string} action Action to execute when command is triggered
+ */
+sp.ui.Command.prototype.getAction = function () {
+	return this.action;
+};
+
+/**
+ * Get command method.
+ *
+ * @returns {string} method Method to call on action when executing
+ */
+sp.ui.Command.prototype.getMethod = function () {
+	return this.method;
+};
+
+/**
+ * Get command name.
+ *
+ * @returns {string} name The symbolic name of the command.
+ */
+sp.ui.Command.prototype.getName = function () {
+	return this.name;
+};
+
+/**
+ * Get command data.
+ *
+ * @returns {Array} data Additional data to pass to the action when executing
+ */
+sp.ui.Command.prototype.getData = function () {
+	return this.data;
+};
+
+/**
+ * Command registry.
+ *
+ * @class
+ * @extends OO.Registry
+ * @constructor
+ */
+sp.ui.CommandRegistry = function SpUiCommandRegistry() {
+	// Parent constructor
+	OO.Registry.call( this );
+};
+
+/* Inheritance */
+
+OO.inheritClass( sp.ui.CommandRegistry, OO.Registry );
+
+/* Methods */
+
+/**
+ * Register a constructor with the factory.
+ *
+ * @method
+ * @param {ve.ui.Command} command Command object
+ * @throws {Error} If command is not an instance of ve.ui.Command
+ */
+sp.ui.CommandRegistry.prototype.register = function ( command ) {
+	// Validate arguments
+	if ( !( command instanceof sp.ui.Command ) ) {
+		throw new Error(
+			'command must be an instance of sp.ui.Command, cannot be a ' + typeof command
+		);
+	}
+
+	OO.Registry.prototype.register.call( this, command.getName(), command );
+};
+
+/* Initialization */
+
+sp.ui.commandRegistry = new sp.ui.CommandRegistry();
+
+/* Registrations */
+
+sp.ui.commandRegistry.register(
+	new sp.ui.Command( 'play', 'playTools', 'play' )
+);
+sp.ui.commandRegistry.register(
+	new sp.ui.Command( 'speed', 'playTools', 'speed' )
+);
+sp.ui.commandRegistry.register(
+	new sp.ui.Command( 'zoomin', 'viewTools', 'zoom', -1000 )
+);
+sp.ui.commandRegistry.register(
+	new sp.ui.Command( 'zoomout', 'viewTools', 'zoom', 1000 )
+);
+
+/**
  * Gui Loader. Creates the gui to be attached to
  * the SolarPlayground container.
  *
@@ -1515,6 +1740,9 @@ sp.ui.ext.ooui = {
 	'Mod': {}
 };
 
+sp.ui.ext.ooui.toolFactory = new OO.ui.ToolFactory();
+sp.ui.ext.ooui.toolGroupFactory = new OO.ui.ToolGroupFactory();
+
 /**
  * OOUI Gui module
  *
@@ -1530,12 +1758,46 @@ sp.ui.ext.ooui.Mod.Play = function SpUiExtOouiModPlay( container, config ) {
 	sp.ui.ext.ooui.Mod.Play.super.call( this, container, config );
 
 	this.tools = {};
-
+	this.container = container;
 	return this;
 };
 
 /* Inheritance */
 OO.inheritClass( sp.ui.ext.ooui.Mod.Play, sp.ui.ext.Play );
+
+/* Static */
+
+/**
+ * Define toolbar groups for OOUI
+ * @property {Array}
+ */
+sp.ui.ext.ooui.Mod.Play.static.toolbarGroups = [
+	// Play tools
+	{
+		'type': 'bar',
+		'include': [ { 'group': 'playTools' } ]
+	},
+	// View tools
+	{
+		'type': 'bar',
+		'include': [ { 'group': 'viewTools' }, 'speed' ]
+	},
+	// POV Tools
+	{
+		'type': 'menu',
+		'indicator': 'down',
+		'label': 'POV',
+		'icon': 'picture',
+		'include': [ { 'group': 'povTools' } ]
+	}
+];
+
+sp.ui.ext.ooui.Mod.Play.static.commands = [
+	'play',
+	'speed',
+	'zoomin',
+	'zoomout'
+];
 
 /* Events */
 
@@ -1566,11 +1828,15 @@ OO.inheritClass( sp.ui.ext.ooui.Mod.Play, sp.ui.ext.Play );
 sp.ui.ext.ooui.Mod.Play.prototype.initialize = function () {
 	var i, tools, tname;
 
-	this.toolFactory = new OO.ui.ToolFactory(),
-	this.toolGroupFactory = new OO.ui.ToolGroupFactory();
+	this.toolbar = new sp.ui.ext.ooui.Toolbar( this, this.container );
+	this.toolbar.setup( this.constructor.static.toolbarGroups );
+	this.container.addCommands( this.constructor.static.commands );
+	this.container.addToolbar( this.toolbar );
 
+	return this;
+/*
 	// Create toolbar
-	this.toolbar = new sp.ui.ext.ooui.Toolbar( this.container, this.toolFactory, this.toolGroupFactory );
+	this.toolbar = new sp.ui.ext.ooui.Toolbar( this.container );
 	this.toolbar.setup( [
 		{
 			'type': 'bar',
@@ -1607,18 +1873,18 @@ sp.ui.ext.ooui.Mod.Play.prototype.initialize = function () {
 	this.tools = {};
 	for ( tname in tools ) {
 		this.tools[tname] = this.createTool.apply( this, tools[tname] );
-		this.toolFactory.register( this.tools[tname] );
+		sp.ui.ext.ooui.toolFactory.register( this.tools[tname] );
 	}
 
 	// Unique tools
 	// Create speed slider tool
-	this.speedSlider = new sp.ui.ext.ooui.SliderTool( this.toolbar );
-	this.toolFactory.register( this.speedSlider );
+//	this.speedSlider = new sp.ui.ext.ooui.SliderTool( this.toolbar );
+//	sp.ui.ext.ooui.toolFactory.register( this.speedSlider );
 
 /*	sliderTool.static.name = 'speed';
 	sliderTool.static.group = 'playTools';
 	sliderTool.static.title = 'Change speed';
-*/
+
 
 	// Attach toolbar to container
 	this.container.addToolbar( this.toolbar.$element );
@@ -1628,7 +1894,7 @@ sp.ui.ext.ooui.Mod.Play.prototype.initialize = function () {
 	this.toolbar.connect( this, { 'zoom': [ 'onToolbarEvent', 'zoom' ] } );
 	this.toolbar.connect( this, { 'pov': [ 'onToolbarEvent', 'pov' ] } );
 
-	return this;
+	return this;*/
 };
 
 /**
@@ -1638,7 +1904,7 @@ sp.ui.ext.ooui.Mod.Play.prototype.initialize = function () {
  * @param {string} [icon] Tool icon
  */
 sp.ui.ext.ooui.Mod.Play.prototype.addToPOVList = function ( name, title, icon ) {
-	var toolDefinition, onSelectFunc, tool, toolGroup,
+/*	var toolDefinition, onSelectFunc, tool,
 		eventObject = {},
 		toolName = name + 'Tool';
 
@@ -1652,7 +1918,8 @@ sp.ui.ext.ooui.Mod.Play.prototype.addToPOVList = function ( name, title, icon ) 
 	];
 
 	this.tools[toolName] = this.createPOVTool.apply( this, toolDefinition );
-	this.toolFactory.register( this.tools[toolName] );
+	sp.ui.ext.ooui.toolFactory.register( this.tools[toolName] );*/
+	return true;
 };
 
 /**
@@ -1663,7 +1930,7 @@ sp.ui.ext.ooui.Mod.Play.prototype.addToPOVList = function ( name, title, icon ) 
  * @param {Object} [params] Parameters to attach to the event
  */
 sp.ui.ext.ooui.Mod.Play.prototype.onToolbarEvent = function ( ev, params ) {
-	this.emit( ev, params );
+/*	this.emit( ev, params );*/
 };
 
 /**
@@ -1671,8 +1938,8 @@ sp.ui.ext.ooui.Mod.Play.prototype.onToolbarEvent = function ( ev, params ) {
  * @fires zoom
  */
 sp.ui.ext.ooui.Mod.Play.prototype.onZoomInButtonSelect = function () {
-	this.setActive( false );
-	this.toolbar.emit( 'zoom', 2000 );
+/*	this.setActive( false );
+	this.toolbar.emit( 'zoom', 2000 );*/
 };
 
 /**
@@ -1680,8 +1947,8 @@ sp.ui.ext.ooui.Mod.Play.prototype.onZoomInButtonSelect = function () {
  * @fires zoom
  */
 sp.ui.ext.ooui.Mod.Play.prototype.onZoomOutButtonSelect = function () {
-	this.setActive( false );
-	this.toolbar.emit( 'zoom', -2000 );
+/*	this.setActive( false );
+	this.toolbar.emit( 'zoom', -2000 );*/
 };
 
 /**
@@ -1689,12 +1956,12 @@ sp.ui.ext.ooui.Mod.Play.prototype.onZoomOutButtonSelect = function () {
  * @fires play
  */
 sp.ui.ext.ooui.Mod.Play.prototype.onPlayButtonSelect = function () {
-	if ( this.toggled !== this.toolbar.getContainer().isPaused() ) {
+/*	if ( this.toggled !== this.toolbar.getContainer().isPaused() ) {
 		this.toggled = !this.toggled;
 		this.setActive( this.toggled );
 
 		this.toolbar.emit( 'play', this.toggled );
-	}
+	}*/
 };
 
 /**
@@ -1805,11 +2072,18 @@ sp.ui.ext.ooui.Mod.Play.prototype.createPOVTool = function ( name, icon, title )
 };
 
 /* Toolbar */
-sp.ui.ext.ooui.Toolbar = function ( container, toolFactory, toolGroupFactory ) {
+sp.ui.ext.ooui.Toolbar = function SpUiExtOouiToolbar( target, container, config ) {
 	// Parent constructor
-	sp.ui.ext.ooui.Toolbar.super.call( this, toolFactory, toolGroupFactory );
+	OO.ui.Toolbar.call(
+		this,
+		sp.ui.ext.ooui.toolFactory,
+		sp.ui.ext.ooui.toolGroupFactory,
+		config
+	);
 
+	this.target = target;
 	this.container = container;
+	this.container.connect( this, { 'addCommand': 'onContainerAddCommand' } );
 };
 
 /* Inheritance */
@@ -1824,50 +2098,18 @@ sp.ui.ext.ooui.Toolbar.prototype.getContainer = function () {
 };
 
 /**
- * A slider tool
+ * Handle command being added to surface.
  *
- * @class
- * @extends OO.ui.Tool
+ * If a matching tool is present, it's label will be updated.
  *
- * @constructor
- * @param {OO.ui.Toolbar} toolbar
- * @param {Object} [config] Configuration options
+ * @param {string} name Symbolic name of command and trigger
+ * @param {ve.ui.Command} command Command that's been registered
+ * @param {ve.ui.Trigger} trigger Trigger to associate with command
  */
-sp.ui.ext.ooui.SliderTool = function SpUiExtOouiSliderTool( toolbar, config ) {
-	// Parent constructor
-	sp.ui.ext.ooui.SliderTool.super.call( this, toolbar, config );
-
-	// Initialization
-	this.$slider = this.$( '<input>' )
-		.addClass( 'sp-ui-ooui-sliderHandle' )
-		.attr( 'type', 'range' )
-		.attr( 'min', '1' )
-		.attr( 'max', '10' );
-
-	this.$element
-		.addClass( 'sp-ui-ooui-sliderTool' )
-		.prepend( this.$slider );
-};
-
-/* Setup */
-
-OO.inheritClass( sp.ui.ext.ooui.SliderTool, OO.ui.Tool );
-
-/* Static Properties */
-
-sp.ui.ext.ooui.SliderTool.static.accelTooltips = true;
-sp.ui.ext.ooui.SliderTool.static.name = 'slider';
-sp.ui.ext.ooui.SliderTool.static.group = 'playTools';
-sp.ui.ext.ooui.SliderTool.static.title = 'Change speed';
-
-/* Methods */
-
-sp.ui.ext.ooui.SliderTool.prototype.setDisabled = function ( isDisabled ) {
-	// Having this temporarily because the tool seems to insist on it
-	console.log( isDisabled );
-};
-
-sp.ui.ext.ooui.SliderTool.prototype.onUpdateState = function () {
+sp.ui.ext.ooui.Toolbar.prototype.onContainerAddCommand = function ( name ) {
+	if ( this.tools[name] ) {
+		this.tools[name].updateTitle();
+	}
 };
 
 /**
