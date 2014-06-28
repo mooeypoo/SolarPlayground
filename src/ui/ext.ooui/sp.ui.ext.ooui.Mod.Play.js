@@ -6,8 +6,8 @@ sp.ui.ext.ooui = {
 	'Mod': {}
 };
 
-sp.ui.ext.ooui.toolFactory = new OO.ui.ToolFactory();
-sp.ui.ext.ooui.toolGroupFactory = new OO.ui.ToolGroupFactory();
+sp.ui.toolFactory = new OO.ui.ToolFactory();
+sp.ui.toolGroupFactory = new OO.ui.ToolGroupFactory();
 
 /**
  * OOUI Gui module
@@ -42,8 +42,8 @@ sp.ui.ext.ooui.Mod.Play.static.toolbarGroups = [
 	{
 		'type': 'bar',
 		'include': [ { 'group': 'playTools' } ]
-	},
-	// View tools
+	}
+/*	// View tools
 	{
 		'type': 'bar',
 		'include': [ { 'group': 'viewTools' }, 'speed' ]
@@ -55,14 +55,14 @@ sp.ui.ext.ooui.Mod.Play.static.toolbarGroups = [
 		'label': 'POV',
 		'icon': 'picture',
 		'include': [ { 'group': 'povTools' } ]
-	}
+	}*/
 ];
 
 sp.ui.ext.ooui.Mod.Play.static.commands = [
 	'play',
-	'speed',
-	'zoomin',
-	'zoomout'
+	'speed'
+//	'zoomin',
+//	'zoomout'
 ];
 
 /* Events */
@@ -96,71 +96,39 @@ sp.ui.ext.ooui.Mod.Play.prototype.initialize = function () {
 
 	this.toolbar = new sp.ui.ext.ooui.Toolbar( this, this.container );
 	this.toolbar.setup( this.constructor.static.toolbarGroups );
-	this.container.addCommands( this.constructor.static.commands );
-	this.container.addToolbar( this.toolbar );
-
-	return this;
-/*
-	// Create toolbar
-	this.toolbar = new sp.ui.ext.ooui.Toolbar( this.container );
-	this.toolbar.setup( [
-		{
-			'type': 'bar',
-			'include': [ { 'group': 'playTools' } ]
-		},
-		{
-			'type': 'bar',
-			'include': [ { 'group': 'viewTools' } ]
-		},
-		{
-			'type': 'menu',
-			'indicator': 'down',
-			'label': 'POV',
-			'icon': 'picture',
-			'include': [ { 'group': 'povTools' } ]
-		}
-	] );
-	this.toolbar.emit( 'updateState' );
-
-	// Create buttons for the toolbar
-	// TODO: Disable all buttons until the scenario is loaded
-	tools = {
-		// playTools
-		'play': [ 'playTool', 'playTools', 'play', 'Play scenario', null, this.onPlayButtonSelect, function ( isPaused ) {
-			this.setActive( !isPaused );
-		}, 'pause' ],
-//		'speed': [ 'speedTool', 'playTools', 'speed', 'Change speed', null, this.onSpeedButtonSelect, null, 'pause' ],
-
-		// viewTools
-		'zoomin': [ 'zoominTool', 'viewTools', 'zoomin', 'Zoom in', null, this.onZoomInButtonSelect ],
-		'zoomout': [ 'zoomoutTool', 'viewTools', 'zoomout', 'Zoom out', null, this.onZoomOutButtonSelect ]
-	}
-
-	this.tools = {};
-	for ( tname in tools ) {
-		this.tools[tname] = this.createTool.apply( this, tools[tname] );
-		sp.ui.ext.ooui.toolFactory.register( this.tools[tname] );
-	}
-
-	// Unique tools
-	// Create speed slider tool
-//	this.speedSlider = new sp.ui.ext.ooui.SliderTool( this.toolbar );
-//	sp.ui.ext.ooui.toolFactory.register( this.speedSlider );
-
-/*	sliderTool.static.name = 'speed';
-	sliderTool.static.group = 'playTools';
-	sliderTool.static.title = 'Change speed';
-
-
-	// Attach toolbar to container
+	// TODO: Add commands to container (future!)
+//	this.container.addCommands( this.constructor.static.commands );
 	this.container.addToolbar( this.toolbar.$element );
 
-	// Events
-	this.toolbar.connect( this, { 'play': [ 'onToolbarEvent', 'play' ] } );
-	this.toolbar.connect( this, { 'zoom': [ 'onToolbarEvent', 'zoom' ] } );
-	this.toolbar.connect( this, { 'pov': [ 'onToolbarEvent', 'pov' ] } );
+	this.toolbar.emit( 'updateState' );
 
-	return this;*/
+	// Events
+	this.container.connect( this, { 'scenarioLoaded': 'onScenarioLoaded' } );
+
+	return this;
+};
+
+/**
+ * Respond to new scenario loaded
+ * @fires updateState
+ */
+sp.ui.ext.ooui.Mod.Play.prototype.onScenarioLoaded = function () {
+	if ( this.container.getScenario() ) {
+		this.container.getScenario().disconnect( this );
+	}
+	// Events
+	this.container.getScenario().connect( this, { 'pause': [ 'onScenarioChanged', 'play' ] } );
+
+	// Update the toolbar
+	this.toolbar.emit( 'updateState' );
+};
+
+/**
+ * Respond to change in scenario state
+ * @fires updateState
+ */
+sp.ui.ext.ooui.Mod.Play.prototype.onScenarioChanged = function ( event ) {
+	this.toolbar.emit( 'updateState' );
 };
 
 /**

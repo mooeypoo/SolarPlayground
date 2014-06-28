@@ -5,12 +5,12 @@
  * @extends OO.ui.Tool
  *
  * @constructor
- * @param {OO.ui.Toolbar} toolbar
+ * @param {OO.ui.ToolGroup} toolGroup
  * @param {Object} [config] Configuration options
  */
-sp.ui.ext.ooui.SliderTool = function SpUiExtOouiSliderTool( config ) {
+sp.ui.ext.ooui.SliderTool = function SpUiExtOouiSliderTool( toolGroup, config ) {
 	// Parent constructor
-	sp.ui.ext.ooui.SliderTool.super.call( this, sp.ui.ext.ooui.toolGroup, config );
+	OO.ui.Tool.call( this, toolGroup, config );
 
 	// Initialization
 	this.$slider = this.$( '<input>' )
@@ -38,7 +38,7 @@ sp.ui.ext.ooui.SliderTool.prototype.setDisabled = function ( isDisabled ) {
 sp.ui.ext.ooui.SliderTool.prototype.onUpdateState = function () {
 };
 
-/* Speed */
+/* Speed *
 sp.ui.ext.ooui.SpeedSliderTool = function SpUiExtOouiSpeedSliderTool( config ) {
 	sp.ui.ext.ooui.SliderTool.call( this, config );
 };
@@ -47,3 +47,4 @@ sp.ui.ext.ooui.SpeedSliderTool.static.name = 'slider';
 sp.ui.ext.ooui.SpeedSliderTool.static.group = 'playTools';
 sp.ui.ext.ooui.SpeedSliderTool.static.title = 'Change speed';
 sp.ui.ext.ooui.toolFactory.register( sp.ui.ext.ooui.SpeedSliderTool );
+*/
