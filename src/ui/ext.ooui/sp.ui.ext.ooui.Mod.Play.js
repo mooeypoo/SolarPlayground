@@ -64,7 +64,7 @@ sp.ui.ext.ooui.Mod.Play.static.toolbarGroups = [
 
 sp.ui.ext.ooui.Mod.Play.static.commands = [
 	'play',
-	'speed'
+	'speed',
 	'zoomin',
 	'zoomout'
 ];

@@ -7,7 +7,6 @@
  * @param {string} name Symbolic name for the command
  * @param {string} action Action to execute when command is triggered
  * @param {string} method Method to call on action when executing
- * @param {Mixed} [data] Additional data to pass to the action when executing
  */
 sp.ui.Command = function SpUiCommand( name, action, method ) {
 	this.name = name;

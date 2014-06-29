@@ -545,11 +545,6 @@ sp.container.Manager = function SpContainerManager( config ) {
 		'container': this
 	} );
 	this.gui = guiLoader.initialize();
-
-	// Events
-/*	this.gui.connect( this, { 'play': 'onGuiPlay' } );
-	this.gui.connect( this, { 'zoom': 'onGuiZoom' } );
-	this.gui.connect( this, { 'pov': 'onGuiPOV' } );*/
 };
 
 /* Inheritance */
@@ -608,30 +603,6 @@ sp.container.Manager.prototype.onScenarioPause = function ( isPaused ) {
 };
 
 /**
- * Respond to play button press
- * @param {Boolean} isPlay Play or pause
- *
-sp.container.Manager.prototype.onGuiPlay = function ( isPlay ) {
-	this.scenario.togglePaused( !isPlay );
-};
-
-/**
- * Respond to zoom button press
- * @param {Boolean} zoom Zoom level
- *
-sp.container.Manager.prototype.onGuiZoom = function ( zoom ) {
-	this.scenario.setZoom( zoom );
-};
-
-/**
- * Respond to pov button press
- * @param {Boolean} newPov New POV object key
- *
-sp.container.Manager.prototype.onGuiPOV = function ( newPov ) {
-	this.scenario.setPOV( newPov );
-};
-
-/**
  * Add a toolbar to the container
  * @param {jQuery} $toolbar jQuery toolbar element
  * @param {string} [position] Position in the container; 'top' or 'bottom'
@@ -668,6 +639,7 @@ sp.container.Manager.prototype.setScenario = function ( s ) {
 sp.container.Manager.prototype.getScenario = function () {
 	return this.scenario;
 };
+
 /**
  * Toggle between pause and resume the scenario
  * @param {boolean} [isPaused] Optional. If supplied, pauses or resumes the scenario
@@ -678,6 +650,13 @@ sp.container.Manager.prototype.togglePaused = function ( isPaused ) {
 		this.scenario.togglePaused( isPaused );
 		this.emit( 'pause', isPaused );
 	}
+};
+
+/**
+ * Check whether the scenario is paused
+ */
+sp.container.Manager.prototype.isPaused = function () {
+	return this.scenario.isPaused();
 };
 
 /**
@@ -693,19 +672,11 @@ sp.container.Manager.prototype.setZoom = function ( zoom ) {
 };
 
 /**
- * Check whether the scenario is paused
- */
-sp.container.Manager.prototype.isPaused = function () {
-	return this.scenario.isPaused();
-};
-
-/**
  * Execute an action or command.
  *
  * @method
  * @param {string} action Symbolic name of action
  * @param {string} [method] Action method name
- * @param {Mixed} [args] Additional arguments for action
  * @returns {boolean} Action or command was executed
  */
 sp.container.Manager.prototype.execute = function ( action, method ) {
@@ -1466,7 +1437,6 @@ sp.data.Scenario.prototype.addToCenterPoint = function ( x, y ) {
  * @param {string} name Symbolic name for the command
  * @param {string} action Action to execute when command is triggered
  * @param {string} method Method to call on action when executing
- * @param {Mixed} [data] Additional data to pass to the action when executing
  */
 sp.ui.Command = function SpUiCommand( name, action, method ) {
 	this.name = name;
@@ -1761,9 +1731,9 @@ sp.ui.ext.ooui.Mod.Play.static.toolbarGroups = [
 
 sp.ui.ext.ooui.Mod.Play.static.commands = [
 	'play',
-	'speed'
-//	'zoomin',
-//	'zoomout'
+	'speed',
+	'zoomin',
+	'zoomout'
 ];
 
 /* Events */
