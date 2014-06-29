@@ -18,7 +18,8 @@ module.exports = function ( grunt ) {
           'src/ui/ext.ooui/sp.ui.ext.ooui.Mod.Play.js',
           'src/ui/ext.ooui/sp.ui.ext.ooui.Toolbar.js',
           'src/ui/ext.ooui/tools/sp.ui.ext.ooui.Tool.js',
-//          'src/ui/ext.ooui/tools/sp.ui.ext.ooui.SliderTool.js',
+          'src/ui/ext.ooui/tools/sp.ui.ext.ooui.POVTool.js',
+          'src/ui/ext.ooui/tools/sp.ui.ext.ooui.SliderTool.js',
           'src/view/*.js',
         ],
         dest: 'dist/SolarPlayground.dist.js'

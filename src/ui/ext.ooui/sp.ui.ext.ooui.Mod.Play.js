@@ -42,27 +42,31 @@ sp.ui.ext.ooui.Mod.Play.static.toolbarGroups = [
 	{
 		'type': 'bar',
 		'include': [ { 'group': 'playTools' } ]
-	}
-/*	// View tools
-	{
-		'type': 'bar',
-		'include': [ { 'group': 'viewTools' }, 'speed' ]
 	},
-	// POV Tools
+	// POV menu
 	{
 		'type': 'menu',
 		'indicator': 'down',
 		'label': 'POV',
 		'icon': 'picture',
 		'include': [ { 'group': 'povTools' } ]
-	}*/
+	},
+	// View tools
+	{
+		'type': 'bar',
+		'include': [ { 'group': 'zoomTools' } ]
+	},
+	{
+		'type': 'bar',
+		'include': [ { 'group': 'viewTools' } ]
+	}
 ];
 
 sp.ui.ext.ooui.Mod.Play.static.commands = [
 	'play',
 	'speed'
-//	'zoomin',
-//	'zoomout'
+	'zoomin',
+	'zoomout'
 ];
 
 /* Events */
@@ -118,6 +122,7 @@ sp.ui.ext.ooui.Mod.Play.prototype.onScenarioLoaded = function () {
 	}
 	// Events
 	this.container.getScenario().connect( this, { 'pause': [ 'onScenarioChanged', 'play' ] } );
+	this.container.getScenario().connect( this, { 'pov': [ 'onScenarioChanged', 'pov' ] } );
 
 	// Update the toolbar
 	this.toolbar.emit( 'updateState' );
@@ -127,8 +132,8 @@ sp.ui.ext.ooui.Mod.Play.prototype.onScenarioLoaded = function () {
  * Respond to change in scenario state
  * @fires updateState
  */
-sp.ui.ext.ooui.Mod.Play.prototype.onScenarioChanged = function ( event ) {
-	this.toolbar.emit( 'updateState' );
+sp.ui.ext.ooui.Mod.Play.prototype.onScenarioChanged = function () {
+	this.toolbar.emit( 'updateState', arguments );
 };
 
 /**
@@ -138,10 +143,9 @@ sp.ui.ext.ooui.Mod.Play.prototype.onScenarioChanged = function ( event ) {
  * @param {string} [icon] Tool icon
  */
 sp.ui.ext.ooui.Mod.Play.prototype.addToPOVList = function ( name, title, icon ) {
-/*	var toolDefinition, onSelectFunc, tool,
-		eventObject = {},
-		toolName = name + 'Tool';
+	var tool, toolDefinition;
 
+	icon = icon || 'picture';
 	toolDefinition = [
 		// name
 		name,
@@ -151,51 +155,8 @@ sp.ui.ext.ooui.Mod.Play.prototype.addToPOVList = function ( name, title, icon ) 
 		title
 	];
 
-	this.tools[toolName] = this.createPOVTool.apply( this, toolDefinition );
-	sp.ui.ext.ooui.toolFactory.register( this.tools[toolName] );*/
-	return true;
-};
-
-/**
- * Propogate the event from the toolbar to the module.
- * We want the system to listen to the module and not specific
- * elements in it.
- * @param {string} ev Type of event to emit
- * @param {Object} [params] Parameters to attach to the event
- */
-sp.ui.ext.ooui.Mod.Play.prototype.onToolbarEvent = function ( ev, params ) {
-/*	this.emit( ev, params );*/
-};
-
-/**
- * Respond to zoom in button click
- * @fires zoom
- */
-sp.ui.ext.ooui.Mod.Play.prototype.onZoomInButtonSelect = function () {
-/*	this.setActive( false );
-	this.toolbar.emit( 'zoom', 2000 );*/
-};
-
-/**
- * Respond to zoom in button click
- * @fires zoom
- */
-sp.ui.ext.ooui.Mod.Play.prototype.onZoomOutButtonSelect = function () {
-/*	this.setActive( false );
-	this.toolbar.emit( 'zoom', -2000 );*/
-};
-
-/**
- * Respond to play button click
- * @fires play
- */
-sp.ui.ext.ooui.Mod.Play.prototype.onPlayButtonSelect = function () {
-/*	if ( this.toggled !== this.toolbar.getContainer().isPaused() ) {
-		this.toggled = !this.toggled;
-		this.setActive( this.toggled );
-
-		this.toolbar.emit( 'play', this.toggled );
-	}*/
+	tool = this.createPOVTool.apply( this, toolDefinition );
+	sp.ui.toolFactory.register( tool );
 };
 
 /**
@@ -207,99 +168,19 @@ sp.ui.ext.ooui.Mod.Play.prototype.getToolbar = function () {
 };
 
 /**
- * Create a toolbar tool.
- * NOTE: Taken from the OOUI tools demo. This method should be adjusted
- * to better suit this projects' needs, it is only used as-is at
- * the moment for basic testing.
- *
- * @param {string} name Tool name
- * @param {string} group Tool group
- * @param {string} icon Tool icon
- * @param {string} title Title or alternate text
- * @param {Function} init Initialization function
- * @param {Function} onSelect Activation function
- * @param {Function} updateFunc Function on update state
- * @param {string} eventName Name of event to connect to in scenario object
- * @returns {OO.ui.Tool} Tool
- */
-sp.ui.ext.ooui.Mod.Play.prototype.createTool = function ( name, group, icon, title, init, onSelect, updateFunc, eventName ) {
-	// TODO: The entire createTool method should be rewritten to
-	// better suit the needs of this particular toolbar
-	var Tool = function SpGuiTool() {
-		var eventDef = {}, scenario;
-		Tool.super.apply( this, arguments );
-		this.toggled = false;
-		scenario = scenario = this.toolbar.getContainer().getScenario();
-		if ( init ) {
-			init.call( this );
-		}
-		if ( eventName ) {
-			eventDef[eventName] = 'onToolbarUpdate';
-			this.toolbar.getContainer().connect( this, eventDef );
-		}
-	};
-
-	OO.inheritClass( Tool, OO.ui.Tool );
-
-	Tool.prototype.onSelect = function () {
-		if ( onSelect ) {
-			onSelect.call( this );
-		} else {
-			this.toggled = !this.toggled;
-			this.setActive( this.toggled );
-		}
-		this.toolbar.emit( 'updateState' );
-	};
-	Tool.prototype.onUpdateState = function () {};
-	Tool.prototype.onToolbarUpdate = function ( params ) {
-		if ( updateFunc ) {
-			updateFunc.call( this, params );
-		}
-	};
-
-	Tool.static.name = name;
-	Tool.static.group = group;
-	Tool.static.icon = icon;
-	Tool.static.title = title;
-	return Tool;
-};
-
-/**
  * Create a POV tool
  * @param {string} name Tool name
  * @param {string} icon Tool icon
  * @param {string} title Title or alternate text
- * @returns {OO.ui.Tool} Tool
+ * @returns {sp.ui.ext.ooui.POVTool} Tool
  */
 sp.ui.ext.ooui.Mod.Play.prototype.createPOVTool = function ( name, icon, title ) {
-	// TODO: The entire createTool method should be rewritten to
-	// better suit the needs of this particular toolbar
 	var Tool = function SpGuiPOVTool() {
 		Tool.super.apply( this, arguments );
-		this.toggled = this.toolbar.getContainer().getScenario().getPOV() === name;
-		this.setActive( this.toggled );
-		this.objectName = name;
-		this.toolbar.getContainer().getScenario().connect( this, { 'povChange': 'onUpdateState' } );
 	};
-
-	OO.inheritClass( Tool, OO.ui.Tool );
-
-	Tool.prototype.onSelect = function () {
-		if ( this.toolbar.getContainer().getScenario().getPOV() !== this.getObjectName() ) {
-			this.toolbar.emit( 'pov', this.getObjectName() );
-		}
-	};
-	Tool.prototype.getObjectName = function () {
-		return this.objectName;
-	}
-	Tool.prototype.onUpdateState = function ( pov ) {
-		if ( pov ) {
-			this.setActive( pov === this.getObjectName() );
-		}
-	};
+	OO.inheritClass( Tool, sp.ui.ext.ooui.POVTool );
 
 	Tool.static.name = name;
-	Tool.static.group = 'povTools';
 	Tool.static.icon = icon;
 	Tool.static.title = title;
 	return Tool;

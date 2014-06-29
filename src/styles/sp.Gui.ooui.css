@@ -15,3 +15,8 @@
 .oo-ui-icon-zoomout {
 	background-image: url( 'images/zoom_out.png' );
 }
+
+.sp-ui-ooui-sliderTool {
+	background: url( 'images/speed.png' ) no-repeat;
+	padding-left: 28px;
+}

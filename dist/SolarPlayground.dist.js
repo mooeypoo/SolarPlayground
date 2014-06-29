@@ -547,9 +547,9 @@ sp.container.Manager = function SpContainerManager( config ) {
 	this.gui = guiLoader.initialize();
 
 	// Events
-	this.gui.connect( this, { 'play': 'onGuiPlay' } );
+/*	this.gui.connect( this, { 'play': 'onGuiPlay' } );
 	this.gui.connect( this, { 'zoom': 'onGuiZoom' } );
-	this.gui.connect( this, { 'pov': 'onGuiPOV' } );
+	this.gui.connect( this, { 'pov': 'onGuiPOV' } );*/
 };
 
 /* Inheritance */
@@ -610,7 +610,7 @@ sp.container.Manager.prototype.onScenarioPause = function ( isPaused ) {
 /**
  * Respond to play button press
  * @param {Boolean} isPlay Play or pause
- */
+ *
 sp.container.Manager.prototype.onGuiPlay = function ( isPlay ) {
 	this.scenario.togglePaused( !isPlay );
 };
@@ -618,7 +618,7 @@ sp.container.Manager.prototype.onGuiPlay = function ( isPlay ) {
 /**
  * Respond to zoom button press
  * @param {Boolean} zoom Zoom level
- */
+ *
 sp.container.Manager.prototype.onGuiZoom = function ( zoom ) {
 	this.scenario.setZoom( zoom );
 };
@@ -626,7 +626,7 @@ sp.container.Manager.prototype.onGuiZoom = function ( zoom ) {
 /**
  * Respond to pov button press
  * @param {Boolean} newPov New POV object key
- */
+ *
 sp.container.Manager.prototype.onGuiPOV = function ( newPov ) {
 	this.scenario.setPOV( newPov );
 };
@@ -1244,7 +1244,7 @@ sp.data.Scenario.prototype.processObjects = function ( scenarioObjects ) {
 /**
  * Set the POV object
  * @param {string} povKey Object key for the pov
- * @fires povChange
+ * @fires pov
  */
 sp.data.Scenario.prototype.setPOV = function ( povKey ) {
 	if ( povKey && this.objects[povKey] && this.pov_key !== povKey ) {
@@ -1256,7 +1256,7 @@ sp.data.Scenario.prototype.setPOV = function ( povKey ) {
 		this.flushAllTrails();
 		this.draw();
 
-		this.emit( 'povChange', this.pov_key );
+		this.emit( 'pov', this.pov_key );
 	}
 };
 
@@ -1739,20 +1739,24 @@ sp.ui.ext.ooui.Mod.Play.static.toolbarGroups = [
 	{
 		'type': 'bar',
 		'include': [ { 'group': 'playTools' } ]
-	}
-/*	// View tools
-	{
-		'type': 'bar',
-		'include': [ { 'group': 'viewTools' }, 'speed' ]
 	},
-	// POV Tools
+	// POV menu
 	{
 		'type': 'menu',
 		'indicator': 'down',
 		'label': 'POV',
 		'icon': 'picture',
 		'include': [ { 'group': 'povTools' } ]
-	}*/
+	},
+	// View tools
+	{
+		'type': 'bar',
+		'include': [ { 'group': 'zoomTools' } ]
+	},
+	{
+		'type': 'bar',
+		'include': [ { 'group': 'viewTools' } ]
+	}
 ];
 
 sp.ui.ext.ooui.Mod.Play.static.commands = [
@@ -1815,6 +1819,7 @@ sp.ui.ext.ooui.Mod.Play.prototype.onScenarioLoaded = function () {
 	}
 	// Events
 	this.container.getScenario().connect( this, { 'pause': [ 'onScenarioChanged', 'play' ] } );
+	this.container.getScenario().connect( this, { 'pov': [ 'onScenarioChanged', 'pov' ] } );
 
 	// Update the toolbar
 	this.toolbar.emit( 'updateState' );
@@ -1824,8 +1829,8 @@ sp.ui.ext.ooui.Mod.Play.prototype.onScenarioLoaded = function () {
  * Respond to change in scenario state
  * @fires updateState
  */
-sp.ui.ext.ooui.Mod.Play.prototype.onScenarioChanged = function ( event ) {
-	this.toolbar.emit( 'updateState' );
+sp.ui.ext.ooui.Mod.Play.prototype.onScenarioChanged = function () {
+	this.toolbar.emit( 'updateState', arguments );
 };
 
 /**
@@ -1835,10 +1840,9 @@ sp.ui.ext.ooui.Mod.Play.prototype.onScenarioChanged = function ( event ) {
  * @param {string} [icon] Tool icon
  */
 sp.ui.ext.ooui.Mod.Play.prototype.addToPOVList = function ( name, title, icon ) {
-/*	var toolDefinition, onSelectFunc, tool,
-		eventObject = {},
-		toolName = name + 'Tool';
+	var tool, toolDefinition;
 
+	icon = icon || 'picture';
 	toolDefinition = [
 		// name
 		name,
@@ -1848,51 +1852,8 @@ sp.ui.ext.ooui.Mod.Play.prototype.addToPOVList = function ( name, title, icon ) 
 		title
 	];
 
-	this.tools[toolName] = this.createPOVTool.apply( this, toolDefinition );
-	sp.ui.ext.ooui.toolFactory.register( this.tools[toolName] );*/
-	return true;
-};
-
-/**
- * Propogate the event from the toolbar to the module.
- * We want the system to listen to the module and not specific
- * elements in it.
- * @param {string} ev Type of event to emit
- * @param {Object} [params] Parameters to attach to the event
- */
-sp.ui.ext.ooui.Mod.Play.prototype.onToolbarEvent = function ( ev, params ) {
-/*	this.emit( ev, params );*/
-};
-
-/**
- * Respond to zoom in button click
- * @fires zoom
- */
-sp.ui.ext.ooui.Mod.Play.prototype.onZoomInButtonSelect = function () {
-/*	this.setActive( false );
-	this.toolbar.emit( 'zoom', 2000 );*/
-};
-
-/**
- * Respond to zoom in button click
- * @fires zoom
- */
-sp.ui.ext.ooui.Mod.Play.prototype.onZoomOutButtonSelect = function () {
-/*	this.setActive( false );
-	this.toolbar.emit( 'zoom', -2000 );*/
-};
-
-/**
- * Respond to play button click
- * @fires play
- */
-sp.ui.ext.ooui.Mod.Play.prototype.onPlayButtonSelect = function () {
-/*	if ( this.toggled !== this.toolbar.getContainer().isPaused() ) {
-		this.toggled = !this.toggled;
-		this.setActive( this.toggled );
-
-		this.toolbar.emit( 'play', this.toggled );
-	}*/
+	tool = this.createPOVTool.apply( this, toolDefinition );
+	sp.ui.toolFactory.register( tool );
 };
 
 /**
@@ -1904,99 +1865,19 @@ sp.ui.ext.ooui.Mod.Play.prototype.getToolbar = function () {
 };
 
 /**
- * Create a toolbar tool.
- * NOTE: Taken from the OOUI tools demo. This method should be adjusted
- * to better suit this projects' needs, it is only used as-is at
- * the moment for basic testing.
- *
- * @param {string} name Tool name
- * @param {string} group Tool group
- * @param {string} icon Tool icon
- * @param {string} title Title or alternate text
- * @param {Function} init Initialization function
- * @param {Function} onSelect Activation function
- * @param {Function} updateFunc Function on update state
- * @param {string} eventName Name of event to connect to in scenario object
- * @returns {OO.ui.Tool} Tool
- */
-sp.ui.ext.ooui.Mod.Play.prototype.createTool = function ( name, group, icon, title, init, onSelect, updateFunc, eventName ) {
-	// TODO: The entire createTool method should be rewritten to
-	// better suit the needs of this particular toolbar
-	var Tool = function SpGuiTool() {
-		var eventDef = {}, scenario;
-		Tool.super.apply( this, arguments );
-		this.toggled = false;
-		scenario = scenario = this.toolbar.getContainer().getScenario();
-		if ( init ) {
-			init.call( this );
-		}
-		if ( eventName ) {
-			eventDef[eventName] = 'onToolbarUpdate';
-			this.toolbar.getContainer().connect( this, eventDef );
-		}
-	};
-
-	OO.inheritClass( Tool, OO.ui.Tool );
-
-	Tool.prototype.onSelect = function () {
-		if ( onSelect ) {
-			onSelect.call( this );
-		} else {
-			this.toggled = !this.toggled;
-			this.setActive( this.toggled );
-		}
-		this.toolbar.emit( 'updateState' );
-	};
-	Tool.prototype.onUpdateState = function () {};
-	Tool.prototype.onToolbarUpdate = function ( params ) {
-		if ( updateFunc ) {
-			updateFunc.call( this, params );
-		}
-	};
-
-	Tool.static.name = name;
-	Tool.static.group = group;
-	Tool.static.icon = icon;
-	Tool.static.title = title;
-	return Tool;
-};
-
-/**
  * Create a POV tool
  * @param {string} name Tool name
  * @param {string} icon Tool icon
  * @param {string} title Title or alternate text
- * @returns {OO.ui.Tool} Tool
+ * @returns {sp.ui.ext.ooui.POVTool} Tool
  */
 sp.ui.ext.ooui.Mod.Play.prototype.createPOVTool = function ( name, icon, title ) {
-	// TODO: The entire createTool method should be rewritten to
-	// better suit the needs of this particular toolbar
 	var Tool = function SpGuiPOVTool() {
 		Tool.super.apply( this, arguments );
-		this.toggled = this.toolbar.getContainer().getScenario().getPOV() === name;
-		this.setActive( this.toggled );
-		this.objectName = name;
-		this.toolbar.getContainer().getScenario().connect( this, { 'povChange': 'onUpdateState' } );
 	};
-
-	OO.inheritClass( Tool, OO.ui.Tool );
-
-	Tool.prototype.onSelect = function () {
-		if ( this.toolbar.getContainer().getScenario().getPOV() !== this.getObjectName() ) {
-			this.toolbar.emit( 'pov', this.getObjectName() );
-		}
-	};
-	Tool.prototype.getObjectName = function () {
-		return this.objectName;
-	}
-	Tool.prototype.onUpdateState = function ( pov ) {
-		if ( pov ) {
-			this.setActive( pov === this.getObjectName() );
-		}
-	};
+	OO.inheritClass( Tool, sp.ui.ext.ooui.POVTool );
 
 	Tool.static.name = name;
-	Tool.static.group = 'povTools';
 	Tool.static.icon = icon;
 	Tool.static.title = title;
 	return Tool;
@@ -2059,19 +1940,8 @@ sp.ui.ext.ooui.Tool = function SpUiExtOouiTool( toolGroup, config ) {
 
 OO.inheritClass( sp.ui.ext.ooui.Tool, OO.ui.Tool );
 
-/* Static Properties */
-
-/**
- * Surface model method to check state with.
- *
- * @abstract
- * @static
- * @property {string}
- * @inheritable
- */
-sp.ui.ext.ooui.Tool.static.check = '';
-
 /* Methods */
+
 /**
  * @inheritdoc
  */
@@ -2162,6 +2032,201 @@ sp.ui.ext.ooui.PauseTool.prototype.onSelect = function () {
 };
 
 sp.ui.toolFactory.register( sp.ui.ext.ooui.PauseTool );
+
+/**
+ * UserInterface zoom in tool.
+ *
+ * @class
+ * @extends sp.ui.ext.ooui.Tool
+ * @constructor
+ * @param {OO.ui.ToolGroup} toolGroup
+ * @param {Object} [config] Configuration options
+ */
+sp.ui.ext.ooui.ZoomTool = function SpUiExtOouiZoomTool( toolGroup, config ) {
+	sp.ui.ext.ooui.Tool.call( this, toolGroup, config );
+};
+OO.inheritClass( sp.ui.ext.ooui.ZoomTool, sp.ui.ext.ooui.Tool );
+sp.ui.ext.ooui.ZoomTool.static.group = 'zoomTools';
+/**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.ZoomTool.prototype.onUpdateState = function () {
+	// Parent
+	sp.ui.ext.ooui.Tool.prototype.onUpdateState.apply( this, arguments );
+	this.setDisabled( !!!this.toolbar.getContainer().getScenario() );
+	this.setActive( false );
+};
+
+/**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.ZoomTool.prototype.onSelect = function ( zoom ) {
+	this.toolbar.getContainer().getScenario().setZoom( zoom );
+	this.setActive( false );
+};
+
+/**
+ * UserInterface zoom in tool.
+ *
+ * @class
+ * @extends sp.ui.ext.ooui.ZoomTool
+ * @constructor
+ * @param {OO.ui.ToolGroup} toolGroup
+ * @param {Object} [config] Configuration options
+ */
+sp.ui.ext.ooui.ZoomInTool = function SpUiExtOouiZoomInTool( toolGroup, config ) {
+	sp.ui.ext.ooui.ZoomTool.call( this, toolGroup, config );
+};
+OO.inheritClass( sp.ui.ext.ooui.ZoomInTool, sp.ui.ext.ooui.ZoomTool );
+sp.ui.ext.ooui.ZoomInTool.static.name = 'zoomin';
+sp.ui.ext.ooui.ZoomInTool.static.icon = 'zoomin';
+sp.ui.ext.ooui.ZoomInTool.static.title = 'Zoom in';
+sp.ui.ext.ooui.ZoomInTool.static.commandName = 'zoomin';
+
+/**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.ZoomInTool.prototype.onSelect = function () {
+	// Parent
+	sp.ui.ext.ooui.ZoomTool.prototype.onSelect.apply( this, [ 1000 ] );
+};
+
+sp.ui.toolFactory.register( sp.ui.ext.ooui.ZoomInTool );
+
+/**
+ * UserInterface zoom out tool.
+ *
+ * @class
+ * @extends sp.ui.ext.ooui.ZoomTool
+ * @constructor
+ * @param {OO.ui.ToolGroup} toolGroup
+ * @param {Object} [config] Configuration options
+ */
+sp.ui.ext.ooui.ZoomOutTool = function SpUiExtOouiZoomOutTool( toolGroup, config ) {
+	sp.ui.ext.ooui.ZoomTool.call( this, toolGroup, config );
+};
+OO.inheritClass( sp.ui.ext.ooui.ZoomOutTool, sp.ui.ext.ooui.ZoomTool );
+sp.ui.ext.ooui.ZoomOutTool.static.name = 'zoomout';
+sp.ui.ext.ooui.ZoomOutTool.static.icon = 'zoomout';
+sp.ui.ext.ooui.ZoomOutTool.static.title = 'Zoom out';
+sp.ui.ext.ooui.ZoomOutTool.static.commandName = 'zoomout';
+
+/**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.ZoomOutTool.prototype.onSelect = function () {
+	// Parent
+	sp.ui.ext.ooui.ZoomTool.prototype.onSelect.apply( this, [ -1000 ] );
+};
+
+sp.ui.toolFactory.register( sp.ui.ext.ooui.ZoomOutTool );
+
+/**
+ * Regular POV list tool.
+ *
+ * @class
+ * @extends OO.ui.Tool
+ * @constructor
+ * @param {OO.ui.ToolGroup} toolGroup
+ * @param {Object} [config] Configuration options
+ */
+sp.ui.ext.ooui.POVTool = function SpUiExtOouiPOVTool( toolGroup, config ) {
+	// Parent constructor
+	OO.ui.Tool.call( this, toolGroup, config );
+};
+
+/* Inheritance */
+
+OO.inheritClass( sp.ui.ext.ooui.POVTool, OO.ui.Tool );
+
+/* Static */
+
+sp.ui.ext.ooui.POVTool.static.group = 'povTools';
+
+/* Methods */
+
+/**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.POVTool.prototype.onUpdateState = function () {
+	var currPov;
+	this.setDisabled( !this.toolbar.getContainer().getScenario() );
+
+	if ( this.toolbar.getContainer().getScenario() ) {
+		currPov = this.toolbar.getContainer().getScenario().getPOV();
+		this.setActive( currPov === this.constructor.static.name );
+	}
+};
+
+/**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.POVTool.prototype.onSelect = function () {
+	if ( this.toolbar.getContainer().getScenario() ) {
+		this.toolbar.getContainer().getScenario().setPOV(
+			this.constructor.static.name
+		);
+	}
+};
+
+/**
+ * A slider tool
+ *
+ * @class
+ * @extends OO.ui.Tool
+ *
+ * @constructor
+ * @param {OO.ui.ToolGroup} toolGroup
+ * @param {Object} [config] Configuration options
+ */
+sp.ui.ext.ooui.SliderTool = function SpUiExtOouiSliderTool( toolGroup, config ) {
+	// Parent constructor
+	sp.ui.ext.ooui.Tool.call( this, toolGroup, config );
+
+	// Initialization
+	this.$link.detach();
+	this.$slider = this.$( '<input>' )
+		.addClass( 'sp-ui-ooui-sliderHandle' )
+		.attr( 'type', 'range' )
+		.attr( 'min', '1' )
+		.attr( 'max', '10' );
+
+	this.$element
+		.addClass( 'sp-ui-ooui-sliderTool' )
+		.append( this.$slider );
+};
+
+/* Setup */
+
+OO.inheritClass( sp.ui.ext.ooui.SliderTool, sp.ui.ext.ooui.Tool );
+
+/* Methods */
+sp.ui.ext.ooui.SliderTool.prototype.onUpdateState = function () {
+	// Parent
+	sp.ui.ext.ooui.Tool.prototype.onUpdateState.apply( this, arguments );
+};
+
+/**
+ * UserInterface zoom tool.
+ *
+ * @class
+ * @extends sp.ui.ext.ooui.SliderTool
+ * @constructor
+ * @param {OO.ui.ToolGroup} toolGroup
+ * @param {Object} [config] Configuration options
+ */
+sp.ui.ext.ooui.SpeedSliderTool = function SpUiExtOouiZoomSliderTool( toolGroup, config ) {
+	sp.ui.ext.ooui.SliderTool.call( this, toolGroup, config );
+	this.$element.addClass( 'sp-ui-ooui-speedSlider' );
+};
+OO.inheritClass( sp.ui.ext.ooui.SpeedSliderTool, sp.ui.ext.ooui.Tool );
+sp.ui.ext.ooui.SpeedSliderTool.static.name = 'speed';
+sp.ui.ext.ooui.SpeedSliderTool.static.group = 'viewTools';
+sp.ui.ext.ooui.SpeedSliderTool.static.icon = 'speed';
+sp.ui.ext.ooui.SpeedSliderTool.static.title = 'speed';
+sp.ui.ext.ooui.SpeedSliderTool.static.commandName = 'speed';
+
+sp.ui.toolFactory.register( sp.ui.ext.ooui.SpeedSliderTool );
 
 /**
  * Solar Playground viewpoint controller.

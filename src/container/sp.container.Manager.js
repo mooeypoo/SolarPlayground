@@ -31,9 +31,9 @@ sp.container.Manager = function SpContainerManager( config ) {
 	this.gui = guiLoader.initialize();
 
 	// Events
-	this.gui.connect( this, { 'play': 'onGuiPlay' } );
+/*	this.gui.connect( this, { 'play': 'onGuiPlay' } );
 	this.gui.connect( this, { 'zoom': 'onGuiZoom' } );
-	this.gui.connect( this, { 'pov': 'onGuiPOV' } );
+	this.gui.connect( this, { 'pov': 'onGuiPOV' } );*/
 };
 
 /* Inheritance */
@@ -94,7 +94,7 @@ sp.container.Manager.prototype.onScenarioPause = function ( isPaused ) {
 /**
  * Respond to play button press
  * @param {Boolean} isPlay Play or pause
- */
+ *
 sp.container.Manager.prototype.onGuiPlay = function ( isPlay ) {
 	this.scenario.togglePaused( !isPlay );
 };
@@ -102,7 +102,7 @@ sp.container.Manager.prototype.onGuiPlay = function ( isPlay ) {
 /**
  * Respond to zoom button press
  * @param {Boolean} zoom Zoom level
- */
+ *
 sp.container.Manager.prototype.onGuiZoom = function ( zoom ) {
 	this.scenario.setZoom( zoom );
 };
@@ -110,7 +110,7 @@ sp.container.Manager.prototype.onGuiZoom = function ( zoom ) {
 /**
  * Respond to pov button press
  * @param {Boolean} newPov New POV object key
- */
+ *
 sp.container.Manager.prototype.onGuiPOV = function ( newPov ) {
 	this.scenario.setPOV( newPov );
 };

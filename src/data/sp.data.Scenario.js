@@ -131,7 +131,7 @@ sp.data.Scenario.prototype.processObjects = function ( scenarioObjects ) {
 /**
  * Set the POV object
  * @param {string} povKey Object key for the pov
- * @fires povChange
+ * @fires pov
  */
 sp.data.Scenario.prototype.setPOV = function ( povKey ) {
 	if ( povKey && this.objects[povKey] && this.pov_key !== povKey ) {
@@ -143,7 +143,7 @@ sp.data.Scenario.prototype.setPOV = function ( povKey ) {
 		this.flushAllTrails();
 		this.draw();
 
-		this.emit( 'povChange', this.pov_key );
+		this.emit( 'pov', this.pov_key );
 	}
 };
 
