@@ -27,7 +27,23 @@ sp.container.Screen = function SpContainerScreen( config ) {
 };
 
 /* Inheritance */
+
 OO.mixinClass( sp.container.Screen, OO.EventEmitter );
+
+/* Events */
+
+/**
+ * @event drag
+ * @param {string} action Drag action 'start', 'during' or 'end'
+ * @param {Object|null} coords Mouse x/y coordinates.
+ *  * For 'start' action, coords are mouseStartingPoint
+ *  * For 'during' action, coords are the relative distance between
+ *    the current mouse coordinates and the initial dragging point.
+ *    (In other words, it is the distance 'dragged' by the mouse)
+ *  * For 'end' action, coords are not supplied.
+ * point, depending on the action.
+ * Dragging the mouse on the screen (moving while mousedown)
+ */
 
 /**
  * Propogate canvas mousedown event

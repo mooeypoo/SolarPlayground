@@ -1,5 +1,22 @@
-/**
- * Solar playground scenario
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='sp-data-Scenario'>/**
+</span> * Solar playground scenario
  *
  * @class sp.data.Scenario
  * @mixins OO.EventEmitter
@@ -27,13 +44,13 @@ sp.data.Scenario = function SpDataScenario( screen, scenario ) {
 	// view controller
 	canvasDimensions = this.screen.getDimensions();
 	this.view = new sp.view.Converter( {
-		'zoom': this.config.init_zoom || 1,
-		'canvasDimensions': canvasDimensions,
-		'yaw': 0,
-		'pitch': 0,
-		'scale': {
-			'orbit': this.config.orbit_scale || 0.5 * Math.pow( 10, -5 ),
-			'planets': this.config.planet_scale
+		&#39;zoom&#39;: this.config.init_zoom || 1,
+		&#39;canvasDimensions&#39;: canvasDimensions,
+		&#39;yaw&#39;: 0,
+		&#39;pitch&#39;: 0,
+		&#39;scale&#39;: {
+			&#39;orbit&#39;: this.config.orbit_scale || 0.5 * Math.pow( 10, -5 ),
+			&#39;planets&#39;: this.config.planet_scale
 		}
 	} );
 
@@ -52,7 +69,7 @@ sp.data.Scenario = function SpDataScenario( screen, scenario ) {
 	this.processObjects( scenario.objects || {} );
 
 	// Events
-	this.screen.connect( this, { 'drag': 'onScreenDrag' } );
+	this.screen.connect( this, { &#39;drag&#39;: &#39;onScreenDrag&#39; } );
 };
 
 /* Inheritance */
@@ -60,53 +77,53 @@ OO.mixinClass( sp.data.Scenario, OO.EventEmitter );
 
 /* Events */
 
-/**
- * @event paused
+<span id='sp-data-Scenario-event-paused'>/**
+</span> * @event paused
  * @param {boolean} [isPaused] Paused or resumed
  * Change in pause/resume state
  */
 
-/**
- * @event pov
+<span id='sp-data-Scenario-event-pov'>/**
+</span> * @event pov
  * @param {string} pov_key The key of the new POV object
  * Change in point-of-view (POV) for the scenario
  */
 
-/**
- * @event zoom
+<span id='sp-data-Scenario-event-zoom'>/**
+</span> * @event zoom
  * @param {number} zoom Current zoom factor
  * Change the zoom level for the scenario
  */
 
 /* Methods */
 
-/**
- * Respond to screen drag
- * @param {string} action Action parameter for 'start', 'during', and 'end'
+<span id='sp-data-Scenario-method-onScreenDrag'>/**
+</span> * Respond to screen drag
+ * @param {string} action Action parameter for &#39;start&#39;, &#39;during&#39;, and &#39;end&#39;
  * @param {Object} [coords] Coordinates
  */
 sp.data.Scenario.prototype.onScreenDrag = function ( action, coords ) {
-	if ( action === 'start' ) {
+	if ( action === &#39;start&#39; ) {
 		this.screen.setCenterPoint( this.getCenterPoint() );
-	} else if ( action === 'during' ) {
-		this.setCenterPoint( { 'x': coords.x, 'y': coords.y } );
+	} else if ( action === &#39;during&#39; ) {
+		this.setCenterPoint( { &#39;x&#39;: coords.x, &#39;y&#39;: coords.y } );
 		this.flushAllTrails();
 		this.screen.clear();
 		this.draw();
-	} else if ( action === 'end' ) {
+	} else if ( action === &#39;end&#39; ) {
 		this.screen.setCenterPoint( this.getCenterPoint() );
 	}
 };
 
-/**
- * Process the solar playground simulator objects
+<span id='sp-data-Scenario-method-processObjects'>/**
+</span> * Process the solar playground simulator objects
  * @param {Object} scenarioObjects Simulation objects definition
  */
 sp.data.Scenario.prototype.processObjects = function ( scenarioObjects ) {
 	var o, co, radii_diff, step_size, radius, circle_radius, smallest_radii,
 		radii = {
-			'star': [],
-			'planet': []
+			&#39;star&#39;: [],
+			&#39;planet&#39;: []
 		};
 
 	// Initialize celestial objects
@@ -115,10 +132,10 @@ sp.data.Scenario.prototype.processObjects = function ( scenarioObjects ) {
 
 		// Collect all radii
 		if ( scenarioObjects[o].vars.r ) {
-			if ( scenarioObjects[o].type === 'star' ) {
-				radii['star'].push( Number( scenarioObjects[o].vars.r ) );
+			if ( scenarioObjects[o].type === &#39;star&#39; ) {
+				radii[&#39;star&#39;].push( Number( scenarioObjects[o].vars.r ) );
 			} else {
-				radii['planet'].push( Number( scenarioObjects[o].vars.r ) );
+				radii[&#39;planet&#39;].push( Number( scenarioObjects[o].vars.r ) );
 			}
 		}
 	}
@@ -128,26 +145,26 @@ sp.data.Scenario.prototype.processObjects = function ( scenarioObjects ) {
 
 	// Figure out which objects orbit what
 	for ( co in this.objects ) {
-		if ( scenarioObjects[co] && this.objects[scenarioObjects[co].orbiting] ) {
+		if ( scenarioObjects[co] &amp;&amp; this.objects[scenarioObjects[co].orbiting] ) {
 			// Connect the object to its center of orbit
 			this.objects[co].setOrbit( this.objects[scenarioObjects[co].orbiting] );
 		}
 	}
 
 	// Set initial POV
-	if ( this.pov_key && this.objects[this.pov_key] ) {
+	if ( this.pov_key &amp;&amp; this.objects[this.pov_key] ) {
 		this.pov_object = this.objects[this.pov_key];
 		this.view.setPOV( this.objects[this.pov_key].getSpaceCoordinates( 0 ) );
 	}
 };
 
-/**
- * Set the POV object
+<span id='sp-data-Scenario-method-setPOV'>/**
+</span> * Set the POV object
  * @param {string} povKey Object key for the pov
  * @fires pov
  */
 sp.data.Scenario.prototype.setPOV = function ( povKey ) {
-	if ( povKey && this.objects[povKey] && this.pov_key !== povKey ) {
+	if ( povKey &amp;&amp; this.objects[povKey] &amp;&amp; this.pov_key !== povKey ) {
 		this.pov_key = povKey;
 
 		this.pov_object = this.objects[this.pov_key];
@@ -156,20 +173,20 @@ sp.data.Scenario.prototype.setPOV = function ( povKey ) {
 		this.flushAllTrails();
 		this.draw();
 
-		this.emit( 'pov', this.pov_key );
+		this.emit( &#39;pov&#39;, this.pov_key );
 	}
 };
 
-/**
- * Get the POV key currently set
+<span id='sp-data-Scenario-method-getPOV'>/**
+</span> * Get the POV key currently set
  * @returns {string} POV key
  */
 sp.data.Scenario.prototype.getPOV = function () {
 	return this.pov_key;
 };
 
-/**
- * Draw all elements
+<span id='sp-data-Scenario-method-draw'>/**
+</span> * Draw all elements
  * @param {number} time Time
  * @param {boolean} ignoreTrails Ignore trails despite settings
  */
@@ -181,7 +198,7 @@ sp.data.Scenario.prototype.draw = function ( time, ignoreTrails ) {
 	for ( o in this.objects ) {
 		coords = this.objects[o].getSpaceCoordinates( time );
 
-		// TODO: Allow POV that isn't an object
+		// TODO: Allow POV that isn&#39;t an object
 		// Update POV coordinates
 		if ( o === this.pov_key ) {
 			this.view.setPOV( coords );
@@ -202,24 +219,24 @@ sp.data.Scenario.prototype.draw = function ( time, ignoreTrails ) {
 				radius,
 				graphic.color,
 				// Add a shadow to stars
-				this.objects[o].getType() === 'star'
+				this.objects[o].getType() === &#39;star&#39;
 			);
 		}
 
 		// Draw trails
-		if ( !ignoreTrails && this.showTrails && o !== this.pov_key ) {
+		if ( !ignoreTrails &amp;&amp; this.showTrails &amp;&amp; o !== this.pov_key ) {
 			// Store trails
-			// If 'canvasCoords' is null, still store to continue
+			// If &#39;canvasCoords&#39; is null, still store to continue
 			// with the movement
 			this.frameCounter++;
-			if ( this.frameCounter >= this.trailsFrameGap ) {
+			if ( this.frameCounter &gt;= this.trailsFrameGap ) {
 				this.objects[o].storeTrailPoint( canvasCoords );
 				this.frameCounter = 0;
 			}
 
 			// Get the trail points
 			trails = this.objects[o].getTrailPoints();
-			for ( i = 0; i < trails.length; i++ ) {
+			for ( i = 0; i &lt; trails.length; i++ ) {
 				// But only draw if we have the trails
 				if ( trails[i] ) {
 					// Draw all trails as dots
@@ -227,7 +244,7 @@ sp.data.Scenario.prototype.draw = function ( time, ignoreTrails ) {
 						trails[i],
 						1,
 						// TODO: Consider making trail colors a configuration option
-						graphic.color || '#FF005D' // Bright pink
+						graphic.color || &#39;#FF005D&#39; // Bright pink
 					);
 				}
 			}
@@ -235,8 +252,8 @@ sp.data.Scenario.prototype.draw = function ( time, ignoreTrails ) {
 	}
 };
 
-/**
- * Flush all trails from all objects
+<span id='sp-data-Scenario-method-flushAllTrails'>/**
+</span> * Flush all trails from all objects
  */
 sp.data.Scenario.prototype.flushAllTrails = function () {
 	var o;
@@ -245,8 +262,8 @@ sp.data.Scenario.prototype.flushAllTrails = function () {
 	}
 };
 
-/**
- * Run the scenario
+<span id='sp-data-Scenario-method-run'>/**
+</span> * Run the scenario
  */
 sp.data.Scenario.prototype.run = function () {
 	if ( !this.paused ) {
@@ -263,16 +280,16 @@ sp.data.Scenario.prototype.run = function () {
 	}
 };
 
-/**
- * Retrieve all the celestial objects attached to this scenario
+<span id='sp-data-Scenario-method-getAllObjects'>/**
+</span> * Retrieve all the celestial objects attached to this scenario
  * @returns {sp.data.Scenario.CelestialObject} All objects in the scenario
  */
 sp.data.Scenario.prototype.getAllObjects = function () {
 	return this.objects;
 }
 
-/**
- * Toggle between pause and resume the scenario
+<span id='sp-data-Scenario-method-'>/**
+</span> * Toggle between pause and resume the scenario
  * @param {boolean} [isPause] Optional. If supplied, pauses or resumes the scenario
  * @fires paused
  */
@@ -285,33 +302,33 @@ sp.data.Scenario.prototype.togglePaused = function ( isPause ) {
 	this.paused = isPause;
 	this.run();
 
-	this.emit( 'pause', this.paused );
+	this.emit( &#39;pause&#39;, this.paused );
 };
 
-/**
- * Check whether the scenario is paused
+<span id='sp-data-Scenario-method-isPaused'>/**
+</span> * Check whether the scenario is paused
  */
 sp.data.Scenario.prototype.isPaused = function () {
 	return this.paused;
 };
 
-/**
- * Pause the scenario
+<span id='sp-data-Scenario-method-pause'>/**
+</span> * Pause the scenario
  */
 sp.data.Scenario.prototype.pause = function () {
 	this.togglePaused( true );
 };
 
-/**
- * Resume the scenario
+<span id='sp-data-Scenario-method-resume'>/**
+</span> * Resume the scenario
  */
 sp.data.Scenario.prototype.resume = function () {
 	this.togglePaused( false );
 	this.run();
 };
 
-/**
- * Increase or decrease scenario zoom levels
+<span id='sp-data-Scenario-method-setZoom'>/**
+</span> * Increase or decrease scenario zoom levels
  * @param {number} z Zoom level, negative for zoom out
  */
 sp.data.Scenario.prototype.setZoom = function ( z ) {
@@ -321,19 +338,19 @@ sp.data.Scenario.prototype.setZoom = function ( z ) {
 		this.screen.clear();
 		this.draw( this.time, true );
 	}
-	this.emit( 'zoom', z );
+	this.emit( &#39;zoom&#39;, z );
 };
 
-/**
- * Retrieve the zoom level
+<span id='sp-data-Scenario-method-getZoom'>/**
+</span> * Retrieve the zoom level
  * @returns {numver} Current zoom level
  */
 sp.data.Scenario.prototype.getZoom = function () {
 	return this.view.getZoom();
 };
 
-/**
- * Set the viewpoint's center point
+<span id='sp-data-Scenario-method-setCenterPoint'>/**
+</span> * Set the viewpoint&#39;s center point
  * @param {Object} coords x/y coordinates of the center of the system
  */
 sp.data.Scenario.prototype.setCenterPoint = function ( coords ) {
@@ -345,19 +362,22 @@ sp.data.Scenario.prototype.setCenterPoint = function ( coords ) {
 	}
 };
 
-/**
- * Get the current center point of the view
+<span id='sp-data-Scenario-method-getCenterPoint'>/**
+</span> * Get the current center point of the view
  * @returns {Object} x/y coordinates of the current center point
  */
 sp.data.Scenario.prototype.getCenterPoint = function () {
 	return this.view.getCenterPoint();
 };
 
-/**
- * Add to the center point
+<span id='sp-data-Scenario-method-addToCenterPoint'>/**
+</span> * Add to the center point
  * @param {number} [x] Amount to add to X coordinate
  * @param {number} [y] Amount to add to Y coordinate
  */
 sp.data.Scenario.prototype.addToCenterPoint = function ( x, y ) {
 	this.view.addToCenterPoint( x, y );
 }
+</pre>
+</body>
+</html>

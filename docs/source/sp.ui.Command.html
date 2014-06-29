@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='sp-ui-Command-method-constructor'><span id='sp-ui-Command'>/**
+</span></span> * Command that executes an action.
+ *
+ * @class
+ *
+ * @constructor
+ * @param {string} name Symbolic name for the command
+ * @param {string} action Action to execute when command is triggered
+ * @param {string} method Method to call on action when executing
+ */
+sp.ui.Command = function SpUiCommand( name, action, method ) {
+	this.name = name;
+	this.action = action;
+	this.method = method;
+	this.data = Array.prototype.slice.call( arguments, 3 );
+};
+
+/* Methods */
+
+<span id='sp-ui-Command-method-execute'>/**
+</span> * Execute command on a surface.
+ *
+ * @param {ve.ui.Surface} surface Surface to execute command on
+ * @returns {Mixed} Result of command execution.
+ */
+sp.ui.Command.prototype.execute = function ( surface ) {
+	return surface.execute.apply( surface, [ this.action, this.method ].concat( this.data ) );
+};
+
+<span id='sp-ui-Command-method-getAction'>/**
+</span> * Get command action.
+ *
+ * @returns {string} action Action to execute when command is triggered
+ */
+sp.ui.Command.prototype.getAction = function () {
+	return this.action;
+};
+
+<span id='sp-ui-Command-method-getMethod'>/**
+</span> * Get command method.
+ *
+ * @returns {string} method Method to call on action when executing
+ */
+sp.ui.Command.prototype.getMethod = function () {
+	return this.method;
+};
+
+<span id='sp-ui-Command-method-getName'>/**
+</span> * Get command name.
+ *
+ * @returns {string} name The symbolic name of the command.
+ */
+sp.ui.Command.prototype.getName = function () {
+	return this.name;
+};
+
+<span id='sp-ui-Command-method-getData'>/**
+</span> * Get command data.
+ *
+ * @returns {Array} data Additional data to pass to the action when executing
+ */
+sp.ui.Command.prototype.getData = function () {
+	return this.data;
+};
+</pre>
+</body>
+</html>

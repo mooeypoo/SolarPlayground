@@ -594,15 +594,6 @@ sp.container.Manager.prototype.loadFromFile = function ( scenarioName ) {
 };
 
 /**
- * Propogate scenario event
- * @param {Boolean} isPaused Scenario paused
- * @fires pause
- */
-sp.container.Manager.prototype.onScenarioPause = function ( isPaused ) {
-	this.emit( 'pause', isPaused );
-};
-
-/**
  * Add a toolbar to the container
  * @param {jQuery} $toolbar jQuery toolbar element
  * @param {string} [position] Position in the container; 'top' or 'bottom'
@@ -627,9 +618,6 @@ sp.container.Manager.prototype.setScenario = function ( s ) {
 	// Draw
 	this.screen.clear();
 	this.scenario.draw();
-
-	// Propogate scenario events
-	this.scenario.connect( this, { 'pause': 'onScenarioPause' } );
 };
 
 /**
@@ -648,7 +636,6 @@ sp.container.Manager.prototype.getScenario = function () {
 sp.container.Manager.prototype.togglePaused = function ( isPaused ) {
 	if ( this.isPaused() !== isPaused ) {
 		this.scenario.togglePaused( isPaused );
-		this.emit( 'pause', isPaused );
 	}
 };
 
@@ -667,7 +654,6 @@ sp.container.Manager.prototype.isPaused = function () {
 sp.container.Manager.prototype.setZoom = function ( zoom ) {
 	if ( this.scenario.getZoom() !== zoom ) {
 		this.scenario.setZoom( zoom );
-		this.emit( 'zoom', zoom );
 	}
 };
 
@@ -765,7 +751,23 @@ sp.container.Screen = function SpContainerScreen( config ) {
 };
 
 /* Inheritance */
+
 OO.mixinClass( sp.container.Screen, OO.EventEmitter );
+
+/* Events */
+
+/**
+ * @event drag
+ * @param {string} action Drag action 'start', 'during' or 'end'
+ * @param {Object|null} coords Mouse x/y coordinates.
+ *  * For 'start' action, coords are mouseStartingPoint
+ *  * For 'during' action, coords are the relative distance between
+ *    the current mouse coordinates and the initial dragging point.
+ *    (In other words, it is the distance 'dragged' by the mouse)
+ *  * For 'end' action, coords are not supplied.
+ * point, depending on the action.
+ * Dragging the mouse on the screen (moving while mousedown)
+ */
 
 /**
  * Propogate canvas mousedown event
@@ -1142,11 +1144,27 @@ sp.data.Scenario = function SpDataScenario( screen, scenario ) {
 /* Inheritance */
 OO.mixinClass( sp.data.Scenario, OO.EventEmitter );
 
+/* Events */
+
 /**
  * @event paused
  * @param {boolean} [isPaused] Paused or resumed
  * Change in pause/resume state
  */
+
+/**
+ * @event pov
+ * @param {string} pov_key The key of the new POV object
+ * Change in point-of-view (POV) for the scenario
+ */
+
+/**
+ * @event zoom
+ * @param {number} zoom Current zoom factor
+ * Change the zoom level for the scenario
+ */
+
+/* Methods */
 
 /**
  * Respond to screen drag
@@ -1389,6 +1407,7 @@ sp.data.Scenario.prototype.setZoom = function ( z ) {
 		this.screen.clear();
 		this.draw( this.time, true );
 	}
+	this.emit( 'zoom', z );
 };
 
 /**

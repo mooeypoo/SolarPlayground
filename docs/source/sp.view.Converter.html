@@ -24,7 +24,7 @@
  *
  * @param {Object} [config] Configuration object
  */
-sp.Viewpoint = function SpViewpoint( config ) {
+sp.view.Converter = function SpViewConverter( config ) {
 	// Mixin constructors
 	OO.EventEmitter.call( this );
 
@@ -33,9 +33,14 @@ sp.Viewpoint = function SpViewpoint( config ) {
 
 	this.zoom = this.config.zoom || 1;
 	this.orbit_scale = this.config.orbit_scale || 1;
-	this.centerPoint = this.config.centerPoint;
 	this.yaw = this.config.yaw;
 	this.pitch = this.config.pitch;
+
+	this.canvasDimensions = this.config.canvasDimensions || { &#39;width&#39;: 0, &#39;height&#39;: 0 };
+	this.centerPoint = {
+		&#39;x&#39;: this.canvasDimensions.width / 2,
+		&#39;y&#39;: this.canvasDimensions.height / 2
+	};
 
 	this.pov = { &#39;x&#39;: 0, &#39;y&#39;: 0, &#39;z&#39;: 0 };
 	this.radii_list = null;
@@ -53,7 +58,7 @@ sp.Viewpoint = function SpViewpoint( config ) {
 };
 
 /* Inheritance */
-OO.mixinClass( sp.Viewpoint, OO.EventEmitter );
+OO.mixinClass( sp.view.Converter, OO.EventEmitter );
 
 /* Events */
 
@@ -70,7 +75,7 @@ OO.mixinClass( sp.Viewpoint, OO.EventEmitter );
  * @param {Object} pov_coords The 3d coordinates of the current POV
  * @fires changePOV
  */
-sp.Viewpoint.prototype.setPOV = function ( pov_coords ) {
+sp.view.Converter.prototype.setPOV = function ( pov_coords ) {
 	if ( !pov_coords ) {
 		return;
 	}
@@ -86,7 +91,7 @@ sp.Viewpoint.prototype.setPOV = function ( pov_coords ) {
  * @param {Object} spaceCoords Original 3D space coordinates
  * @returns {Object} Canvas 2d coordinates
  */
-sp.Viewpoint.prototype.getCoordinates = function ( spaceCoords ) {
+sp.view.Converter.prototype.getCoordinates = function ( spaceCoords ) {
 	var ca = Math.cos( this.yaw ),
 		sa = Math.sin( this.yaw ),
 		cb = Math.cos( this.pitch ),
@@ -107,8 +112,15 @@ sp.Viewpoint.prototype.getCoordinates = function ( spaceCoords ) {
 	destination.z = destination.y * sb;
 	destination.y = destination.y * cb + dy;
 
-	// TODO: Check if destination is inside the canvas. Return null otherwise.
-	return destination;
+	// Check if destination is inside the canvas. Return null otherwise.
+	if (
+		destination.x &gt; 0 &amp;&amp;
+		destination.x &lt;= this.canvasDimensions.width &amp;&amp;
+		destination.y &gt; 0 &amp;&amp;
+		destination.y &lt;= this.canvasDimensions.height
+	) {
+		return destination;
+	}
 };
 
 <span id='sp-Viewpoint-method-setRadiiList'>/**
@@ -116,7 +128,7 @@ sp.Viewpoint.prototype.getCoordinates = function ( spaceCoords ) {
  * @param {Object} rList Actual size radii of all celestial objects
  * divided into &#39;stars&#39; and &#39;planets&#39; to distinguish relative sizes better
  */
-sp.Viewpoint.prototype.setRadiiList = function ( rList ) {
+sp.view.Converter.prototype.setRadiiList = function ( rList ) {
 	var type, diff;
 
 	this.radii_list = rList;
@@ -140,7 +152,7 @@ sp.Viewpoint.prototype.setRadiiList = function ( rList ) {
  * @param {number} orig_radius Object&#39;s original radius
  * @returns {number} Actual radius in pixels
  */
-sp.Viewpoint.prototype.getRadius = function ( orig_radius, type ) {
+sp.view.Converter.prototype.getRadius = function ( orig_radius, type ) {
 	var radius, index,
 		step = this.radius_step[type] || 1;
 
@@ -160,7 +172,7 @@ sp.Viewpoint.prototype.getRadius = function ( orig_radius, type ) {
 </span> * Increase or decrease scenario zoom levels
  * @param {number} z Zoom level, negative for zoom out
  */
-sp.Viewpoint.prototype.setZoom = function ( z ) {
+sp.view.Converter.prototype.setZoom = function ( z ) {
 	this.zoom += z;
 };
 
@@ -168,18 +180,19 @@ sp.Viewpoint.prototype.setZoom = function ( z ) {
 </span> * Get the current zoom factor
  * @returns {number} zoom Zoom factor
  */
-sp.Viewpoint.prototype.getZoom = function () {
+sp.view.Converter.prototype.getZoom = function () {
 	return this.zoom;
 };
 
 <span id='sp-Viewpoint-method-setCenterPoint'>/**
 </span> * Set the canvas center point
- * @param {number} x X coordinate of the center of the system
- * @param {number} y Y coordinate of the center of the system
+ * @param {Object} coords x/y coordinates of the center of the system
  */
-sp.Viewpoint.prototype.setCenterPoint = function ( x, y ) {
-	x = x || this.centerPoint.x;
-	y = y || this.centerPoint.y;
+sp.view.Converter.prototype.setCenterPoint = function ( coords ) {
+	coords = coords || {};
+
+	x = coords.x || 0;
+	y = coords.y || 0;
 
 	this.centerPoint = {
 		&#39;x&#39;: x,
@@ -191,7 +204,7 @@ sp.Viewpoint.prototype.setCenterPoint = function ( x, y ) {
 </span> * Get the current center point of the view
  * @returns {Object} x/y coordinates of the current center point
  */
-sp.Viewpoint.prototype.getCenterPoint = function () {
+sp.view.Converter.prototype.getCenterPoint = function () {
 	return this.centerPoint;
 };
 
@@ -200,7 +213,7 @@ sp.Viewpoint.prototype.getCenterPoint = function () {
  * @param {number} [x] Amount to add to X coordinate
  * @param {number} [y] Amount to add to Y coordinate
  */
-sp.Viewpoint.prototype.addToCenterPoint = function ( x, y ) {
+sp.view.Converter.prototype.addToCenterPoint = function ( x, y ) {
 	x = x || 0;
 	y = y || 0;
 

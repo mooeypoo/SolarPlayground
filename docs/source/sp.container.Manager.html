@@ -1,5 +1,22 @@
-/**
- * Solar Playground container manager
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='sp-Container'>/**
+</span> * Solar Playground container manager
  *
  * @class sp.Container
  * @mixins OO.EventEmitter
@@ -17,7 +34,7 @@ sp.container.Manager = function SpContainerManager( config ) {
 	this.loader = new sp.container.Loader( config );
 
 	this.$container = $( config.container )
-		.addClass( 'sp-container' )
+		.addClass( &#39;sp-container&#39; )
 
 	// Canvas and context
 	this.screen = new sp.container.Screen( config );
@@ -25,8 +42,8 @@ sp.container.Manager = function SpContainerManager( config ) {
 
 	// Gui
 	guiLoader = new sp.ui.Loader( {
-		'module': 'ooui', // Default module
-		'container': this
+		&#39;module&#39;: &#39;ooui&#39;, // Default module
+		&#39;container&#39;: this
 	} );
 	this.gui = guiLoader.initialize();
 };
@@ -34,29 +51,29 @@ sp.container.Manager = function SpContainerManager( config ) {
 /* Inheritance */
 OO.mixinClass( sp.container.Manager, OO.EventEmitter );
 
-/**
- * @event scenarioLoaded
+<span id='sp-Container-event-scenarioLoaded'>/**
+</span> * @event scenarioLoaded
  * @param {sp.Scenario} scenario Reference to the loaded scenario
  * Scenario fully loaded and ready to be run.
  */
 
 /* Methods */
 
-/**
- * Load scenario from file.
+<span id='sp-Container-method-loadFromFile'>/**
+</span> * Load scenario from file.
  * @param {string} scenarioName The scenario name
  * @returns {jQuery.Promise}
  */
 sp.container.Manager.prototype.loadFromFile = function ( scenarioName ) {
 	var targetName,
 		deferred = $.Deferred(),
-		filePrefix = this.config.scenario_prefix || '',
+		filePrefix = this.config.scenario_prefix || &#39;&#39;,
 		targetDir = this.config.scenario_dir + this.config.directory_sep;
 
 	deferred = $.Deferred();
 
-	scenarioName = scenarioName || 'example';
-	targetName = targetDir + filePrefix + scenarioName + '.json';
+	scenarioName = scenarioName || &#39;example&#39;;
+	targetName = targetDir + filePrefix + scenarioName + &#39;.json&#39;;
 
 	this.loader.loadFromFile( scenarioName, targetName )
 		.done( $.proxy( function ( scenarioObject ) {
@@ -70,30 +87,30 @@ sp.container.Manager.prototype.loadFromFile = function ( scenarioName ) {
 					objList[o].getName()
 				);
 			}
-			this.emit( 'scenarioLoaded' );
+			this.emit( &#39;scenarioLoaded&#39; );
 			deferred.resolve();
 		}, this ) );
 
 	return deferred;
 };
 
-/**
- * Add a toolbar to the container
+<span id='sp-Container-method-addToolbar'>/**
+</span> * Add a toolbar to the container
  * @param {jQuery} $toolbar jQuery toolbar element
- * @param {string} [position] Position in the container; 'top' or 'bottom'
+ * @param {string} [position] Position in the container; &#39;top&#39; or &#39;bottom&#39;
  */
 sp.container.Manager.prototype.addToolbar = function ( $toolbar, position ) {
-	position = position || 'top';
+	position = position || &#39;top&#39;;
 
-	if ( position === 'top' ) {
+	if ( position === &#39;top&#39; ) {
 		this.$container.prepend( $toolbar );
 	} else {
 		this.$container.append( $toolbar );
 	}
 };
 
-/**
- * Attach scenario object to this container
+<span id='sp-Container-method-setScenario'>/**
+</span> * Attach scenario object to this container
  * @param {sp.Scenario} s Scenario object
  */
 sp.container.Manager.prototype.setScenario = function ( s ) {
@@ -104,16 +121,16 @@ sp.container.Manager.prototype.setScenario = function ( s ) {
 	this.scenario.draw();
 };
 
-/**
- * Retrieve the scenario attached to this container
+<span id='sp-Container-method-getScenario'>/**
+</span> * Retrieve the scenario attached to this container
  * @returns {sp.Scenario} s Scenario object
  */
 sp.container.Manager.prototype.getScenario = function () {
 	return this.scenario;
 };
 
-/**
- * Toggle between pause and resume the scenario
+<span id='sp-Container-method-togglePaused'>/**
+</span> * Toggle between pause and resume the scenario
  * @param {boolean} [isPaused] Optional. If supplied, pauses or resumes the scenario
  * @fires pause
  */
@@ -123,15 +140,15 @@ sp.container.Manager.prototype.togglePaused = function ( isPaused ) {
 	}
 };
 
-/**
- * Check whether the scenario is paused
+<span id='sp-Container-method-isPaused'>/**
+</span> * Check whether the scenario is paused
  */
 sp.container.Manager.prototype.isPaused = function () {
 	return this.scenario.isPaused();
 };
 
-/**
- * Set scenario zoom
+<span id='sp-Container-method-setZoom'>/**
+</span> * Set scenario zoom
  * @param {number} zoom Zoom factor
  * @fires zoom
  */
@@ -141,8 +158,8 @@ sp.container.Manager.prototype.setZoom = function ( zoom ) {
 	}
 };
 
-/**
- * Execute an action or command.
+<span id='sp-Container-method-execute'>/**
+</span> * Execute an action or command.
  *
  * @method
  * @param {string} action Symbolic name of action
@@ -166,8 +183,8 @@ sp.container.Manager.prototype.execute = function ( action, method ) {
 	return false;
 };
 
-/**
- * Add all commands from initialization options.
+<span id='sp-Container-method-addCommands'>/**
+</span> * Add all commands from initialization options.
  *
  * Commands and triggers must be registered under the same name prior to adding them to the surface.
  *
@@ -181,27 +198,30 @@ sp.container.Manager.prototype.execute = function ( action, method ) {
 sp.container.Manager.prototype.addCommands = function ( names ) {
 	var i, j, len, key, command, triggers, trigger;
 
-	for ( i = 0, len = names.length; i < len; i++ ) {
+	for ( i = 0, len = names.length; i &lt; len; i++ ) {
 		command = sp.ui.commandRegistry.lookup( names[i] );
 		if ( !command ) {
-			throw new Error( 'No command registered by that name: ' + names[i] );
+			throw new Error( &#39;No command registered by that name: &#39; + names[i] );
 		}
 
 /*		// Normalize trigger key
 		triggers = ve.ui.triggerRegistry.lookup( names[i] );
 		if ( !triggers ) {
-			throw new Error( 'No triggers registered by that name: ' + names[i] );
+			throw new Error( &#39;No triggers registered by that name: &#39; + names[i] );
 		}
-		for ( j = triggers.length - 1; j >= 0; j-- ) {
+		for ( j = triggers.length - 1; j &gt;= 0; j-- ) {
 			trigger = triggers[j];
 			key = trigger.toString();
 			// Validate trigger
 			if ( key.length === 0 ) {
-				throw new Error( 'Incomplete trigger: ' + trigger );
+				throw new Error( &#39;Incomplete trigger: &#39; + trigger );
 			}
 			this.commands[key] = command;
 		}*/
 /*		this.triggers[names[i]] = triggers;*/
-		this.emit( 'addCommand', names[i], command, triggers );
+		this.emit( &#39;addCommand&#39;, names[i], command, triggers );
 	}
 };
+</pre>
+</body>
+</html>

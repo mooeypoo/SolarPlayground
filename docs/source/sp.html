@@ -25,7 +25,23 @@
  * Solar Playground system.
  */
 ( function () {
-	var solarPlayground = {};
+<span id='global-property-solarPlayground'>	/**
+</span>	 * Definition of the namespace with its sub-namespaces
+	 * @property {Object}
+	 */
+	var solarPlayground = {
+		&#39;container&#39;: {
+			&#39;elements&#39;: {}
+		},
+		&#39;data&#39;: {
+			&#39;items&#39;: {}
+		},
+		&#39;calc&#39;: {},
+		&#39;view&#39;: {},
+		&#39;ui&#39;: {
+			&#39;ext&#39;: {}
+		}
+	};
 
 <span id='global-method-log'>	/**
 </span>	 * General method to produce logs into the console
@@ -46,6 +62,9 @@
 } )();
 
 /*
+ * Animation requestNextAnimationFrame based on available
+ * technology in the browser.
+ *
  * Copyright (C) 2012 David Geary. This code is from the book
  * Core HTML5 Canvas, published by Prentice-Hall in 2012.
  *

@@ -15,16 +15,16 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='sp-Gui-Module-Base'>/**
+  <pre class="prettyprint lang-js"><span id='sp-ui-ext-Play'>/**
 </span> * General Gui module
  *
- * @class sp.Gui.Module.Base
+ * @class sp.ui.ext.Play
  * @abstract
  *
  * @param {sp.Container} container The container to attach the GUI to
  * @param {Object} [config] Gui module definition
  */
-sp.Gui.Module.Base = function SpGuiModuleOoui ( container, config ) {
+sp.ui.ext.Play = function SpUiExtPlay ( container, config ) {
 	config = config || {};
 
 	// Mixin constructors
@@ -34,23 +34,23 @@ sp.Gui.Module.Base = function SpGuiModuleOoui ( container, config ) {
 };
 
 /* Inheritance */
-OO.mixinClass( sp.Gui.Module.Base, OO.EventEmitter );
+OO.mixinClass( sp.ui.ext.Play, OO.EventEmitter );
 
 /* Events */
 
-<span id='sp-Gui-Module-Base-event-play'>/**
+<span id='sp-ui-ext-Play-event-play'>/**
 </span> * Play or pause scenario
  * @event play
  * @param {boolean} isPlay Play scenario or pause
  */
 
-<span id='sp-Gui-Module-Base-event-zoom'>/**
+<span id='sp-ui-ext-Play-event-zoom'>/**
 </span> * Zoom in or out
  * @event zoom
  * @param {number} zoomLevel How much to zoom. Negative to zoom out.
  */
 
-<span id='sp-Gui-Module-Base-event-pov'>/**
+<span id='sp-ui-ext-Play-event-pov'>/**
 </span> * Change point of view object
  * @event pov
  * @param {string} povObjName New POV object name or key
@@ -58,23 +58,23 @@ OO.mixinClass( sp.Gui.Module.Base, OO.EventEmitter );
 
 /* Methods */
 
-<span id='sp-Gui-Module-Base-method-initialize'>/**
+<span id='sp-ui-ext-Play-method-initialize'>/**
 </span> * Initialize the Gui
  * @abstract
  * @returns {OO.ui.Toolbar}
  */
-sp.Gui.Module.Base.prototype.initialize = function () {
+sp.ui.ext.Play.prototype.initialize = function () {
 	throw new Error( &#39;sp.Gui.Module.Initialize must be implemented in child class.&#39; );
 };
 
-<span id='sp-Gui-Module-Base-method-addToPOVList'>/**
+<span id='sp-ui-ext-Play-method-addToPOVList'>/**
 </span> * Add a tool to the POV list
  * @abstract
  * @param {string} name Tool name
  * @param {string} title Title or alternate text
  * @param {string} [icon] Tool icon
  */
-sp.Gui.Module.Base.prototype.addToPOVList = function ( name, title, icon ) {
+sp.ui.ext.Play.prototype.addToPOVList = function ( name, title, icon ) {
 	throw new Error( &#39;sp.Gui.Module.addToPOVList must be implemented in child class.&#39; );
 };
 </pre>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-ooui'>/**
+</span> * UI OOUI Module namespace
+ * @property {Object}
+ */
+sp.ui.ext.ooui = {
+	&#39;Mod&#39;: {}
+};
+
+sp.ui.toolFactory = new OO.ui.ToolFactory();
+sp.ui.toolGroupFactory = new OO.ui.ToolGroupFactory();
+
+<span id='sp-ui-ext-ooui-Mod-Play'>/**
+</span> * OOUI Gui module
+ *
+ * @class sp.ui.ext.ooui.Mod.Play
+ *
+ * @param {sp.Container} container The container to attach the GUI to
+ * @param {Object} [config] Gui module definition
+ */
+sp.ui.ext.ooui.Mod.Play = function SpUiExtOouiModPlay( container, config ) {
+	config = config || {};
+
+	// Parent constructor
+	sp.ui.ext.ooui.Mod.Play.super.call( this, container, config );
+
+	this.tools = {};
+	this.container = container;
+	return this;
+};
+
+/* Inheritance */
+OO.inheritClass( sp.ui.ext.ooui.Mod.Play, sp.ui.ext.Play );
+
+/* Static */
+
+<span id='sp-ui-ext-ooui-Mod-Play-property-toolbarGroups'>/**
+</span> * Define toolbar groups for OOUI
+ * @property {Array}
+ */
+sp.ui.ext.ooui.Mod.Play.static.toolbarGroups = [
+	// Play tools
+	{
+		&#39;type&#39;: &#39;bar&#39;,
+		&#39;include&#39;: [ { &#39;group&#39;: &#39;playTools&#39; } ]
+	},
+	// POV menu
+	{
+		&#39;type&#39;: &#39;menu&#39;,
+		&#39;indicator&#39;: &#39;down&#39;,
+		&#39;label&#39;: &#39;POV&#39;,
+		&#39;icon&#39;: &#39;picture&#39;,
+		&#39;include&#39;: [ { &#39;group&#39;: &#39;povTools&#39; } ]
+	},
+	// View tools
+	{
+		&#39;type&#39;: &#39;bar&#39;,
+		&#39;include&#39;: [ { &#39;group&#39;: &#39;zoomTools&#39; } ]
+	},
+	{
+		&#39;type&#39;: &#39;bar&#39;,
+		&#39;include&#39;: [ { &#39;group&#39;: &#39;viewTools&#39; } ]
+	}
+];
+
+sp.ui.ext.ooui.Mod.Play.static.commands = [
+	&#39;play&#39;,
+	&#39;speed&#39;,
+	&#39;zoomin&#39;,
+	&#39;zoomout&#39;
+];
+
+/* Events */
+
+<span id='sp-ui-ext-ooui-Mod-Play-event-play'>/**
+</span> * Play or pause scenario
+ * @event play
+ * @param {boolean} isPlay Play scenario or pause
+ */
+
+<span id='sp-ui-ext-ooui-Mod-Play-event-zoom'>/**
+</span> * Zoom in or out
+ * @event zoom
+ * @param {number} zoomLevel How much to zoom. Negative to zoom out.
+ */
+
+<span id='sp-ui-ext-ooui-Mod-Play-event-pov'>/**
+</span> * Change point of view object
+ * @event pov
+ * @param {string} povObjName New POV object name or key
+ */
+
+/* Methods */
+
+<span id='sp-ui-ext-ooui-Mod-Play-method-initialize'>/**
+</span> * Initialize the Gui
+ * @returns {OO.ui.Toolbar}
+ */
+sp.ui.ext.ooui.Mod.Play.prototype.initialize = function () {
+	var i, tools, tname;
+
+	this.toolbar = new sp.ui.ext.ooui.Toolbar( this, this.container );
+	this.toolbar.setup( this.constructor.static.toolbarGroups );
+	// TODO: Add commands to container (future!)
+//	this.container.addCommands( this.constructor.static.commands );
+	this.container.addToolbar( this.toolbar.$element );
+
+	this.toolbar.emit( &#39;updateState&#39; );
+
+	// Events
+	this.container.connect( this, { &#39;scenarioLoaded&#39;: &#39;onScenarioLoaded&#39; } );
+
+	return this;
+};
+
+<span id='sp-ui-ext-ooui-Mod-Play-method-onScenarioLoaded'>/**
+</span> * Respond to new scenario loaded
+ * @fires updateState
+ */
+sp.ui.ext.ooui.Mod.Play.prototype.onScenarioLoaded = function () {
+	if ( this.container.getScenario() ) {
+		this.container.getScenario().disconnect( this );
+	}
+	// Events
+	this.container.getScenario().connect( this, { &#39;pause&#39;: [ &#39;onScenarioChanged&#39;, &#39;play&#39; ] } );
+	this.container.getScenario().connect( this, { &#39;pov&#39;: [ &#39;onScenarioChanged&#39;, &#39;pov&#39; ] } );
+
+	// Update the toolbar
+	this.toolbar.emit( &#39;updateState&#39; );
+};
+
+<span id='sp-ui-ext-ooui-Mod-Play-method-onScenarioChanged'>/**
+</span> * Respond to change in scenario state
+ * @fires updateState
+ */
+sp.ui.ext.ooui.Mod.Play.prototype.onScenarioChanged = function () {
+	this.toolbar.emit( &#39;updateState&#39;, arguments );
+};
+
+<span id='sp-ui-ext-ooui-Mod-Play-method-addToPOVList'>/**
+</span> * Add a tool to the POV list
+ * @param {string} name Tool name
+ * @param {string} title Title or alternate text
+ * @param {string} [icon] Tool icon
+ */
+sp.ui.ext.ooui.Mod.Play.prototype.addToPOVList = function ( name, title, icon ) {
+	var tool, toolDefinition;
+
+	icon = icon || &#39;picture&#39;;
+	toolDefinition = [
+		// name
+		name,
+		// icon
+		icon,
+		// title/label
+		title
+	];
+
+	tool = this.createPOVTool.apply( this, toolDefinition );
+	sp.ui.toolFactory.register( tool );
+};
+
+<span id='sp-ui-ext-ooui-Mod-Play-method-getToolbar'>/**
+</span> * Get the Gui toolbar
+ * @returns {OO.ui.Toolbar} The toolbar connected to the gui
+ */
+sp.ui.ext.ooui.Mod.Play.prototype.getToolbar = function () {
+	return this.toolbar;
+};
+
+<span id='sp-ui-ext-ooui-Mod-Play-method-createPOVTool'>/**
+</span> * Create a POV tool
+ * @param {string} name Tool name
+ * @param {string} icon Tool icon
+ * @param {string} title Title or alternate text
+ * @returns {sp.ui.ext.ooui.POVTool} Tool
+ */
+sp.ui.ext.ooui.Mod.Play.prototype.createPOVTool = function ( name, icon, title ) {
+	var Tool = function SpGuiPOVTool() {
+		Tool.super.apply( this, arguments );
+	};
+	OO.inheritClass( Tool, sp.ui.ext.ooui.POVTool );
+
+	Tool.static.name = name;
+	Tool.static.icon = icon;
+	Tool.static.title = title;
+	return Tool;
+};
+</pre>
+</body>
+</html>

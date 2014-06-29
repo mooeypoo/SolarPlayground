@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/* Toolbar */
+sp.ui.ext.ooui.Toolbar = function SpUiExtOouiToolbar( target, container, config ) {
+	// Parent constructor
+	OO.ui.Toolbar.call(
+		this,
+		sp.ui.toolFactory,
+		sp.ui.toolGroupFactory,
+		config
+	);
+
+	this.target = target;
+	this.container = container;
+	this.container.connect( this, { &#39;addCommand&#39;: &#39;onContainerAddCommand&#39; } );
+};
+
+/* Inheritance */
+OO.inheritClass( sp.ui.ext.ooui.Toolbar, OO.ui.Toolbar );
+
+<span id='global-method-getContainer'>/**
+</span> * Get the container attached to this toolbar
+ * @returns {sp.Container} Container
+ */
+sp.ui.ext.ooui.Toolbar.prototype.getContainer = function () {
+	return this.container;
+};
+
+<span id='global-method-onContainerAddCommand'>/**
+</span> * Handle command being added to surface.
+ *
+ * If a matching tool is present, it&#39;s label will be updated.
+ *
+ * @param {string} name Symbolic name of command and trigger
+ */
+sp.ui.ext.ooui.Toolbar.prototype.onContainerAddCommand = function ( name ) {
+	if ( this.tools[name] ) {
+		this.tools[name].updateTitle();
+	}
+};
+</pre>
+</body>
+</html>

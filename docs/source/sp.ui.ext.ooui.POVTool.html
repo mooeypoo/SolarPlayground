@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='sp-ui-ext-ooui-POVTool-method-constructor'><span id='sp-ui-ext-ooui-POVTool'>/**
+</span></span> * Regular POV list tool.
+ *
+ * @class
+ * @extends OO.ui.Tool
+ * @constructor
+ * @param {OO.ui.ToolGroup} toolGroup
+ * @param {Object} [config] Configuration options
+ */
+sp.ui.ext.ooui.POVTool = function SpUiExtOouiPOVTool( toolGroup, config ) {
+	// Parent constructor
+	OO.ui.Tool.call( this, toolGroup, config );
+};
+
+/* Inheritance */
+
+OO.inheritClass( sp.ui.ext.ooui.POVTool, OO.ui.Tool );
+
+/* Static */
+
+sp.ui.ext.ooui.POVTool.static.group = &#39;povTools&#39;;
+
+/* Methods */
+
+<span id='sp-ui-ext-ooui-POVTool-method-onUpdateState'>/**
+</span> * @inheritdoc
+ */
+sp.ui.ext.ooui.POVTool.prototype.onUpdateState = function () {
+	var currPov;
+	this.setDisabled( !this.toolbar.getContainer().getScenario() );
+
+	if ( this.toolbar.getContainer().getScenario() ) {
+		currPov = this.toolbar.getContainer().getScenario().getPOV();
+		this.setActive( currPov === this.constructor.static.name );
+	}
+};
+
+<span id='sp-ui-ext-ooui-POVTool-method-onSelect'>/**
+</span> * @inheritdoc
+ */
+sp.ui.ext.ooui.POVTool.prototype.onSelect = function () {
+	if ( this.toolbar.getContainer().getScenario() ) {
+		this.toolbar.getContainer().getScenario().setPOV(
+			this.constructor.static.name
+		);
+	}
+};
+</pre>
+</body>
+</html>
