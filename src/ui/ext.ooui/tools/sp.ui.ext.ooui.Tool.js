@@ -26,6 +26,15 @@ sp.ui.ext.ooui.Tool.prototype.onUpdateState = function () {
 };
 
 /**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.Tool.prototype.onSelect = function () {
+	if ( this.constructor.static.deactivateOnSelect ) {
+		this.setActive( false );
+	}
+};
+
+/**
  * UserInterface play tool.
  *
  * @class
@@ -123,6 +132,7 @@ sp.ui.ext.ooui.ZoomTool = function SpUiExtOouiZoomTool( toolGroup, config ) {
 };
 OO.inheritClass( sp.ui.ext.ooui.ZoomTool, sp.ui.ext.ooui.Tool );
 sp.ui.ext.ooui.ZoomTool.static.group = 'zoomTools';
+sp.ui.ext.ooui.ZoomTool.static.deactivateOnSelect = true;
 /**
  * @inheritdoc
  */
@@ -130,7 +140,6 @@ sp.ui.ext.ooui.ZoomTool.prototype.onUpdateState = function () {
 	// Parent
 	sp.ui.ext.ooui.Tool.prototype.onUpdateState.apply( this, arguments );
 	this.setDisabled( !!!this.toolbar.getContainer().getScenario() );
-	this.setActive( false );
 };
 
 /**
@@ -138,7 +147,8 @@ sp.ui.ext.ooui.ZoomTool.prototype.onUpdateState = function () {
  */
 sp.ui.ext.ooui.ZoomTool.prototype.onSelect = function ( zoom ) {
 	this.toolbar.getContainer().getScenario().setZoom( zoom );
-	this.setActive( false );
+	// Parent
+	sp.ui.ext.ooui.Tool.prototype.onSelect.call( this );
 };
 
 /**

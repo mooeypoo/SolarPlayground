@@ -8,7 +8,7 @@
  * @param {Object} scenario Scenario configuration object
  */
 sp.data.Scenario = function SpDataScenario( screen, scenario ) {
-	var objects, centerPt;
+	var objects, canvasDimensions;
 
 	// Mixin constructors
 	OO.EventEmitter.call( this );
@@ -25,13 +25,10 @@ sp.data.Scenario = function SpDataScenario( screen, scenario ) {
 	this.config = scenario.config || {};
 
 	// view controller
-	centerPt = this.screen.getDimensions();
+	canvasDimensions = this.screen.getDimensions();
 	this.view = new sp.view.Converter( {
 		'zoom': this.config.init_zoom || 1,
-		'centerPoint': {
-			x: centerPt.width / 2,
-			y: centerPt.height / 2
-		},
+		'canvasDimensions': canvasDimensions,
 		'yaw': 0,
 		'pitch': 0,
 		'scale': {
@@ -161,7 +158,7 @@ sp.data.Scenario.prototype.getPOV = function () {
  * @param {boolean} ignoreTrails Ignore trails despite settings
  */
 sp.data.Scenario.prototype.draw = function ( time, ignoreTrails ) {
-	var o, coords, viewpointCoords, view, radius, trails;
+	var o, coords, canvasCoords, graphic, radius, trails;
 
 	time = time || this.time;
 
@@ -173,47 +170,51 @@ sp.data.Scenario.prototype.draw = function ( time, ignoreTrails ) {
 		if ( o === this.pov_key ) {
 			this.view.setPOV( coords );
 		}
+		// Get graphic details
+		graphic = this.objects[o].getView();
+
 		// Translate coordinates to canvas
-		viewpointCoords = this.view.getCoordinates( coords );
-
-		if ( viewpointCoords ) {
-			// Get graphic details
-			view = this.objects[o].getView();
-
+		canvasCoords = this.view.getCoordinates( coords );
+		if ( canvasCoords ) {
 			// TODO: Allow the user to choose between relative radii and preset radius value
 			// in the view parameters, instead of having the view take precedence randomly
 			radius = this.view.getRadius( this.objects[o].getRadius(), this.objects[o].getType() );
 
-			// Draw planet trails
-			if ( !ignoreTrails && this.showTrails && o !== this.pov_key ) {
-				// Store trails
-				this.frameCounter++;
-				if ( this.frameCounter >= this.trailsFrameGap ) {
-					this.objects[o].storeTrailPoint( viewpointCoords );
-					this.frameCounter = 0;
-				}
+			// Draw the object
+			this.screen.drawCircle(
+				canvasCoords,
+				radius,
+				graphic.color,
+				// Add a shadow to stars
+				this.objects[o].getType() === 'star'
+			);
+		}
 
-				// Get the trail points
-				trails = this.objects[o].getTrailPoints();
-				for ( i = 0; i < trails.length; i++ ) {
+		// Draw trails
+		if ( !ignoreTrails && this.showTrails && o !== this.pov_key ) {
+			// Store trails
+			// If 'canvasCoords' is null, still store to continue
+			// with the movement
+			this.frameCounter++;
+			if ( this.frameCounter >= this.trailsFrameGap ) {
+				this.objects[o].storeTrailPoint( canvasCoords );
+				this.frameCounter = 0;
+			}
+
+			// Get the trail points
+			trails = this.objects[o].getTrailPoints();
+			for ( i = 0; i < trails.length; i++ ) {
+				// But only draw if we have the trails
+				if ( trails[i] ) {
 					// Draw all trails as dots
 					this.screen.drawCircle(
 						trails[i],
 						1,
 						// TODO: Consider making trail colors a configuration option
-						view.color || '#FF005D' // Bright pink
+						graphic.color || '#FF005D' // Bright pink
 					);
 				}
 			}
-
-			// Draw the object
-			this.screen.drawCircle(
-				viewpointCoords,
-				radius,
-				view.color,
-				// Add a shadow to stars
-				this.objects[o].getType() === 'star'
-			);
 		}
 	}
 };

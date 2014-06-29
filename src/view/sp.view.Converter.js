@@ -16,9 +16,14 @@ sp.view.Converter = function SpViewConverter( config ) {
 
 	this.zoom = this.config.zoom || 1;
 	this.orbit_scale = this.config.orbit_scale || 1;
-	this.centerPoint = this.config.centerPoint;
 	this.yaw = this.config.yaw;
 	this.pitch = this.config.pitch;
+
+	this.canvasDimensions = this.config.canvasDimensions || { 'width': 0, 'height': 0 };
+	this.centerPoint = {
+		'x': this.canvasDimensions.width / 2,
+		'y': this.canvasDimensions.height / 2
+	};
 
 	this.pov = { 'x': 0, 'y': 0, 'z': 0 };
 	this.radii_list = null;
@@ -90,8 +95,15 @@ sp.view.Converter.prototype.getCoordinates = function ( spaceCoords ) {
 	destination.z = destination.y * sb;
 	destination.y = destination.y * cb + dy;
 
-	// TODO: Check if destination is inside the canvas. Return null otherwise.
-	return destination;
+	// Check if destination is inside the canvas. Return null otherwise.
+	if (
+		destination.x > 0 &&
+		destination.x <= this.canvasDimensions.width &&
+		destination.y > 0 &&
+		destination.y <= this.canvasDimensions.height
+	) {
+		return destination;
+	}
 };
 
 /**
