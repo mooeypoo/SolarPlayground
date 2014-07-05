@@ -15,10 +15,10 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='sp-Container'>/**
+  <pre class="prettyprint lang-js"><span id='sp-container-Manager'>/**
 </span> * Solar Playground container manager
  *
- * @class sp.Container
+ * @class sp.container.Manager
  * @mixins OO.EventEmitter
  *
  * @param {Object} [config] Configuration object
@@ -51,7 +51,7 @@ sp.container.Manager = function SpContainerManager( config ) {
 /* Inheritance */
 OO.mixinClass( sp.container.Manager, OO.EventEmitter );
 
-<span id='sp-Container-event-scenarioLoaded'>/**
+<span id='sp-container-Manager-event-scenarioLoaded'>/**
 </span> * @event scenarioLoaded
  * @param {sp.Scenario} scenario Reference to the loaded scenario
  * Scenario fully loaded and ready to be run.
@@ -59,7 +59,7 @@ OO.mixinClass( sp.container.Manager, OO.EventEmitter );
 
 /* Methods */
 
-<span id='sp-Container-method-loadFromFile'>/**
+<span id='sp-container-Manager-method-loadFromFile'>/**
 </span> * Load scenario from file.
  * @param {string} scenarioName The scenario name
  * @returns {jQuery.Promise}
@@ -94,7 +94,7 @@ sp.container.Manager.prototype.loadFromFile = function ( scenarioName ) {
 	return deferred;
 };
 
-<span id='sp-Container-method-addToolbar'>/**
+<span id='sp-container-Manager-method-addToolbar'>/**
 </span> * Add a toolbar to the container
  * @param {jQuery} $toolbar jQuery toolbar element
  * @param {string} [position] Position in the container; &#39;top&#39; or &#39;bottom&#39;
@@ -109,7 +109,7 @@ sp.container.Manager.prototype.addToolbar = function ( $toolbar, position ) {
 	}
 };
 
-<span id='sp-Container-method-setScenario'>/**
+<span id='sp-container-Manager-method-setScenario'>/**
 </span> * Attach scenario object to this container
  * @param {sp.Scenario} s Scenario object
  */
@@ -121,7 +121,7 @@ sp.container.Manager.prototype.setScenario = function ( s ) {
 	this.scenario.draw();
 };
 
-<span id='sp-Container-method-getScenario'>/**
+<span id='sp-container-Manager-method-getScenario'>/**
 </span> * Retrieve the scenario attached to this container
  * @returns {sp.Scenario} s Scenario object
  */
@@ -129,7 +129,7 @@ sp.container.Manager.prototype.getScenario = function () {
 	return this.scenario;
 };
 
-<span id='sp-Container-method-togglePaused'>/**
+<span id='sp-container-Manager-method-togglePaused'>/**
 </span> * Toggle between pause and resume the scenario
  * @param {boolean} [isPaused] Optional. If supplied, pauses or resumes the scenario
  * @fires pause
@@ -140,14 +140,14 @@ sp.container.Manager.prototype.togglePaused = function ( isPaused ) {
 	}
 };
 
-<span id='sp-Container-method-isPaused'>/**
+<span id='sp-container-Manager-method-isPaused'>/**
 </span> * Check whether the scenario is paused
  */
 sp.container.Manager.prototype.isPaused = function () {
 	return this.scenario.isPaused();
 };
 
-<span id='sp-Container-method-setZoom'>/**
+<span id='sp-container-Manager-method-setZoom'>/**
 </span> * Set scenario zoom
  * @param {number} zoom Zoom factor
  * @fires zoom
@@ -158,7 +158,7 @@ sp.container.Manager.prototype.setZoom = function ( zoom ) {
 	}
 };
 
-<span id='sp-Container-method-execute'>/**
+<span id='sp-container-Manager-method-execute'>/**
 </span> * Execute an action or command.
  *
  * @method
@@ -183,7 +183,7 @@ sp.container.Manager.prototype.execute = function ( action, method ) {
 	return false;
 };
 
-<span id='sp-Container-method-addCommands'>/**
+<span id='sp-container-Manager-method-addCommands'>/**
 </span> * Add all commands from initialization options.
  *
  * Commands and triggers must be registered under the same name prior to adding them to the surface.

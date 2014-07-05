@@ -1,7 +1,7 @@
 /**
  * Solar Playground container scenario loader
  *
- * @class sp.Container
+ * @class
  * @mixins OO.EventEmitter
  *
  * @param {Object} [config] Configuration object

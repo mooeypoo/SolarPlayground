@@ -15,11 +15,11 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='sp-Viewpoint'>/**
-</span> * Solar Playground viewpoint controller.
- * Controls the presentation of the objects on the canvas.
+  <pre class="prettyprint lang-js"><span id='sp-view-Converter'>/**
+</span> * Solar Playground view converter.
+ * Converts between space coordinates and screen coordinates and controls the visual presentation.
  *
- * @class sp.Viewpoint
+ * @class sp.view.Converter
  * @mixins OO.EventEmitter
  *
  * @param {Object} [config] Configuration object
@@ -62,7 +62,7 @@ OO.mixinClass( sp.view.Converter, OO.EventEmitter );
 
 /* Events */
 
-<span id='sp-Viewpoint-event-changePOV'>/**
+<span id='sp-view-Converter-event-changePOV'>/**
 </span> * Change of the POV coordinates in space
  * @event changePOV
  * @param {Object} New space coordinates of the POV
@@ -70,7 +70,7 @@ OO.mixinClass( sp.view.Converter, OO.EventEmitter );
 
 /* Methods */
 
-<span id='sp-Viewpoint-method-setPOV'>/**
+<span id='sp-view-Converter-method-setPOV'>/**
 </span> * Set the coordinates of the current POV object
  * @param {Object} pov_coords The 3d coordinates of the current POV
  * @fires changePOV
@@ -85,7 +85,7 @@ sp.view.Converter.prototype.setPOV = function ( pov_coords ) {
 	}
 };
 
-<span id='sp-Viewpoint-method-getCoordinates'>/**
+<span id='sp-view-Converter-method-getCoordinates'>/**
 </span> * Translate between space coordinates and viewpoint coordinates
  * on the canvas.
  * @param {Object} spaceCoords Original 3D space coordinates
@@ -123,7 +123,7 @@ sp.view.Converter.prototype.getCoordinates = function ( spaceCoords ) {
 	}
 };
 
-<span id='sp-Viewpoint-method-setRadiiList'>/**
+<span id='sp-view-Converter-method-setRadiiList'>/**
 </span> * Calculate radius size steps from a new radii list
  * @param {Object} rList Actual size radii of all celestial objects
  * divided into &#39;stars&#39; and &#39;planets&#39; to distinguish relative sizes better
@@ -147,7 +147,7 @@ sp.view.Converter.prototype.setRadiiList = function ( rList ) {
 	}
 };
 
-<span id='sp-Viewpoint-method-getRadius'>/**
+<span id='sp-view-Converter-method-getRadius'>/**
 </span> * Translate between the original radius and the canvas radius in pixels
  * @param {number} orig_radius Object&#39;s original radius
  * @returns {number} Actual radius in pixels
@@ -168,7 +168,7 @@ sp.view.Converter.prototype.getRadius = function ( orig_radius, type ) {
 	return ( radius &gt;= 2 ) ? radius : 2;
 };
 
-<span id='sp-Viewpoint-method-setZoom'>/**
+<span id='sp-view-Converter-method-setZoom'>/**
 </span> * Increase or decrease scenario zoom levels
  * @param {number} z Zoom level, negative for zoom out
  */
@@ -176,7 +176,7 @@ sp.view.Converter.prototype.setZoom = function ( z ) {
 	this.zoom += z;
 };
 
-<span id='sp-Viewpoint-method-getZoom'>/**
+<span id='sp-view-Converter-method-getZoom'>/**
 </span> * Get the current zoom factor
  * @returns {number} zoom Zoom factor
  */
@@ -184,7 +184,7 @@ sp.view.Converter.prototype.getZoom = function () {
 	return this.zoom;
 };
 
-<span id='sp-Viewpoint-method-setCenterPoint'>/**
+<span id='sp-view-Converter-method-setCenterPoint'>/**
 </span> * Set the canvas center point
  * @param {Object} coords x/y coordinates of the center of the system
  */
@@ -200,7 +200,7 @@ sp.view.Converter.prototype.setCenterPoint = function ( coords ) {
 	};
 };
 
-<span id='sp-Viewpoint-method-getCenterPoint'>/**
+<span id='sp-view-Converter-method-getCenterPoint'>/**
 </span> * Get the current center point of the view
  * @returns {Object} x/y coordinates of the current center point
  */
@@ -208,7 +208,7 @@ sp.view.Converter.prototype.getCenterPoint = function () {
 	return this.centerPoint;
 };
 
-<span id='sp-Viewpoint-method-addToCenterPoint'>/**
+<span id='sp-view-Converter-method-addToCenterPoint'>/**
 </span> * Add to the center point
  * @param {number} [x] Amount to add to X coordinate
  * @param {number} [y] Amount to add to Y coordinate

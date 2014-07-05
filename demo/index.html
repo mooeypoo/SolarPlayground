@@ -39,19 +39,31 @@
                 playground = new sp.System();
 
                 playground.setContainer( 'sp_container_1', {
-                    'width': 550,
+                    'width': 400,
                     'height': 400
                 } );
                 playground.setContainer( 'sp_container_2', {
-                    'width': 500,
+                    'width': 400,
                     'height': 400
                 } );
 
-                c1 = playground.getContainer( 'sp_container_1' )
+                playground.setContainer( 'sp_container_3', {
+                    'width': 400,
+                    'height': 400
+                } );
+
+                playground.getContainer( 'sp_container_1' )
                     .loadFromFile( 'geocentric' );
 
-                c2 = playground.getContainer( 'sp_container_2' )
+                playground.getContainer( 'sp_container_2' )
                     .loadFromFile( 'heliocentric' );
+
+                playground.getContainer( 'sp_container_3' )
+                    .loadFromFile( 'heliocentric', {
+                        'init_pitch': 35
+                    } );
+
+
             } );
 
         </script>
@@ -61,5 +73,6 @@
         <h2>Geocentric vs Heliocentric</h2>
         <div id="sp_container_1"></div>
         <div id="sp_container_2"></div>
+        <div id="sp_container_3"></div>
     </body>
 </html>

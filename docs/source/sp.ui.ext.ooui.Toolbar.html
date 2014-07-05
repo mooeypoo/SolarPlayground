@@ -15,7 +15,17 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">/* Toolbar */
+  <pre class="prettyprint lang-js"><span id='sp-ui-ext-ooui-Toolbar-method-constructor'><span id='sp-ui-ext-ooui-Toolbar'>/**
+</span></span> * OOUI Module Toolbar.
+ *
+ * @class
+ * @constructor
+ * @extends OO.ui.Toolbar
+ *
+ * @param {sp.ui.ext.Play} target The UI controller
+ * @param {sp.Container} container The container this toolbar is attached to
+ * @param {Object} [config] Optional configuration options.
+ */
 sp.ui.ext.ooui.Toolbar = function SpUiExtOouiToolbar( target, container, config ) {
 	// Parent constructor
 	OO.ui.Toolbar.call(
@@ -33,7 +43,7 @@ sp.ui.ext.ooui.Toolbar = function SpUiExtOouiToolbar( target, container, config 
 /* Inheritance */
 OO.inheritClass( sp.ui.ext.ooui.Toolbar, OO.ui.Toolbar );
 
-<span id='global-method-getContainer'>/**
+<span id='sp-ui-ext-ooui-Toolbar-method-getContainer'>/**
 </span> * Get the container attached to this toolbar
  * @returns {sp.Container} Container
  */
@@ -41,7 +51,7 @@ sp.ui.ext.ooui.Toolbar.prototype.getContainer = function () {
 	return this.container;
 };
 
-<span id='global-method-onContainerAddCommand'>/**
+<span id='sp-ui-ext-ooui-Toolbar-method-onContainerAddCommand'>/**
 </span> * Handle command being added to surface.
  *
  * If a matching tool is present, it&#39;s label will be updated.

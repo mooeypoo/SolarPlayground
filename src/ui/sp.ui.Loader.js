@@ -33,6 +33,7 @@ OO.mixinClass( sp.ui.Loader, OO.EventEmitter );
 
 /**
  * Create the GUI according to the ui module
+ * @returns {sp.ui.ext.ooui.Mod.Play} The play module attached to the container
  */
 sp.ui.Loader.prototype.initialize = function () {
 	var module;

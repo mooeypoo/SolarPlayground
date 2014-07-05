@@ -151,7 +151,7 @@ window.requestNextAnimationFrame = ( function () {
 } ) ();
 
 /**
- * Solar Playground system controller
+ * Solar Playground main system controller
  *
  * @class sp.System
  * @mixins OO.EventEmitter
@@ -242,7 +242,10 @@ sp.System.prototype.getConfig = function ( option ) {
 };
 
 /**
- * Scenario calculator
+ * Solar Playground calculator. Contains methods for calculations across the scenarios.
+ *
+ * @class sp.calc.Calculator
+ *
  * @param {Object} [config] Configuration object
  */
 sp.calc.Calculator = function SpScenarioCalculator( config ) {
@@ -448,7 +451,7 @@ sp.calc.Calculator.solveKepler = function ( vars, jd ) {
 /**
  * Solar Playground container scenario loader
  *
- * @class sp.Container
+ * @class
  * @mixins OO.EventEmitter
  *
  * @param {Object} [config] Configuration object
@@ -517,7 +520,7 @@ sp.container.Loader.prototype.loadFromObject = function ( scenarioObject ) {
 /**
  * Solar Playground container manager
  *
- * @class sp.Container
+ * @class sp.container.Manager
  * @mixins OO.EventEmitter
  *
  * @param {Object} [config] Configuration object
@@ -561,9 +564,11 @@ OO.mixinClass( sp.container.Manager, OO.EventEmitter );
 /**
  * Load scenario from file.
  * @param {string} scenarioName The scenario name
+ * @param {Object} [overrideConfig] Optional configuration parameters
+ *  that will override whatever is in the scenario file.
  * @returns {jQuery.Promise}
  */
-sp.container.Manager.prototype.loadFromFile = function ( scenarioName ) {
+sp.container.Manager.prototype.loadFromFile = function ( scenarioName, overrideConfig ) {
 	var targetName,
 		deferred = $.Deferred(),
 		filePrefix = this.config.scenario_prefix || '',
@@ -576,7 +581,7 @@ sp.container.Manager.prototype.loadFromFile = function ( scenarioName ) {
 
 	this.loader.loadFromFile( scenarioName, targetName )
 		.done( $.proxy( function ( scenarioObject ) {
-			scenario = new sp.data.Scenario( this.screen, scenarioObject );
+			scenario = new sp.data.Scenario( this.screen, scenarioObject, overrideConfig );
 			this.setScenario( scenario );
 			// Add pov objects to gui
 			objList = this.scenario.getAllObjects();
@@ -587,7 +592,7 @@ sp.container.Manager.prototype.loadFromFile = function ( scenarioName ) {
 				);
 			}
 			this.emit( 'scenarioLoaded' );
-			deferred.resolve();
+			deferred.resolve( this );
 		}, this ) );
 
 	return deferred;
@@ -657,6 +662,12 @@ sp.container.Manager.prototype.setZoom = function ( zoom ) {
 	}
 };
 
+sp.container.Manager.prototype.setPitchAngle = function ( pitch ) {
+	if ( this.scenario ) {
+		this.scenario.setPitchAngle( pitch );
+	}
+};
+
 /**
  * Execute an action or command.
  *
@@ -723,7 +734,10 @@ sp.container.Manager.prototype.addCommands = function ( names ) {
 };
 
 /**
- * Container canvas and context controller
+ * Solar Playground screen controller for canvas and context elements
+ *
+ * @class sp.container.Screen
+ * @mixins OO.EventEmitter
  *
  * @param {Object} [config] Configuration object
  */
@@ -1092,12 +1106,17 @@ sp.data.CelestialBody.prototype.getRadius = function () {
  *
  * @param {sp.container.Screen} screen Target screen for the scenario
  * @param {Object} scenario Scenario configuration object
+ * @param {Object} [config] Configuration options. Will override any
+ * configuration in the scenario object
  */
-sp.data.Scenario = function SpDataScenario( screen, scenario ) {
-	var objects, canvasDimensions;
+sp.data.Scenario = function SpDataScenario( screen, scenario, config ) {
+	var objects, canvasDimensions,
+		toRadians = 2 * Math.PI / 180;
 
 	// Mixin constructors
 	OO.EventEmitter.call( this );
+
+	config = config || {};
 
 	// TODO: Validate the scenario object to make sure all required
 	// elements exist.
@@ -1108,15 +1127,15 @@ sp.data.Scenario = function SpDataScenario( screen, scenario ) {
 	this.objects = {};
 
 	// Prepare general configuration
-	this.config = scenario.config || {};
+	this.config = $.extend( {}, scenario.config, config );
 
 	// view controller
 	canvasDimensions = this.screen.getDimensions();
 	this.view = new sp.view.Converter( {
 		'zoom': this.config.init_zoom || 1,
 		'canvasDimensions': canvasDimensions,
-		'yaw': 0,
-		'pitch': 0,
+		'yaw': this.config.init_yaw * toRadians || 0,
+		'pitch': this.config.init_pitch * toRadians || 0,
 		'scale': {
 			'orbit': this.config.orbit_scale || 0.5 * Math.pow( 10, -5 ),
 			'planets': this.config.planet_scale
@@ -1448,6 +1467,10 @@ sp.data.Scenario.prototype.addToCenterPoint = function ( x, y ) {
 	this.view.addToCenterPoint( x, y );
 }
 
+sp.data.Scenario.prototype.setPitchAngle = function ( pitch ) {
+	this.view.setPitchAngle( pitch );
+};
+
 /**
  * Command that executes an action.
  *
@@ -1516,7 +1539,7 @@ sp.ui.Command.prototype.getData = function () {
 /**
  * Command registry.
  *
- * @class
+ * @class sp.ui.CommandRegistry
  * @extends OO.Registry
  * @constructor
  */
@@ -1604,6 +1627,7 @@ OO.mixinClass( sp.ui.Loader, OO.EventEmitter );
 
 /**
  * Create the GUI according to the ui module
+ * @returns {sp.ui.ext.ooui.Mod.Play} The play module attached to the container
  */
 sp.ui.Loader.prototype.initialize = function () {
 	var module;
@@ -1873,7 +1897,17 @@ sp.ui.ext.ooui.Mod.Play.prototype.createPOVTool = function ( name, icon, title )
 	return Tool;
 };
 
-/* Toolbar */
+/**
+ * OOUI Module Toolbar.
+ *
+ * @class
+ * @constructor
+ * @extends OO.ui.Toolbar
+ *
+ * @param {sp.ui.ext.Play} target The UI controller
+ * @param {sp.Container} container The container this toolbar is attached to
+ * @param {Object} [config] Optional configuration options.
+ */
 sp.ui.ext.ooui.Toolbar = function SpUiExtOouiToolbar( target, container, config ) {
 	// Parent constructor
 	OO.ui.Toolbar.call(
@@ -1910,6 +1944,9 @@ sp.ui.ext.ooui.Toolbar.prototype.onContainerAddCommand = function ( name ) {
 	if ( this.tools[name] ) {
 		this.tools[name].updateTitle();
 	}
+};
+
+sp.ui.ext.ooui.Toolbar.prototype.onMouseDown = function ( e ) {
 };
 
 /**
@@ -2184,12 +2221,12 @@ sp.ui.ext.ooui.SliderTool = function SpUiExtOouiSliderTool( toolGroup, config ) 
 	sp.ui.ext.ooui.Tool.call( this, toolGroup, config );
 
 	// Initialization
-	this.$link.detach();
+	this.$element.empty();
 	this.$slider = this.$( '<input>' )
 		.addClass( 'sp-ui-ooui-sliderHandle' )
 		.attr( 'type', 'range' )
 		.attr( 'min', '1' )
-		.attr( 'max', '10' );
+		.attr( 'max', '100' );
 
 	this.$element
 		.addClass( 'sp-ui-ooui-sliderTool' )
@@ -2229,10 +2266,81 @@ sp.ui.ext.ooui.SpeedSliderTool.static.commandName = 'speed';
 sp.ui.toolFactory.register( sp.ui.ext.ooui.SpeedSliderTool );
 
 /**
- * Solar Playground viewpoint controller.
- * Controls the presentation of the objects on the canvas.
+ * Label tool.
  *
- * @class sp.Viewpoint
+ * @class
+ * @extends OO.ui.Tool
+ * @constructor
+ * @param {OO.ui.ToolGroup} toolGroup
+ * @param {Object} [config] Configuration options
+ */
+sp.ui.ext.ooui.LabelTool = function SpUiExtOouiLabelTool( toolGroup, config ) {
+	// Parent constructor
+	OO.ui.Tool.call( this, toolGroup, config );
+	// Mixin constructor
+	OO.ui.LabeledElement.call( this, $( '<div>' ), config );
+
+	this.$element.empty();
+	this.$element.append( this.$label.show() );
+};
+
+/* Inheritance */
+
+OO.inheritClass( sp.ui.ext.ooui.LabelTool, OO.ui.Tool );
+OO.mixinClass( sp.ui.ext.ooui.LabelTool, OO.ui.LabeledElement );
+
+/* Methods */
+
+/**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.LabelTool.prototype.onUpdateState = function () {
+	this.setDisabled( !this.toolbar.getContainer().getScenario() );
+};
+
+/**
+ * UserInterface play tool.
+ *
+ * @class
+ * @extends sp.ui.ext.ooui.Tool
+ * @constructor
+ * @param {OO.ui.ToolGroup} toolGroup
+ * @param {Object} [config] Configuration options
+ */
+sp.ui.ext.ooui.ZoomLabelTool = function SpUiExtOouiZoomLabelTool( toolGroup, config ) {
+	sp.ui.ext.ooui.LabelTool.call( this, toolGroup, config );
+};
+OO.inheritClass( sp.ui.ext.ooui.ZoomLabelTool, sp.ui.ext.ooui.LabelTool );
+sp.ui.ext.ooui.ZoomLabelTool.static.name = 'zoomLabel';
+sp.ui.ext.ooui.ZoomLabelTool.static.group = 'zoomTools';
+sp.ui.ext.ooui.ZoomLabelTool.static.title = 'Zoom';
+
+/**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.ZoomLabelTool.prototype.onUpdateState = function () {
+	// Parent
+	sp.ui.ext.ooui.LabelTool.prototype.onUpdateState.apply( this, arguments );
+
+	if ( this.toolbar.getContainer().getScenario() ) {
+		this.setLabel( this.toolbar.getContainer().getScenario().getZoom() );
+	}
+};
+
+/**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.ZoomLabelTool.prototype.onSelect = function () {
+	return false;
+};
+
+sp.ui.toolFactory.register( sp.ui.ext.ooui.ZoomLabelTool );
+
+/**
+ * Solar Playground view converter.
+ * Converts between space coordinates and screen coordinates and controls the visual presentation.
+ *
+ * @class sp.view.Converter
  * @mixins OO.EventEmitter
  *
  * @param {Object} [config] Configuration object
@@ -2432,4 +2540,14 @@ sp.view.Converter.prototype.addToCenterPoint = function ( x, y ) {
 
 	this.centerPoint.x += x;
 	this.centerPoint.y += y;
+};
+
+/**
+ * Set the pitch angle for the view
+ */
+sp.view.Converter.prototype.setPitchAngle = function ( pitch ) {
+	if ( this.pitch !== pitch ) {
+		this.pitch = pitch;
+		this.emit( 'pitch', this.pitch );
+	}
 };

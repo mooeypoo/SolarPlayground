@@ -1,4 +1,14 @@
-/* Toolbar */
+/**
+ * OOUI Module Toolbar.
+ *
+ * @class
+ * @constructor
+ * @extends OO.ui.Toolbar
+ *
+ * @param {sp.ui.ext.Play} target The UI controller
+ * @param {sp.Container} container The container this toolbar is attached to
+ * @param {Object} [config] Optional configuration options.
+ */
 sp.ui.ext.ooui.Toolbar = function SpUiExtOouiToolbar( target, container, config ) {
 	// Parent constructor
 	OO.ui.Toolbar.call(
@@ -35,4 +45,7 @@ sp.ui.ext.ooui.Toolbar.prototype.onContainerAddCommand = function ( name ) {
 	if ( this.tools[name] ) {
 		this.tools[name].updateTitle();
 	}
+};
+
+sp.ui.ext.ooui.Toolbar.prototype.onMouseDown = function ( e ) {
 };

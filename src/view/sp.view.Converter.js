@@ -1,8 +1,8 @@
 /**
- * Solar Playground viewpoint controller.
- * Controls the presentation of the objects on the canvas.
+ * Solar Playground view converter.
+ * Converts between space coordinates and screen coordinates and controls the visual presentation.
  *
- * @class sp.Viewpoint
+ * @class sp.view.Converter
  * @mixins OO.EventEmitter
  *
  * @param {Object} [config] Configuration object
@@ -202,4 +202,14 @@ sp.view.Converter.prototype.addToCenterPoint = function ( x, y ) {
 
 	this.centerPoint.x += x;
 	this.centerPoint.y += y;
+};
+
+/**
+ * Set the pitch angle for the view
+ */
+sp.view.Converter.prototype.setPitchAngle = function ( pitch ) {
+	if ( this.pitch !== pitch ) {
+		this.pitch = pitch;
+		this.emit( 'pitch', this.pitch );
+	}
 };

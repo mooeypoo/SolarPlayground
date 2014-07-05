@@ -1,7 +1,7 @@
 /**
  * Solar Playground container manager
  *
- * @class sp.Container
+ * @class sp.container.Manager
  * @mixins OO.EventEmitter
  *
  * @param {Object} [config] Configuration object
@@ -45,9 +45,11 @@ OO.mixinClass( sp.container.Manager, OO.EventEmitter );
 /**
  * Load scenario from file.
  * @param {string} scenarioName The scenario name
+ * @param {Object} [overrideConfig] Optional configuration parameters
+ *  that will override whatever is in the scenario file.
  * @returns {jQuery.Promise}
  */
-sp.container.Manager.prototype.loadFromFile = function ( scenarioName ) {
+sp.container.Manager.prototype.loadFromFile = function ( scenarioName, overrideConfig ) {
 	var targetName,
 		deferred = $.Deferred(),
 		filePrefix = this.config.scenario_prefix || '',
@@ -60,7 +62,7 @@ sp.container.Manager.prototype.loadFromFile = function ( scenarioName ) {
 
 	this.loader.loadFromFile( scenarioName, targetName )
 		.done( $.proxy( function ( scenarioObject ) {
-			scenario = new sp.data.Scenario( this.screen, scenarioObject );
+			scenario = new sp.data.Scenario( this.screen, scenarioObject, overrideConfig );
 			this.setScenario( scenario );
 			// Add pov objects to gui
 			objList = this.scenario.getAllObjects();
@@ -71,7 +73,7 @@ sp.container.Manager.prototype.loadFromFile = function ( scenarioName ) {
 				);
 			}
 			this.emit( 'scenarioLoaded' );
-			deferred.resolve();
+			deferred.resolve( this );
 		}, this ) );
 
 	return deferred;
@@ -138,6 +140,12 @@ sp.container.Manager.prototype.isPaused = function () {
 sp.container.Manager.prototype.setZoom = function ( zoom ) {
 	if ( this.scenario.getZoom() !== zoom ) {
 		this.scenario.setZoom( zoom );
+	}
+};
+
+sp.container.Manager.prototype.setPitchAngle = function ( pitch ) {
+	if ( this.scenario ) {
+		this.scenario.setPitchAngle( pitch );
 	}
 };
 

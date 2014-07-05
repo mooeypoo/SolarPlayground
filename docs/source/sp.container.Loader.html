@@ -15,10 +15,10 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='sp-Container'>/**
+  <pre class="prettyprint lang-js"><span id='sp-container-Loader'>/**
 </span> * Solar Playground container scenario loader
  *
- * @class sp.Container
+ * @class
  * @mixins OO.EventEmitter
  *
  * @param {Object} [config] Configuration object
@@ -33,7 +33,7 @@ sp.container.Loader = function SpContainerLoader( config ) {
 /* Inheritance */
 OO.mixinClass( sp.container.Loader, OO.EventEmitter );
 
-<span id='sp-Container-method-loadFromFile'>/**
+<span id='sp-container-Loader-method-loadFromFile'>/**
 </span> * Load a scenario
  * @param {String} scenarioName Scenario name. The system will search for
  *  an ajax response from source &#39;scenario.[name].json&#39; in the scenario
@@ -54,7 +54,7 @@ sp.container.Loader.prototype.loadFromFile = function ( scenarioName, filename )
 	return deferred;
 };
 
-<span id='sp-Container-method-loadFromObject'>/**
+<span id='sp-container-Loader-method-loadFromObject'>/**
 </span> * Load and run a scenario
  * @param {Object} scenarioObject Scenario configuration object
  * @fires scenarioLoaded

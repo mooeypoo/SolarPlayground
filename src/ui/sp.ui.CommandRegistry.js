@@ -1,7 +1,7 @@
 /**
  * Command registry.
  *
- * @class
+ * @class sp.ui.CommandRegistry
  * @extends OO.Registry
  * @constructor
  */

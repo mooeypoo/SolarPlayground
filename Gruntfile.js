@@ -4,7 +4,7 @@ module.exports = function ( grunt ) {
   // Project configuration.
   grunt.initConfig({
     // Metadata.
-    pkg: grunt.file.readJSON('package.json'),
+    pkg: grunt.file.readJSON( 'package.json' ),
     // Task configuration.
     concat: {
       dist: {
@@ -17,9 +17,7 @@ module.exports = function ( grunt ) {
           'src/ui/*.js',
           'src/ui/ext.ooui/sp.ui.ext.ooui.Mod.Play.js',
           'src/ui/ext.ooui/sp.ui.ext.ooui.Toolbar.js',
-          'src/ui/ext.ooui/tools/sp.ui.ext.ooui.Tool.js',
-          'src/ui/ext.ooui/tools/sp.ui.ext.ooui.POVTool.js',
-          'src/ui/ext.ooui/tools/sp.ui.ext.ooui.SliderTool.js',
+          'src/ui/ext.ooui/tools/*.js',
           'src/view/*.js',
         ],
         dest: 'dist/SolarPlayground.dist.js'
@@ -70,7 +68,15 @@ module.exports = function ( grunt ) {
         ],
         dest: 'docs'
       }
-    }
+    },
+    compass: {
+      dist: {
+        options: {
+          sassDir: 'src/sass',
+          cssDir: 'dist/css'
+        }
+      }
+    },
     // TODO: QUnit tests
 //    qunit: {
 //      files: ['test/**/*.html']
@@ -83,6 +89,7 @@ module.exports = function ( grunt ) {
 //  grunt.loadNpmTasks('grunt-contrib-qunit');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-jscs-checker');
+  grunt.loadNpmTasks('grunt-contrib-compass');
   grunt.loadNpmTasks('grunt-jsduck');
 
   // Default task.

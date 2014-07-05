@@ -1,5 +1,5 @@
 /**
- * Solar Playground system controller
+ * Solar Playground main system controller
  *
  * @class sp.System
  * @mixins OO.EventEmitter

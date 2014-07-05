@@ -13,12 +13,12 @@ sp.ui.ext.ooui.SliderTool = function SpUiExtOouiSliderTool( toolGroup, config ) 
 	sp.ui.ext.ooui.Tool.call( this, toolGroup, config );
 
 	// Initialization
-	this.$link.detach();
+	this.$element.empty();
 	this.$slider = this.$( '<input>' )
 		.addClass( 'sp-ui-ooui-sliderHandle' )
 		.attr( 'type', 'range' )
 		.attr( 'min', '1' )
-		.attr( 'max', '10' );
+		.attr( 'max', '100' );
 
 	this.$element
 		.addClass( 'sp-ui-ooui-sliderTool' )

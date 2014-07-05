@@ -6,12 +6,17 @@
  *
  * @param {sp.container.Screen} screen Target screen for the scenario
  * @param {Object} scenario Scenario configuration object
+ * @param {Object} [config] Configuration options. Will override any
+ * configuration in the scenario object
  */
-sp.data.Scenario = function SpDataScenario( screen, scenario ) {
-	var objects, canvasDimensions;
+sp.data.Scenario = function SpDataScenario( screen, scenario, config ) {
+	var objects, canvasDimensions,
+		toRadians = 2 * Math.PI / 180;
 
 	// Mixin constructors
 	OO.EventEmitter.call( this );
+
+	config = config || {};
 
 	// TODO: Validate the scenario object to make sure all required
 	// elements exist.
@@ -22,15 +27,15 @@ sp.data.Scenario = function SpDataScenario( screen, scenario ) {
 	this.objects = {};
 
 	// Prepare general configuration
-	this.config = scenario.config || {};
+	this.config = $.extend( {}, scenario.config, config );
 
 	// view controller
 	canvasDimensions = this.screen.getDimensions();
 	this.view = new sp.view.Converter( {
 		'zoom': this.config.init_zoom || 1,
 		'canvasDimensions': canvasDimensions,
-		'yaw': 0,
-		'pitch': 0,
+		'yaw': this.config.init_yaw * toRadians || 0,
+		'pitch': this.config.init_pitch * toRadians || 0,
 		'scale': {
 			'orbit': this.config.orbit_scale || 0.5 * Math.pow( 10, -5 ),
 			'planets': this.config.planet_scale
@@ -361,3 +366,7 @@ sp.data.Scenario.prototype.getCenterPoint = function () {
 sp.data.Scenario.prototype.addToCenterPoint = function ( x, y ) {
 	this.view.addToCenterPoint( x, y );
 }
+
+sp.data.Scenario.prototype.setPitchAngle = function ( pitch ) {
+	this.view.setPitchAngle( pitch );
+};

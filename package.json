@@ -1,15 +1,21 @@
 {
   "name": "SolarPlayground",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "author_name": "Moriel Schottlender",
   "author_email": "moo@smarterthanthat.com",
   "author_url": "http://moriel.smarterthanthat.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mooeypoo/SolarPlayground"
+    },
   "devDependencies": {
     "grunt": "~0.4.2",
     "grunt-contrib-jshint": "~0.7.2",
     "grunt-contrib-watch": "~0.5.3",
     "grunt-contrib-qunit": "~0.3.0",
     "grunt-contrib-concat": "~0.3.0",
-    "grunt-contrib-uglify": "~0.2.7"
+    "grunt-contrib-uglify": "~0.2.7",
+    "grunt-contrib-sass": "^0.7.3",
+    "grunt-contrib-compass": "^0.9.0"
   }
 }

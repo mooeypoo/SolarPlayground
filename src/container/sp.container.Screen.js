@@ -1,5 +1,8 @@
 /**
- * Container canvas and context controller
+ * Solar Playground screen controller for canvas and context elements
+ *
+ * @class sp.container.Screen
+ * @mixins OO.EventEmitter
  *
  * @param {Object} [config] Configuration object
  */

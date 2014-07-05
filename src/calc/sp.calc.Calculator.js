@@ -1,5 +1,8 @@
 /**
- * Scenario calculator
+ * Solar Playground calculator. Contains methods for calculations across the scenarios.
+ *
+ * @class sp.calc.Calculator
+ *
  * @param {Object} [config] Configuration object
  */
 sp.calc.Calculator = function SpScenarioCalculator( config ) {
