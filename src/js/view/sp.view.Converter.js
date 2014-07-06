@@ -20,7 +20,7 @@ sp.view.Converter = function SpViewConverter( config ) {
 	this.pitch = this.config.pitch;
 
 	this.canvasDimensions = this.config.canvasDimensions || { 'width': 0, 'height': 0 };
-	this.centerPoint = {
+	this.scenarioCenterPoint = {
 		'x': this.canvasDimensions.width / 2,
 		'y': this.canvasDimensions.height / 2
 	};
@@ -79,8 +79,8 @@ sp.view.Converter.prototype.getCoordinates = function ( spaceCoords ) {
 		sa = Math.sin( this.yaw ),
 		cb = Math.cos( this.pitch ),
 		sb = Math.sin( this.pitch ),
-		dx = this.centerPoint.x,
-		dy = this.centerPoint.y,
+		dx = this.scenarioCenterPoint.x,
+		dy = this.scenarioCenterPoint.y,
 		scale = Math.sqrt( this.orbit_scale * this.zoom );
 
 	// TODO: Work out proper scale
@@ -168,7 +168,7 @@ sp.view.Converter.prototype.getZoom = function () {
 };
 
 /**
- * Set the canvas center point
+ * Set the scenario center point
  * @param {Object} coords x/y coordinates of the center of the system
  */
 sp.view.Converter.prototype.setCenterPoint = function ( coords ) {
@@ -177,7 +177,7 @@ sp.view.Converter.prototype.setCenterPoint = function ( coords ) {
 	x = coords.x || 0;
 	y = coords.y || 0;
 
-	this.centerPoint = {
+	this.scenarioCenterPoint = {
 		'x': x,
 		'y': y
 	};
@@ -188,7 +188,7 @@ sp.view.Converter.prototype.setCenterPoint = function ( coords ) {
  * @returns {Object} x/y coordinates of the current center point
  */
 sp.view.Converter.prototype.getCenterPoint = function () {
-	return this.centerPoint;
+	return this.scenarioCenterPoint;
 };
 
 /**
@@ -200,8 +200,8 @@ sp.view.Converter.prototype.addToCenterPoint = function ( x, y ) {
 	x = x || 0;
 	y = y || 0;
 
-	this.centerPoint.x += x;
-	this.centerPoint.y += y;
+	this.scenarioCenterPoint.x += x;
+	this.scenarioCenterPoint.y += y;
 };
 
 /**

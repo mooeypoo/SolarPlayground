@@ -121,6 +121,26 @@ sp.container.Screen.prototype.drawCircle = function ( coords, radius, color, has
 };
 
 /**
+ * Draw a line on the canvas
+ * @param {Object} coords_start Canvas coordinates to start of line
+ * @param {Object} coords_end Canvas coordinates to end of line
+ * @param {string} [color] Line color
+ * @param {string} [width] Line width
+ * @param {boolean} [isDashed] Make the line dashed
+ */
+sp.container.Screen.prototype.drawLine = function ( coords_start, coords_end, color, width, isDashed ) {
+	this.context.beginPath();
+	this.context.moveTo( coords_start.x, coords_start.y );
+	this.context.lineTo( coords_end.x, coords_end.y );
+	if ( isDashed && this.context.setLineDash ) {
+		this.context.setLineDash( [ 5, 7 ] );
+	}
+	this.context.lineWidth = width || 1;
+	this.context.strokeStyle = color || '#ffffff';
+	this.context.stroke();
+};
+
+/**
  * Clear an area on the canvas
  * @param {number} [square] Dimensions and coordinates of the square
  * to clear. If not set, the entire canvas will be cleared.

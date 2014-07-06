@@ -11,7 +11,7 @@
  */
 sp.data.Scenario = function SpDataScenario( screen, scenario, config ) {
 	var objects, canvasDimensions,
-		toRadians = 2 * Math.PI / 180;
+		toRadians = Math.PI / 180;
 
 	// Mixin constructors
 	OO.EventEmitter.call( this );
@@ -31,7 +31,7 @@ sp.data.Scenario = function SpDataScenario( screen, scenario, config ) {
 
 	// view controller
 	canvasDimensions = this.screen.getDimensions();
-	this.view = new sp.view.Converter( {
+	this.viewConverter = new sp.view.Converter( {
 		'zoom': this.config.init_zoom || 1,
 		'canvasDimensions': canvasDimensions,
 		'yaw': this.config.init_yaw * toRadians || 0,
@@ -42,7 +42,15 @@ sp.data.Scenario = function SpDataScenario( screen, scenario, config ) {
 		}
 	} );
 
+	this.grid = new sp.view.Grid( this.screen, {
+		'zoom': this.config.init_zoom || 1,
+		'canvasDimensions': canvasDimensions,
+		'yaw': this.config.init_yaw * toRadians || 0,
+		'pitch': this.config.init_pitch * toRadians || 0
+	} );
+
 	this.showTrails = this.config.show_trails || false;
+	this.showGrid = this.config.show_grid || false;
 	this.frameCounter = 0;
 	this.trailsFrameGap = 5;
 
@@ -129,7 +137,7 @@ sp.data.Scenario.prototype.processObjects = function ( scenarioObjects ) {
 	}
 
 	// Send the radii list to the view
-	this.view.setRadiiList( radii );
+	this.viewConverter.setRadiiList( radii );
 
 	// Figure out which objects orbit what
 	for ( co in this.objects ) {
@@ -142,7 +150,7 @@ sp.data.Scenario.prototype.processObjects = function ( scenarioObjects ) {
 	// Set initial POV
 	if ( this.pov_key && this.objects[this.pov_key] ) {
 		this.pov_object = this.objects[this.pov_key];
-		this.view.setPOV( this.objects[this.pov_key].getSpaceCoordinates( 0 ) );
+		this.viewConverter.setPOV( this.objects[this.pov_key].getSpaceCoordinates( 0 ) );
 	}
 };
 
@@ -156,7 +164,7 @@ sp.data.Scenario.prototype.setPOV = function ( povKey ) {
 		this.pov_key = povKey;
 
 		this.pov_object = this.objects[this.pov_key];
-		this.view.setPOV( this.objects[this.pov_key].getSpaceCoordinates( 0 ) );
+		this.viewConverter.setPOV( this.objects[this.pov_key].getSpaceCoordinates( 0 ) );
 		this.screen.clear();
 		this.flushAllTrails();
 		this.draw();
@@ -183,23 +191,27 @@ sp.data.Scenario.prototype.draw = function ( time, ignoreTrails ) {
 
 	time = time || this.time;
 
+	if ( this.showGrid ) {
+		this.grid.draw();
+	}
+
 	for ( o in this.objects ) {
 		coords = this.objects[o].getSpaceCoordinates( time );
 
 		// TODO: Allow POV that isn't an object
 		// Update POV coordinates
 		if ( o === this.pov_key ) {
-			this.view.setPOV( coords );
+			this.viewConverter.setPOV( coords );
 		}
 		// Get graphic details
 		graphic = this.objects[o].getView();
 
 		// Translate coordinates to canvas
-		canvasCoords = this.view.getCoordinates( coords );
+		canvasCoords = this.viewConverter.getCoordinates( coords );
 		if ( canvasCoords ) {
 			// TODO: Allow the user to choose between relative radii and preset radius value
 			// in the view parameters, instead of having the view take precedence randomly
-			radius = this.view.getRadius( this.objects[o].getRadius(), this.objects[o].getType() );
+			radius = this.viewConverter.getRadius( this.objects[o].getRadius(), this.objects[o].getType() );
 
 			// Draw the object
 			this.screen.drawCircle(
@@ -246,7 +258,7 @@ sp.data.Scenario.prototype.draw = function ( time, ignoreTrails ) {
 sp.data.Scenario.prototype.flushAllTrails = function () {
 	var o;
 	for ( o in this.objects ) {
-		this.objects[o].flushTrailPoints()
+		this.objects[o].flushTrailPoints();
 	}
 };
 
@@ -274,7 +286,7 @@ sp.data.Scenario.prototype.run = function () {
  */
 sp.data.Scenario.prototype.getAllObjects = function () {
 	return this.objects;
-}
+};
 
 /**
  * Toggle between pause and resume the scenario
@@ -320,7 +332,7 @@ sp.data.Scenario.prototype.resume = function () {
  * @param {number} z Zoom level, negative for zoom out
  */
 sp.data.Scenario.prototype.setZoom = function ( z ) {
-	this.view.setZoom( z );
+	this.viewConverter.setZoom( z );
 	this.flushAllTrails();
 	if ( this.isPaused() ) {
 		this.screen.clear();
@@ -334,7 +346,7 @@ sp.data.Scenario.prototype.setZoom = function ( z ) {
  * @returns {numver} Current zoom level
  */
 sp.data.Scenario.prototype.getZoom = function () {
-	return this.view.getZoom();
+	return this.viewConverter.getZoom();
 };
 
 /**
@@ -342,7 +354,7 @@ sp.data.Scenario.prototype.getZoom = function () {
  * @param {Object} coords x/y coordinates of the center of the system
  */
 sp.data.Scenario.prototype.setCenterPoint = function ( coords ) {
-	this.view.setCenterPoint( coords );
+	this.viewConverter.setCenterPoint( coords );
 	this.flushAllTrails();
 	if ( this.isPaused() ) {
 		this.screen.clear();
@@ -355,7 +367,7 @@ sp.data.Scenario.prototype.setCenterPoint = function ( coords ) {
  * @returns {Object} x/y coordinates of the current center point
  */
 sp.data.Scenario.prototype.getCenterPoint = function () {
-	return this.view.getCenterPoint();
+	return this.viewConverter.getCenterPoint();
 };
 
 /**
@@ -364,9 +376,9 @@ sp.data.Scenario.prototype.getCenterPoint = function () {
  * @param {number} [y] Amount to add to Y coordinate
  */
 sp.data.Scenario.prototype.addToCenterPoint = function ( x, y ) {
-	this.view.addToCenterPoint( x, y );
+	this.viewConverter.addToCenterPoint( x, y );
 }
 
 sp.data.Scenario.prototype.setPitchAngle = function ( pitch ) {
-	this.view.setPitchAngle( pitch );
+	this.viewConverter.setPitchAngle( pitch );
 };

@@ -9,23 +9,26 @@ module.exports = function ( grunt ) {
     concat: {
       dist: {
         src: [
-          'src/sp.js',
-          'src/*.js',
-          'src/calc/*.js',
-          'src/container/*.js',
-          'src/data/*.js',
-          'src/ui/*.js',
-          'src/ui/ext.ooui/sp.ui.ext.ooui.Mod.Play.js',
-          'src/ui/ext.ooui/sp.ui.ext.ooui.Toolbar.js',
-          'src/ui/ext.ooui/tools/*.js',
-          'src/view/*.js',
+          'src/js/sp.js',
+          'src/js/*.js',
+          'src/js/calc/*.js',
+          'src/js/container/*.js',
+          'src/js/data/*.js',
+          'src/js/view/*.js',
+          'src/js/ui/*.js',
+          'src/js/ui/ext.ooui/sp.ui.ext.ooui.Mod.Play.js',
+          'src/js/ui/ext.ooui/sp.ui.ext.ooui.Toolbar.js',
+          'src/js/ui/ext.ooui/tools/sp.ui.ext.ooui.Tool.js',
+          'src/js/ui/ext.ooui/tools/sp.ui.ext.ooui.LabelTool.js',
+          'src/js/ui/ext.ooui/tools/sp.ui.ext.ooui.POVTool.js',
+          'src/js/ui/ext.ooui/tools/sp.ui.ext.ooui.SliderTool.js'
         ],
         dest: 'dist/SolarPlayground.dist.js'
       }
     },
     uglify: {
       options: {
-        banner: '/*! <%= pkg.name %> <%= grunt.template.today("dd-mm-yyyy") %> */\n'
+        banner: '/*! <%= pkg.name %> <%= grunt.template.today("mm-dd-yyyy") %> */\n'
       },
       dist: {
         files: {
@@ -49,32 +52,42 @@ module.exports = function ( grunt ) {
         browser: true,
         globals: {}
       },
+//      dist: [ 'src/js/*.js', 'src/js/**/*.js' ],
       gruntfile: {
         src: 'Gruntfile.js'
       }
     },
     jscs: {
-        CelestialPlayground: [ 'src/*.js', 'src/**/*.js' ],
+        dist: [ 'src/js/*.js', 'src/js/**/*.js' ],
         options: {
             config: ".jscs.json"
         }
     },
-    jsduck: {
-      main: {
-        src: [
-          'src/sp.js',
-          'src/*.js',
-          'src/**/*.js'
-        ],
-        dest: 'docs'
-      }
-    },
-    compass: {
+    sass: {
       dist: {
         options: {
-          sassDir: 'src/sass',
-          cssDir: 'dist/css'
+//          style: 'expanded'
+        },
+        files: {
+          'dist/SolarPlayground.dist.css': 'src/scss/SolarPlayground.scss'
         }
+      }
+    },
+    cssmin: {
+      dist: {
+        files: {
+          'dist/SolarPlayground.dist.css': 'dist/SolarPlayground.dist.min.css'
+        }
+      }
+    },
+    jsduck: {
+      main: {
+        src: [ '<%= concat.dist.dest %>' ],
+/*          'src/js/sp.js',
+          'src/js/*.js',
+          'src/js/**\/*.js',
+        ],*/
+        dest: 'docs'
       }
     },
     // TODO: QUnit tests
@@ -84,18 +97,19 @@ module.exports = function ( grunt ) {
   });
 
   // These plugins provide necessary tasks.
-  grunt.loadNpmTasks('grunt-contrib-concat');
-  grunt.loadNpmTasks('grunt-contrib-uglify');
 //  grunt.loadNpmTasks('grunt-contrib-qunit');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-jscs-checker');
-  grunt.loadNpmTasks('grunt-contrib-compass');
+  grunt.loadNpmTasks('grunt-contrib-sass');
+  grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-contrib-cssmin');
   grunt.loadNpmTasks('grunt-jsduck');
 
   // Default task.
-  grunt.registerTask( 'default', ['jshint', 'jscs', 'concat' ] );
+  grunt.registerTask( 'default', ['jshint', 'jscs', 'concat', 'uglify', 'sass' ] );
   // Build
-  grunt.registerTask( 'build', ['jshint', 'jscs', 'concat', 'uglify' ] );
+  grunt.registerTask( 'build', ['jshint', 'jscs', 'concat', 'uglify', 'sass' ] );
   grunt.registerTask( 'all', ['jshint', 'jscs', 'concat', 'uglify', 'jsduck' ] );
 
 };

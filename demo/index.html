@@ -16,10 +16,9 @@
         <link rel="stylesheet" href="../lib/oojs-ui/dist/oojs-ui.svg.css">
         <link rel="stylesheet" href="../lib/oojs-ui/dist/oojs-ui-apex.css">
 
-        <!-- Celestial Playground files -->
+        <!-- SolarPlayground files -->
         <script type="text/javascript" src="../dist/SolarPlayground.dist.js"></script>
-        <link rel="stylesheet" href="../src/styles/sp.System.css" -->
-        <link rel="stylesheet" href="../src/styles/sp.Gui.ooui.css" -->
+        <link rel="stylesheet" href="../dist/SolarPlayground.dist.css" -->
 
         <style>
             body {
@@ -33,7 +32,7 @@
     </head>
     <body>
         <script type="text/javascript">
-            $( document ).ready( function() {
+            $( document ).ready( function () {
                 var c1, c2, paused = false;
 
                 playground = new sp.System();
@@ -53,21 +52,20 @@
                 } );
 
                 playground.getContainer( 'sp_container_1' )
-                    .loadFromFile( 'geocentric' );
+                    .loadFromFile( 'geocentric', {
+                        'show_grid': true
+                    } );
 
                 playground.getContainer( 'sp_container_2' )
                     .loadFromFile( 'heliocentric' );
 
                 playground.getContainer( 'sp_container_3' )
                     .loadFromFile( 'heliocentric', {
-                        'init_pitch': 35
+                        'show_grid': true,
+                        'init_pitch': 80
                     } );
-
-
             } );
-
         </script>
-
         <h1>Solar Playground Demo (v0.1-alpha)</h1>
         <p>By Moriel Schottlender</p>
         <h2>Geocentric vs Heliocentric</h2>

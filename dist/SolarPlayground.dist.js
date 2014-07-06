@@ -856,6 +856,26 @@ sp.container.Screen.prototype.drawCircle = function ( coords, radius, color, has
 };
 
 /**
+ * Draw a line on the canvas
+ * @param {Object} coords_start Canvas coordinates to start of line
+ * @param {Object} coords_end Canvas coordinates to end of line
+ * @param {string} [color] Line color
+ * @param {string} [width] Line width
+ * @param {boolean} [isDashed] Make the line dashed
+ */
+sp.container.Screen.prototype.drawLine = function ( coords_start, coords_end, color, width, isDashed ) {
+	this.context.beginPath();
+	this.context.moveTo( coords_start.x, coords_start.y );
+	this.context.lineTo( coords_end.x, coords_end.y );
+	if ( isDashed && this.context.setLineDash ) {
+		this.context.setLineDash( [ 5, 7 ] );
+	}
+	this.context.lineWidth = width || 1;
+	this.context.strokeStyle = color || '#ffffff';
+	this.context.stroke();
+};
+
+/**
  * Clear an area on the canvas
  * @param {number} [square] Dimensions and coordinates of the square
  * to clear. If not set, the entire canvas will be cleared.
@@ -1111,7 +1131,7 @@ sp.data.CelestialBody.prototype.getRadius = function () {
  */
 sp.data.Scenario = function SpDataScenario( screen, scenario, config ) {
 	var objects, canvasDimensions,
-		toRadians = 2 * Math.PI / 180;
+		toRadians = Math.PI / 180;
 
 	// Mixin constructors
 	OO.EventEmitter.call( this );
@@ -1131,7 +1151,7 @@ sp.data.Scenario = function SpDataScenario( screen, scenario, config ) {
 
 	// view controller
 	canvasDimensions = this.screen.getDimensions();
-	this.view = new sp.view.Converter( {
+	this.viewConverter = new sp.view.Converter( {
 		'zoom': this.config.init_zoom || 1,
 		'canvasDimensions': canvasDimensions,
 		'yaw': this.config.init_yaw * toRadians || 0,
@@ -1142,7 +1162,15 @@ sp.data.Scenario = function SpDataScenario( screen, scenario, config ) {
 		}
 	} );
 
+	this.grid = new sp.view.Grid( this.screen, {
+		'zoom': this.config.init_zoom || 1,
+		'canvasDimensions': canvasDimensions,
+		'yaw': this.config.init_yaw * toRadians || 0,
+		'pitch': this.config.init_pitch * toRadians || 0
+	} );
+
 	this.showTrails = this.config.show_trails || false;
+	this.showGrid = this.config.show_grid || false;
 	this.frameCounter = 0;
 	this.trailsFrameGap = 5;
 
@@ -1229,7 +1257,7 @@ sp.data.Scenario.prototype.processObjects = function ( scenarioObjects ) {
 	}
 
 	// Send the radii list to the view
-	this.view.setRadiiList( radii );
+	this.viewConverter.setRadiiList( radii );
 
 	// Figure out which objects orbit what
 	for ( co in this.objects ) {
@@ -1242,7 +1270,7 @@ sp.data.Scenario.prototype.processObjects = function ( scenarioObjects ) {
 	// Set initial POV
 	if ( this.pov_key && this.objects[this.pov_key] ) {
 		this.pov_object = this.objects[this.pov_key];
-		this.view.setPOV( this.objects[this.pov_key].getSpaceCoordinates( 0 ) );
+		this.viewConverter.setPOV( this.objects[this.pov_key].getSpaceCoordinates( 0 ) );
 	}
 };
 
@@ -1256,7 +1284,7 @@ sp.data.Scenario.prototype.setPOV = function ( povKey ) {
 		this.pov_key = povKey;
 
 		this.pov_object = this.objects[this.pov_key];
-		this.view.setPOV( this.objects[this.pov_key].getSpaceCoordinates( 0 ) );
+		this.viewConverter.setPOV( this.objects[this.pov_key].getSpaceCoordinates( 0 ) );
 		this.screen.clear();
 		this.flushAllTrails();
 		this.draw();
@@ -1283,23 +1311,27 @@ sp.data.Scenario.prototype.draw = function ( time, ignoreTrails ) {
 
 	time = time || this.time;
 
+	if ( this.showGrid ) {
+		this.grid.draw();
+	}
+
 	for ( o in this.objects ) {
 		coords = this.objects[o].getSpaceCoordinates( time );
 
 		// TODO: Allow POV that isn't an object
 		// Update POV coordinates
 		if ( o === this.pov_key ) {
-			this.view.setPOV( coords );
+			this.viewConverter.setPOV( coords );
 		}
 		// Get graphic details
 		graphic = this.objects[o].getView();
 
 		// Translate coordinates to canvas
-		canvasCoords = this.view.getCoordinates( coords );
+		canvasCoords = this.viewConverter.getCoordinates( coords );
 		if ( canvasCoords ) {
 			// TODO: Allow the user to choose between relative radii and preset radius value
 			// in the view parameters, instead of having the view take precedence randomly
-			radius = this.view.getRadius( this.objects[o].getRadius(), this.objects[o].getType() );
+			radius = this.viewConverter.getRadius( this.objects[o].getRadius(), this.objects[o].getType() );
 
 			// Draw the object
 			this.screen.drawCircle(
@@ -1346,7 +1378,7 @@ sp.data.Scenario.prototype.draw = function ( time, ignoreTrails ) {
 sp.data.Scenario.prototype.flushAllTrails = function () {
 	var o;
 	for ( o in this.objects ) {
-		this.objects[o].flushTrailPoints()
+		this.objects[o].flushTrailPoints();
 	}
 };
 
@@ -1374,7 +1406,7 @@ sp.data.Scenario.prototype.run = function () {
  */
 sp.data.Scenario.prototype.getAllObjects = function () {
 	return this.objects;
-}
+};
 
 /**
  * Toggle between pause and resume the scenario
@@ -1420,7 +1452,7 @@ sp.data.Scenario.prototype.resume = function () {
  * @param {number} z Zoom level, negative for zoom out
  */
 sp.data.Scenario.prototype.setZoom = function ( z ) {
-	this.view.setZoom( z );
+	this.viewConverter.setZoom( z );
 	this.flushAllTrails();
 	if ( this.isPaused() ) {
 		this.screen.clear();
@@ -1434,7 +1466,7 @@ sp.data.Scenario.prototype.setZoom = function ( z ) {
  * @returns {numver} Current zoom level
  */
 sp.data.Scenario.prototype.getZoom = function () {
-	return this.view.getZoom();
+	return this.viewConverter.getZoom();
 };
 
 /**
@@ -1442,7 +1474,7 @@ sp.data.Scenario.prototype.getZoom = function () {
  * @param {Object} coords x/y coordinates of the center of the system
  */
 sp.data.Scenario.prototype.setCenterPoint = function ( coords ) {
-	this.view.setCenterPoint( coords );
+	this.viewConverter.setCenterPoint( coords );
 	this.flushAllTrails();
 	if ( this.isPaused() ) {
 		this.screen.clear();
@@ -1455,7 +1487,7 @@ sp.data.Scenario.prototype.setCenterPoint = function ( coords ) {
  * @returns {Object} x/y coordinates of the current center point
  */
 sp.data.Scenario.prototype.getCenterPoint = function () {
-	return this.view.getCenterPoint();
+	return this.viewConverter.getCenterPoint();
 };
 
 /**
@@ -1464,11 +1496,383 @@ sp.data.Scenario.prototype.getCenterPoint = function () {
  * @param {number} [y] Amount to add to Y coordinate
  */
 sp.data.Scenario.prototype.addToCenterPoint = function ( x, y ) {
-	this.view.addToCenterPoint( x, y );
+	this.viewConverter.addToCenterPoint( x, y );
 }
 
 sp.data.Scenario.prototype.setPitchAngle = function ( pitch ) {
-	this.view.setPitchAngle( pitch );
+	this.viewConverter.setPitchAngle( pitch );
+};
+
+/**
+ * Solar Playground view converter.
+ * Converts between space coordinates and screen coordinates and controls the visual presentation.
+ *
+ * @class sp.view.Converter
+ * @mixins OO.EventEmitter
+ *
+ * @param {Object} [config] Configuration object
+ */
+sp.view.Converter = function SpViewConverter( config ) {
+	// Mixin constructors
+	OO.EventEmitter.call( this );
+
+	// Configuration
+	this.config = config || {};
+
+	this.zoom = this.config.zoom || 1;
+	this.orbit_scale = this.config.orbit_scale || 1;
+	this.yaw = this.config.yaw;
+	this.pitch = this.config.pitch;
+
+	this.canvasDimensions = this.config.canvasDimensions || { 'width': 0, 'height': 0 };
+	this.scenarioCenterPoint = {
+		'x': this.canvasDimensions.width / 2,
+		'y': this.canvasDimensions.height / 2
+	};
+
+	this.pov = { 'x': 0, 'y': 0, 'z': 0 };
+	this.radii_list = null;
+
+	// Set up visible canvas-scaled radius steps in pixels
+	this.radii = {
+		'star': [ 25, 30, 32, 35 ],
+		'planet': [ 4, 8, 10, 12, 14, 16 ]
+	};
+	// Define the step between each value
+	this.radius_step = {
+		'star': 0,
+		'planet': 0
+	};
+};
+
+/* Inheritance */
+OO.mixinClass( sp.view.Converter, OO.EventEmitter );
+
+/* Events */
+
+/**
+ * Change of the POV coordinates in space
+ * @event changePOV
+ * @param {Object} New space coordinates of the POV
+ */
+
+/* Methods */
+
+/**
+ * Set the coordinates of the current POV object
+ * @param {Object} pov_coords The 3d coordinates of the current POV
+ * @fires changePOV
+ */
+sp.view.Converter.prototype.setPOV = function ( pov_coords ) {
+	if ( !pov_coords ) {
+		return;
+	}
+	if ( pov_coords.x !== this.pov.x || pov_coords.y !== this.pov.y ) {
+		this.pov = pov_coords;
+		this.emit( 'changePOV', pov_coords );
+	}
+};
+
+/**
+ * Translate between space coordinates and viewpoint coordinates
+ * on the canvas.
+ * @param {Object} spaceCoords Original 3D space coordinates
+ * @returns {Object} Canvas 2d coordinates
+ */
+sp.view.Converter.prototype.getCoordinates = function ( spaceCoords ) {
+	var ca = Math.cos( this.yaw ),
+		sa = Math.sin( this.yaw ),
+		cb = Math.cos( this.pitch ),
+		sb = Math.sin( this.pitch ),
+		dx = this.scenarioCenterPoint.x,
+		dy = this.scenarioCenterPoint.y,
+		scale = Math.sqrt( this.orbit_scale * this.zoom );
+
+	// TODO: Work out proper scale
+	x = ( spaceCoords.x - this.pov.x ) * scale;
+	y = ( spaceCoords.y - this.pov.y ) * scale;
+	z = ( spaceCoords.z - this.pov.z ) * scale;
+
+	destination = {
+		'x': x * ca - y * sa + dx,
+		'y': x * sa + y * ca
+	};
+	destination.z = destination.y * sb;
+	destination.y = destination.y * cb + dy;
+
+	// Check if destination is inside the canvas. Return null otherwise.
+	if (
+		destination.x > 0 &&
+		destination.x <= this.canvasDimensions.width &&
+		destination.y > 0 &&
+		destination.y <= this.canvasDimensions.height
+	) {
+		return destination;
+	}
+};
+
+/**
+ * Calculate radius size steps from a new radii list
+ * @param {Object} rList Actual size radii of all celestial objects
+ * divided into 'stars' and 'planets' to distinguish relative sizes better
+ */
+sp.view.Converter.prototype.setRadiiList = function ( rList ) {
+	var type, diff;
+
+	this.radii_list = rList;
+
+	for ( type in this.radii_list ) {
+		// Sort by size, ascending
+		this.radii_list[type].sort( function ( a, b ) {
+			return a - b;
+		} );
+
+		// Figure out steps for each of the types
+		diff = this.radii_list[type][this.radii_list[type].length - 1] -
+			this.radii_list[type][0];
+
+		this.radius_step[type] = diff / this.radii[type].length
+	}
+};
+
+/**
+ * Translate between the original radius and the canvas radius in pixels
+ * @param {number} orig_radius Object's original radius
+ * @returns {number} Actual radius in pixels
+ */
+sp.view.Converter.prototype.getRadius = function ( orig_radius, type ) {
+	var radius, index,
+		step = this.radius_step[type] || 1;
+
+	type = type || 'planet';
+	index = Math.floor( orig_radius / step );
+
+	if ( index > this.radii[type].length - 1 ) {
+		index = this.radii[type].length - 1;
+	}
+
+	radius = Math.sqrt( this.radii[type][ index ] * this.zoom ) / 100;
+
+	return ( radius >= 2 ) ? radius : 2;
+};
+
+/**
+ * Increase or decrease scenario zoom levels
+ * @param {number} z Zoom level, negative for zoom out
+ */
+sp.view.Converter.prototype.setZoom = function ( z ) {
+	this.zoom += z;
+};
+
+/**
+ * Get the current zoom factor
+ * @returns {number} zoom Zoom factor
+ */
+sp.view.Converter.prototype.getZoom = function () {
+	return this.zoom;
+};
+
+/**
+ * Set the scenario center point
+ * @param {Object} coords x/y coordinates of the center of the system
+ */
+sp.view.Converter.prototype.setCenterPoint = function ( coords ) {
+	coords = coords || {};
+
+	x = coords.x || 0;
+	y = coords.y || 0;
+
+	this.scenarioCenterPoint = {
+		'x': x,
+		'y': y
+	};
+};
+
+/**
+ * Get the current center point of the view
+ * @returns {Object} x/y coordinates of the current center point
+ */
+sp.view.Converter.prototype.getCenterPoint = function () {
+	return this.scenarioCenterPoint;
+};
+
+/**
+ * Add to the center point
+ * @param {number} [x] Amount to add to X coordinate
+ * @param {number} [y] Amount to add to Y coordinate
+ */
+sp.view.Converter.prototype.addToCenterPoint = function ( x, y ) {
+	x = x || 0;
+	y = y || 0;
+
+	this.scenarioCenterPoint.x += x;
+	this.scenarioCenterPoint.y += y;
+};
+
+/**
+ * Set the pitch angle for the view
+ */
+sp.view.Converter.prototype.setPitchAngle = function ( pitch ) {
+	if ( this.pitch !== pitch ) {
+		this.pitch = pitch;
+		this.emit( 'pitch', this.pitch );
+	}
+};
+
+/**
+ * Solar Playground view grid.
+ * Display a grid on the canvas
+ *
+ * @class
+ * @param {sp.container.Screen} screen Screen handler
+ * @param {Object} [config] Configuration object
+ */
+sp.view.Grid = function SpViewGrid( screen, config ) {
+	// Configuration
+	this.config = config || {};
+
+	this.screen = screen;
+
+	this.color = config.grid_color || '#575757';
+
+	this.zoom = this.config.zoom || 1;
+	this.pitch = this.config.pitch || 0;
+	this.yaw = this.config.yaw;
+	this.spacing = this.config.spacing || { x: 45, y: 45 };
+
+	this.canvasDimensions = this.config.canvasDimensions || { 'width': 0, 'height': 0 };
+	this.scenarioCenterPoint = {
+		'x': this.canvasDimensions.width / 2,
+		'y': this.canvasDimensions.height / 2
+	};
+};
+
+/**
+ * Draw the grid on the canvas, based on the scenario centerpoint
+ * and the pitch and yaw.
+ */
+sp.view.Grid.prototype.draw = function SpViewDraw() {
+	var dx,
+		counter = 0,
+		xtop = 0,
+		xbottom = 0,
+		ypitch = 0,
+		dimensions = this.screen.getDimensions(),
+		context = this.screen.getContext(),
+		center = this.getCenterPoint();
+
+	// Calculate the shift
+	dx = ( center.y / 2 ) * Math.tan( this.pitch );
+	dy = this.spacing.y * Math.cos( this.pitch );
+	maxy = dimensions.width - dx;
+	// Draw grid
+	while (
+		xtop >= 0 && xtop <= dimensions.width ||
+		xbottom >= 0 && xbottom <= dimensions.width
+	) {
+		xtop = ( center.x - dx ) + counter * this.spacing.x;
+		xbottom = ( center.x + dx ) + counter * this.spacing.x;
+		this.screen.drawLine(
+			{
+				'x': xtop,
+				'y': 0
+			},
+			{
+				'x': xbottom,
+				'y': dimensions.height
+			},
+			this.color,
+			1,
+			true
+		);
+
+		// Mirror
+		xtop = ( center.x - dx ) - counter * this.spacing.x;
+		xbottom = ( center.x + dx ) - counter * this.spacing.x;
+		this.screen.drawLine(
+			{
+				'x': xtop,
+				'y': 0
+			},
+			{
+				'x': xbottom,
+				'y': dimensions.height
+			},
+			this.color,
+			1,
+			true
+		);
+		counter++;
+	}
+/*
+	counter = 0;
+	while ( ypitch >= maxy && ypitch <= dimensions.height - maxy ) {
+		ypitch = ( center.y + dy ) + counter * this.spacing.y;
+		this.screen.drawLine(
+			{
+				'x': maxy,
+				'y': ypitch
+			},
+			{
+				'x': dimensions.height - maxy,
+				'y': ypitch
+			},
+			this.color,
+			1,
+			true
+		);
+		// Mirror
+		ypitch = ( center.y - dy ) - counter * this.spacing.y;
+		this.screen.drawLine(
+			{
+				'x': 0,
+				'y': ypitch
+			},
+			{
+				'x': dimensions.width,
+				'y': ypitch
+			},
+			this.color,
+			1,
+			true
+		);
+		counter++;
+	}
+/*
+	// Draw y axis
+	context.beginPath();
+	context.moveTo( 0, center.y );
+	context.lineTo( dimensions.width, center.y );
+	context.strokeStyle = this.color;
+	if ( context.setLineDash ) {
+		context.setLineDash( [ 5, 7 ] );
+	}
+	context.lineWidth = 1;
+	context.stroke();*/
+};
+
+/**
+ * Set the scenario center point
+ * @param {Object} coords x/y coordinates of the center of the system
+ */
+sp.view.Grid.prototype.setCenterPoint = function ( coords ) {
+	coords = coords || {};
+
+	x = coords.x || 0;
+	y = coords.y || 0;
+
+	this.scenarioCenterPoint = {
+		'x': x,
+		'y': y
+	};
+};
+
+/**
+ * Get the current center point of the view
+ * @returns {Object} x/y coordinates of the current center point
+ */
+sp.view.Grid.prototype.getCenterPoint = function () {
+	return this.scenarioCenterPoint;
 };
 
 /**
@@ -2159,6 +2563,77 @@ sp.ui.ext.ooui.ZoomOutTool.prototype.onSelect = function () {
 sp.ui.toolFactory.register( sp.ui.ext.ooui.ZoomOutTool );
 
 /**
+ * Label tool.
+ *
+ * @class
+ * @extends OO.ui.Tool
+ * @constructor
+ * @param {OO.ui.ToolGroup} toolGroup
+ * @param {Object} [config] Configuration options
+ */
+sp.ui.ext.ooui.LabelTool = function SpUiExtOouiLabelTool( toolGroup, config ) {
+	// Parent constructor
+	OO.ui.Tool.call( this, toolGroup, config );
+	// Mixin constructor
+	OO.ui.LabeledElement.call( this, $( '<div>' ), config );
+
+	this.$element.empty();
+	this.$element.append( this.$label.show() );
+};
+
+/* Inheritance */
+
+OO.inheritClass( sp.ui.ext.ooui.LabelTool, OO.ui.Tool );
+OO.mixinClass( sp.ui.ext.ooui.LabelTool, OO.ui.LabeledElement );
+
+/* Methods */
+
+/**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.LabelTool.prototype.onUpdateState = function () {
+	this.setDisabled( !this.toolbar.getContainer().getScenario() );
+};
+
+/**
+ * UserInterface play tool.
+ *
+ * @class
+ * @extends sp.ui.ext.ooui.Tool
+ * @constructor
+ * @param {OO.ui.ToolGroup} toolGroup
+ * @param {Object} [config] Configuration options
+ */
+sp.ui.ext.ooui.ZoomLabelTool = function SpUiExtOouiZoomLabelTool( toolGroup, config ) {
+	sp.ui.ext.ooui.LabelTool.call( this, toolGroup, config );
+};
+OO.inheritClass( sp.ui.ext.ooui.ZoomLabelTool, sp.ui.ext.ooui.LabelTool );
+sp.ui.ext.ooui.ZoomLabelTool.static.name = 'zoomLabel';
+sp.ui.ext.ooui.ZoomLabelTool.static.group = 'zoomTools';
+sp.ui.ext.ooui.ZoomLabelTool.static.title = 'Zoom';
+
+/**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.ZoomLabelTool.prototype.onUpdateState = function () {
+	// Parent
+	sp.ui.ext.ooui.LabelTool.prototype.onUpdateState.apply( this, arguments );
+
+	if ( this.toolbar.getContainer().getScenario() ) {
+		this.setLabel( this.toolbar.getContainer().getScenario().getZoom() );
+	}
+};
+
+/**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.ZoomLabelTool.prototype.onSelect = function () {
+	return false;
+};
+
+sp.ui.toolFactory.register( sp.ui.ext.ooui.ZoomLabelTool );
+
+/**
  * Regular POV list tool.
  *
  * @class
@@ -2264,290 +2739,3 @@ sp.ui.ext.ooui.SpeedSliderTool.static.title = 'speed';
 sp.ui.ext.ooui.SpeedSliderTool.static.commandName = 'speed';
 
 sp.ui.toolFactory.register( sp.ui.ext.ooui.SpeedSliderTool );
-
-/**
- * Label tool.
- *
- * @class
- * @extends OO.ui.Tool
- * @constructor
- * @param {OO.ui.ToolGroup} toolGroup
- * @param {Object} [config] Configuration options
- */
-sp.ui.ext.ooui.LabelTool = function SpUiExtOouiLabelTool( toolGroup, config ) {
-	// Parent constructor
-	OO.ui.Tool.call( this, toolGroup, config );
-	// Mixin constructor
-	OO.ui.LabeledElement.call( this, $( '<div>' ), config );
-
-	this.$element.empty();
-	this.$element.append( this.$label.show() );
-};
-
-/* Inheritance */
-
-OO.inheritClass( sp.ui.ext.ooui.LabelTool, OO.ui.Tool );
-OO.mixinClass( sp.ui.ext.ooui.LabelTool, OO.ui.LabeledElement );
-
-/* Methods */
-
-/**
- * @inheritdoc
- */
-sp.ui.ext.ooui.LabelTool.prototype.onUpdateState = function () {
-	this.setDisabled( !this.toolbar.getContainer().getScenario() );
-};
-
-/**
- * UserInterface play tool.
- *
- * @class
- * @extends sp.ui.ext.ooui.Tool
- * @constructor
- * @param {OO.ui.ToolGroup} toolGroup
- * @param {Object} [config] Configuration options
- */
-sp.ui.ext.ooui.ZoomLabelTool = function SpUiExtOouiZoomLabelTool( toolGroup, config ) {
-	sp.ui.ext.ooui.LabelTool.call( this, toolGroup, config );
-};
-OO.inheritClass( sp.ui.ext.ooui.ZoomLabelTool, sp.ui.ext.ooui.LabelTool );
-sp.ui.ext.ooui.ZoomLabelTool.static.name = 'zoomLabel';
-sp.ui.ext.ooui.ZoomLabelTool.static.group = 'zoomTools';
-sp.ui.ext.ooui.ZoomLabelTool.static.title = 'Zoom';
-
-/**
- * @inheritdoc
- */
-sp.ui.ext.ooui.ZoomLabelTool.prototype.onUpdateState = function () {
-	// Parent
-	sp.ui.ext.ooui.LabelTool.prototype.onUpdateState.apply( this, arguments );
-
-	if ( this.toolbar.getContainer().getScenario() ) {
-		this.setLabel( this.toolbar.getContainer().getScenario().getZoom() );
-	}
-};
-
-/**
- * @inheritdoc
- */
-sp.ui.ext.ooui.ZoomLabelTool.prototype.onSelect = function () {
-	return false;
-};
-
-sp.ui.toolFactory.register( sp.ui.ext.ooui.ZoomLabelTool );
-
-/**
- * Solar Playground view converter.
- * Converts between space coordinates and screen coordinates and controls the visual presentation.
- *
- * @class sp.view.Converter
- * @mixins OO.EventEmitter
- *
- * @param {Object} [config] Configuration object
- */
-sp.view.Converter = function SpViewConverter( config ) {
-	// Mixin constructors
-	OO.EventEmitter.call( this );
-
-	// Configuration
-	this.config = config || {};
-
-	this.zoom = this.config.zoom || 1;
-	this.orbit_scale = this.config.orbit_scale || 1;
-	this.yaw = this.config.yaw;
-	this.pitch = this.config.pitch;
-
-	this.canvasDimensions = this.config.canvasDimensions || { 'width': 0, 'height': 0 };
-	this.centerPoint = {
-		'x': this.canvasDimensions.width / 2,
-		'y': this.canvasDimensions.height / 2
-	};
-
-	this.pov = { 'x': 0, 'y': 0, 'z': 0 };
-	this.radii_list = null;
-
-	// Set up visible canvas-scaled radius steps in pixels
-	this.radii = {
-		'star': [ 25, 30, 32, 35 ],
-		'planet': [ 4, 8, 10, 12, 14, 16 ]
-	};
-	// Define the step between each value
-	this.radius_step = {
-		'star': 0,
-		'planet': 0
-	};
-};
-
-/* Inheritance */
-OO.mixinClass( sp.view.Converter, OO.EventEmitter );
-
-/* Events */
-
-/**
- * Change of the POV coordinates in space
- * @event changePOV
- * @param {Object} New space coordinates of the POV
- */
-
-/* Methods */
-
-/**
- * Set the coordinates of the current POV object
- * @param {Object} pov_coords The 3d coordinates of the current POV
- * @fires changePOV
- */
-sp.view.Converter.prototype.setPOV = function ( pov_coords ) {
-	if ( !pov_coords ) {
-		return;
-	}
-	if ( pov_coords.x !== this.pov.x || pov_coords.y !== this.pov.y ) {
-		this.pov = pov_coords;
-		this.emit( 'changePOV', pov_coords );
-	}
-};
-
-/**
- * Translate between space coordinates and viewpoint coordinates
- * on the canvas.
- * @param {Object} spaceCoords Original 3D space coordinates
- * @returns {Object} Canvas 2d coordinates
- */
-sp.view.Converter.prototype.getCoordinates = function ( spaceCoords ) {
-	var ca = Math.cos( this.yaw ),
-		sa = Math.sin( this.yaw ),
-		cb = Math.cos( this.pitch ),
-		sb = Math.sin( this.pitch ),
-		dx = this.centerPoint.x,
-		dy = this.centerPoint.y,
-		scale = Math.sqrt( this.orbit_scale * this.zoom );
-
-	// TODO: Work out proper scale
-	x = ( spaceCoords.x - this.pov.x ) * scale;
-	y = ( spaceCoords.y - this.pov.y ) * scale;
-	z = ( spaceCoords.z - this.pov.z ) * scale;
-
-	destination = {
-		'x': x * ca - y * sa + dx,
-		'y': x * sa + y * ca
-	};
-	destination.z = destination.y * sb;
-	destination.y = destination.y * cb + dy;
-
-	// Check if destination is inside the canvas. Return null otherwise.
-	if (
-		destination.x > 0 &&
-		destination.x <= this.canvasDimensions.width &&
-		destination.y > 0 &&
-		destination.y <= this.canvasDimensions.height
-	) {
-		return destination;
-	}
-};
-
-/**
- * Calculate radius size steps from a new radii list
- * @param {Object} rList Actual size radii of all celestial objects
- * divided into 'stars' and 'planets' to distinguish relative sizes better
- */
-sp.view.Converter.prototype.setRadiiList = function ( rList ) {
-	var type, diff;
-
-	this.radii_list = rList;
-
-	for ( type in this.radii_list ) {
-		// Sort by size, ascending
-		this.radii_list[type].sort( function ( a, b ) {
-			return a - b;
-		} );
-
-		// Figure out steps for each of the types
-		diff = this.radii_list[type][this.radii_list[type].length - 1] -
-			this.radii_list[type][0];
-
-		this.radius_step[type] = diff / this.radii[type].length
-	}
-};
-
-/**
- * Translate between the original radius and the canvas radius in pixels
- * @param {number} orig_radius Object's original radius
- * @returns {number} Actual radius in pixels
- */
-sp.view.Converter.prototype.getRadius = function ( orig_radius, type ) {
-	var radius, index,
-		step = this.radius_step[type] || 1;
-
-	type = type || 'planet';
-	index = Math.floor( orig_radius / step );
-
-	if ( index > this.radii[type].length - 1 ) {
-		index = this.radii[type].length - 1;
-	}
-
-	radius = Math.sqrt( this.radii[type][ index ] * this.zoom ) / 100;
-
-	return ( radius >= 2 ) ? radius : 2;
-};
-
-/**
- * Increase or decrease scenario zoom levels
- * @param {number} z Zoom level, negative for zoom out
- */
-sp.view.Converter.prototype.setZoom = function ( z ) {
-	this.zoom += z;
-};
-
-/**
- * Get the current zoom factor
- * @returns {number} zoom Zoom factor
- */
-sp.view.Converter.prototype.getZoom = function () {
-	return this.zoom;
-};
-
-/**
- * Set the canvas center point
- * @param {Object} coords x/y coordinates of the center of the system
- */
-sp.view.Converter.prototype.setCenterPoint = function ( coords ) {
-	coords = coords || {};
-
-	x = coords.x || 0;
-	y = coords.y || 0;
-
-	this.centerPoint = {
-		'x': x,
-		'y': y
-	};
-};
-
-/**
- * Get the current center point of the view
- * @returns {Object} x/y coordinates of the current center point
- */
-sp.view.Converter.prototype.getCenterPoint = function () {
-	return this.centerPoint;
-};
-
-/**
- * Add to the center point
- * @param {number} [x] Amount to add to X coordinate
- * @param {number} [y] Amount to add to Y coordinate
- */
-sp.view.Converter.prototype.addToCenterPoint = function ( x, y ) {
-	x = x || 0;
-	y = y || 0;
-
-	this.centerPoint.x += x;
-	this.centerPoint.y += y;
-};
-
-/**
- * Set the pitch angle for the view
- */
-sp.view.Converter.prototype.setPitchAngle = function ( pitch ) {
-	if ( this.pitch !== pitch ) {
-		this.pitch = pitch;
-		this.emit( 'pitch', this.pitch );
-	}
-};
