@@ -857,16 +857,16 @@ sp.container.Screen.prototype.drawCircle = function ( coords, radius, color, has
 
 /**
  * Draw a line on the canvas
- * @param {Object} coords_start Canvas coordinates to start of line
- * @param {Object} coords_end Canvas coordinates to end of line
+ * @param {number[]} coords_start Canvas coordinates to start of line
+ * @param {number[]} coords_end Canvas coordinates to end of line
  * @param {string} [color] Line color
  * @param {string} [width] Line width
  * @param {boolean} [isDashed] Make the line dashed
  */
 sp.container.Screen.prototype.drawLine = function ( coords_start, coords_end, color, width, isDashed ) {
 	this.context.beginPath();
-	this.context.moveTo( coords_start.x, coords_start.y );
-	this.context.lineTo( coords_end.x, coords_end.y );
+	this.context.moveTo( coords_start[0], coords_start[1] );
+	this.context.lineTo( coords_end[0], coords_end[1] );
 	if ( isDashed && this.context.setLineDash ) {
 		this.context.setLineDash( [ 5, 7 ] );
 	}
@@ -1162,12 +1162,7 @@ sp.data.Scenario = function SpDataScenario( screen, scenario, config ) {
 		}
 	} );
 
-	this.grid = new sp.view.Grid( this.screen, {
-		'zoom': this.config.init_zoom || 1,
-		'canvasDimensions': canvasDimensions,
-		'yaw': this.config.init_yaw * toRadians || 0,
-		'pitch': this.config.init_pitch * toRadians || 0
-	} );
+	this.grid = new sp.view.Grid( this.screen, this.viewConverter );
 
 	this.showTrails = this.config.show_trails || false;
 	this.showGrid = this.config.show_grid || false;
@@ -1186,6 +1181,7 @@ sp.data.Scenario = function SpDataScenario( screen, scenario, config ) {
 
 	// Events
 	this.screen.connect( this, { 'drag': 'onScreenDrag' } );
+	this.viewConverter.connect( this, { 'pitch': 'onPitchChange' } );
 };
 
 /* Inheritance */
@@ -1211,6 +1207,12 @@ OO.mixinClass( sp.data.Scenario, OO.EventEmitter );
  * Change the zoom level for the scenario
  */
 
+/**
+ * @event pitch
+ * @param {number} pitch Current pitch angle
+ * Change the pitch angle for display
+ */
+
 /* Methods */
 
 /**
@@ -1232,6 +1234,15 @@ sp.data.Scenario.prototype.onScreenDrag = function ( action, coords ) {
 };
 
 /**
+ * Propogate the pitch event from the view controller
+ * @param {number} pitch Current pitch angle
+ * @fires pitch
+ */
+sp.data.Scenario.prototype.onPitchChange = function ( pitch ) {
+	this.emit( 'pitch', pitch );
+};
+
+/**
  * Process the solar playground simulator objects
  * @param {Object} scenarioObjects Simulation objects definition
  */
@@ -1249,9 +1260,9 @@ sp.data.Scenario.prototype.processObjects = function ( scenarioObjects ) {
 		// Collect all radii
 		if ( scenarioObjects[o].vars.r ) {
 			if ( scenarioObjects[o].type === 'star' ) {
-				radii['star'].push( Number( scenarioObjects[o].vars.r ) );
+				radii.star.push( Number( scenarioObjects[o].vars.r ) );
 			} else {
-				radii['planet'].push( Number( scenarioObjects[o].vars.r ) );
+				radii.planet.push( Number( scenarioObjects[o].vars.r ) );
 			}
 		}
 	}
@@ -1448,6 +1459,34 @@ sp.data.Scenario.prototype.resume = function () {
 };
 
 /**
+ * Toggle the grid display
+ * @param {Boolean} isShowGrid Show grid
+ * @fires grid
+ */
+sp.data.Scenario.prototype.toggleGrid = function ( isShowGrid ) {
+	if ( isShowGrid === undefined ) {
+		isShowGrid = !this.showGrid;
+	}
+	isShowGrid = !!isShowGrid;
+
+	this.showGrid = isShowGrid;
+	// Clear canvas
+	this.screen.clear();
+
+	// Draw canvas
+	this.draw( this.time );
+
+	this.emit( 'grid', this.showGrid );
+};
+
+/**
+ * Check whether the scenario is paused
+ */
+sp.data.Scenario.prototype.isShowGrid = function () {
+	return this.showGrid;
+};
+
+/**
  * Increase or decrease scenario zoom levels
  * @param {number} z Zoom level, negative for zoom out
  */
@@ -1497,10 +1536,27 @@ sp.data.Scenario.prototype.getCenterPoint = function () {
  */
 sp.data.Scenario.prototype.addToCenterPoint = function ( x, y ) {
 	this.viewConverter.addToCenterPoint( x, y );
-}
+};
 
+/**
+ * Set the pitch angle for the scenario
+ * @param {[type]} pitch [description]
+ */
 sp.data.Scenario.prototype.setPitchAngle = function ( pitch ) {
 	this.viewConverter.setPitchAngle( pitch );
+	this.flushAllTrails();
+	if ( this.isPaused() ) {
+		this.screen.clear();
+		this.draw( this.time, true );
+	}
+};
+
+/**
+ * Get the current pitch angle
+ * @returns {number} Pitch angle
+ */
+sp.data.Scenario.prototype.getPitchAngle = function () {
+	return this.viewConverter.getPitchAngle();
 };
 
 /**
@@ -1719,152 +1775,143 @@ sp.view.Converter.prototype.setPitchAngle = function ( pitch ) {
 	}
 };
 
+sp.view.Converter.prototype.getPitchAngle = function () {
+	return this.pitch;
+};
+
 /**
  * Solar Playground view grid.
  * Display a grid on the canvas
  *
  * @class
  * @param {sp.container.Screen} screen Screen handler
+ * @param {sp.view.Converter} view View handler
  * @param {Object} [config] Configuration object
  */
-sp.view.Grid = function SpViewGrid( screen, config ) {
+sp.view.Grid = function SpViewGrid( screen, view, config ) {
+	this.screen = screen;
+	this.viewConverter = view;
+
 	// Configuration
 	this.config = config || {};
 
-	this.screen = screen;
-
-	this.color = config.grid_color || '#575757';
-
-	this.zoom = this.config.zoom || 1;
-	this.pitch = this.config.pitch || 0;
-	this.yaw = this.config.yaw;
+	this.color = this.config.grid_color || '#575757';
 	this.spacing = this.config.spacing || { x: 45, y: 45 };
-
-	this.canvasDimensions = this.config.canvasDimensions || { 'width': 0, 'height': 0 };
-	this.scenarioCenterPoint = {
-		'x': this.canvasDimensions.width / 2,
-		'y': this.canvasDimensions.height / 2
-	};
 };
 
 /**
  * Draw the grid on the canvas, based on the scenario centerpoint
- * and the pitch and yaw.
+ * and the pitch.
  */
 sp.view.Grid.prototype.draw = function SpViewDraw() {
-	var dx,
+	var dx, margin, topPt, botPt,
+		toRadians = Math.PI / 180,
 		counter = 0,
-		xtop = 0,
-		xbottom = 0,
-		ypitch = 0,
 		dimensions = this.screen.getDimensions(),
 		context = this.screen.getContext(),
-		center = this.getCenterPoint();
+		center = this.viewConverter.getCenterPoint(),
+		pitch = this.viewConverter.getPitchAngle();
+	// TODO: Add support for yaw
 
-	// Calculate the shift
-	dx = ( center.y / 2 ) * Math.tan( this.pitch );
-	dy = this.spacing.y * Math.cos( this.pitch );
-	maxy = dimensions.width - dx;
-	// Draw grid
-	while (
-		xtop >= 0 && xtop <= dimensions.width ||
-		xbottom >= 0 && xbottom <= dimensions.width
-	) {
-		xtop = ( center.x - dx ) + counter * this.spacing.x;
-		xbottom = ( center.x + dx ) + counter * this.spacing.x;
-		this.screen.drawLine(
-			{
-				'x': xtop,
-				'y': 0
-			},
-			{
-				'x': xbottom,
-				'y': dimensions.height
-			},
-			this.color,
-			1,
-			true
-		);
+	// TODO: Draw an elliptical grid based on the orbits
 
-		// Mirror
-		xtop = ( center.x - dx ) - counter * this.spacing.x;
-		xbottom = ( center.x + dx ) - counter * this.spacing.x;
-		this.screen.drawLine(
-			{
-				'x': xtop,
-				'y': 0
-			},
-			{
-				'x': xbottom,
-				'y': dimensions.height
-			},
-			this.color,
-			1,
-			true
-		);
-		counter++;
+	// Calculate margin
+	if ( pitch > Math.PI / 4 ) {
+		margin = ( dimensions.height / 2 ) * Math.tan( pitch );
+	} else if ( pitch > 0 && pitch < Math.PI / 4 ) {
+		margin = ( dimensions.height / 2 ) * Math.tan( Math.PI / 4 - pitch );
+	} else {
+		margin = 0;
 	}
-/*
+	H = dimensions.height / 2 - margin;
+	d = H * Math.tan( pitch );
+
+	topEdge = center.y - H;
+	bottomEdge = center.y + H;
+
+	// Draw top and bottom margins
+	this.screen.drawLine(
+		[ 0, topEdge ],
+		[ dimensions.width, topEdge ],
+		this.color, 1, false
+	);
+	this.screen.drawLine(
+		[ 0, bottomEdge ],
+		[ dimensions.width, bottomEdge ],
+		this.color, 1, false
+	);
+
+	// Draw x origin
+	this.screen.drawLine(
+		[ 0, center.y ],
+		[ dimensions.width, center.y ],
+		this.color, 1, false
+	);
+
+	// Draw x grid up and down (from center)
 	counter = 0;
-	while ( ypitch >= maxy && ypitch <= dimensions.height - maxy ) {
-		ypitch = ( center.y + dy ) + counter * this.spacing.y;
+	gridPoint = center.y;
+	while ( gridPoint - this.spacing.x > topEdge ) {
+		gridPoint = center.y - this.spacing.x * counter;
 		this.screen.drawLine(
-			{
-				'x': maxy,
-				'y': ypitch
-			},
-			{
-				'x': dimensions.height - maxy,
-				'y': ypitch
-			},
-			this.color,
-			1,
-			true
-		);
-		// Mirror
-		ypitch = ( center.y - dy ) - counter * this.spacing.y;
-		this.screen.drawLine(
-			{
-				'x': 0,
-				'y': ypitch
-			},
-			{
-				'x': dimensions.width,
-				'y': ypitch
-			},
-			this.color,
-			1,
-			true
+			[ 0, gridPoint ],
+			[ dimensions.width, gridPoint ],
+			this.color, 1, false
 		);
 		counter++;
 	}
-/*
-	// Draw y axis
-	context.beginPath();
-	context.moveTo( 0, center.y );
-	context.lineTo( dimensions.width, center.y );
-	context.strokeStyle = this.color;
-	if ( context.setLineDash ) {
-		context.setLineDash( [ 5, 7 ] );
+
+	counter = 0;
+	gridPoint = center.y;
+	while ( gridPoint + this.spacing.x < bottomEdge ) {
+		gridPoint = center.y + this.spacing.x * counter;
+		this.screen.drawLine(
+			[ 0, gridPoint ],
+			[ dimensions.width, gridPoint ],
+			this.color, 1, false
+		);
+		counter++;
 	}
-	context.lineWidth = 1;
-	context.stroke();*/
-};
 
-/**
- * Set the scenario center point
- * @param {Object} coords x/y coordinates of the center of the system
- */
-sp.view.Grid.prototype.setCenterPoint = function ( coords ) {
-	coords = coords || {};
+	// Draw y origin (tilted as necessary)
+	originGridPointTop = center.x + d;
+	originGridPointBottom = center.x - d;
+	this.screen.drawLine(
+		[ center.x + d, topEdge ],
+		[ center.x - d, bottomEdge ],
+		this.color, 1, false
+	);
 
-	x = coords.x || 0;
-	y = coords.y || 0;
+	// Draw y grid left and right (from center)
+	gridPointTop = originGridPointTop;
+	gridPointBottom = originGridPointBottom;
+	while (
+		gridPointTop > 0 && gridPointTop < dimensions.width ||
+		gridPointBottom > 0 && gridPointBottom < dimensions.width
+	) {
+		gridPointTop += this.spacing.y;
+		gridPointBottom += this.spacing.y;
+		this.screen.drawLine(
+			[ gridPointTop, topEdge ],
+			[ gridPointBottom, bottomEdge ],
+			this.color, 1, false
+		);
+	}
 
-	this.scenarioCenterPoint = {
-		'x': x,
-		'y': y
-	};
+	gridPointTop = originGridPointTop;
+	gridPointBottom = originGridPointBottom;
+	while (
+		gridPointTop > 0 && gridPointTop < dimensions.width ||
+		gridPointBottom > 0 && gridPointBottom < dimensions.width
+	) {
+		gridPointTop -= this.spacing.y;
+		gridPointBottom -= this.spacing.y;
+		this.screen.drawLine(
+			[ gridPointTop, topEdge ],
+			[ gridPointBottom, bottomEdge ],
+			this.color, 1, false
+		);
+	}
 };
 
 /**
@@ -1872,7 +1919,7 @@ sp.view.Grid.prototype.setCenterPoint = function ( coords ) {
  * @returns {Object} x/y coordinates of the current center point
  */
 sp.view.Grid.prototype.getCenterPoint = function () {
-	return this.scenarioCenterPoint;
+	return this.viewConverter.getCenterPoint();
 };
 
 /**
@@ -2156,7 +2203,9 @@ sp.ui.ext.ooui.Mod.Play.static.toolbarGroups = [
 	// Play tools
 	{
 		'type': 'bar',
-		'include': [ { 'group': 'playTools' } ]
+		'include': [ { 'group': 'playTools' } ],
+		// TODO: Figure out a better organization for the toolbar
+		'exclude': [ 'pause' ]
 	},
 	// POV menu
 	{
@@ -2173,7 +2222,8 @@ sp.ui.ext.ooui.Mod.Play.static.toolbarGroups = [
 	},
 	{
 		'type': 'bar',
-		'include': [ { 'group': 'viewTools' } ]
+		'include': [ { 'group': 'viewTools' } ],
+		'exclude': [ 'speed' ]
 	}
 ];
 
@@ -2238,6 +2288,7 @@ sp.ui.ext.ooui.Mod.Play.prototype.onScenarioLoaded = function () {
 	// Events
 	this.container.getScenario().connect( this, { 'pause': [ 'onScenarioChanged', 'play' ] } );
 	this.container.getScenario().connect( this, { 'pov': [ 'onScenarioChanged', 'pov' ] } );
+	this.container.getScenario().connect( this, { 'grid': [ 'onScenarioChanged', 'grid' ] } );
 
 	// Update the toolbar
 	this.toolbar.emit( 'updateState' );
@@ -2561,6 +2612,132 @@ sp.ui.ext.ooui.ZoomOutTool.prototype.onSelect = function () {
 };
 
 sp.ui.toolFactory.register( sp.ui.ext.ooui.ZoomOutTool );
+
+/**
+ * UserInterface grid tool.
+ *
+ * @class
+ * @extends sp.ui.ext.ooui.Tool
+ * @constructor
+ * @param {OO.ui.ToolGroup} toolGroup
+ * @param {Object} [config] Configuration options
+ */
+sp.ui.ext.ooui.GridTool = function SpUiExtOouiGridTool( toolGroup, config ) {
+	sp.ui.ext.ooui.Tool.call( this, toolGroup, config );
+};
+OO.inheritClass( sp.ui.ext.ooui.GridTool, sp.ui.ext.ooui.Tool );
+sp.ui.ext.ooui.GridTool.static.name = 'grid';
+sp.ui.ext.ooui.GridTool.static.group = 'viewTools';
+sp.ui.ext.ooui.GridTool.static.icon = 'grid';
+sp.ui.ext.ooui.GridTool.static.title = 'grid';
+sp.ui.ext.ooui.GridTool.static.commandName = 'grid';
+
+/**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.GridTool.prototype.onUpdateState = function () {
+	var isPaused = false;
+	// Parent
+	sp.ui.ext.ooui.Tool.prototype.onUpdateState.apply( this, arguments );
+
+	if ( this.toolbar.getContainer().getScenario() ) {
+		this.setActive( this.toolbar.getContainer().getScenario().isShowGrid() );
+	}
+};
+
+/**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.GridTool.prototype.onSelect = function () {
+	// toggle grid
+	this.toolbar.getContainer().getScenario().toggleGrid();
+};
+
+sp.ui.toolFactory.register( sp.ui.ext.ooui.GridTool );
+
+/**
+ * UserInterface zoom in tool.
+ *
+ * @class
+ * @extends sp.ui.ext.ooui.Tool
+ * @constructor
+ * @param {OO.ui.ToolGroup} toolGroup
+ * @param {Object} [config] Configuration options
+ */
+sp.ui.ext.ooui.PitchTool = function SpUiExtOouiPitchTool( toolGroup, config ) {
+	sp.ui.ext.ooui.Tool.call( this, toolGroup, config );
+};
+OO.inheritClass( sp.ui.ext.ooui.PitchTool, sp.ui.ext.ooui.Tool );
+sp.ui.ext.ooui.PitchTool.static.group = 'viewTools';
+sp.ui.ext.ooui.PitchTool.static.deactivateOnSelect = true;
+/**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.PitchTool.prototype.onUpdateState = function () {
+	// Parent
+	sp.ui.ext.ooui.Tool.prototype.onUpdateState.apply( this, arguments );
+	this.setDisabled( !!!this.toolbar.getContainer().getScenario() );
+};
+
+/**
+ * @inheritdoc
+ */
+sp.ui.ext.ooui.PitchTool.prototype.onSelect = function () {
+	var toDeg = 180 / Math.PI,
+		toRadians = Math.PI / 180,
+		scenario = this.toolbar.getContainer().getScenario();
+
+	// Change to degrees so we can increase/decrease
+	pitch = Math.floor( scenario.getPitchAngle() * toDeg );
+	pitch += this.constructor.static.changeAngle;
+
+	// Change pitch (back to radians)
+	this.toolbar.getContainer().getScenario().setPitchAngle( pitch * toRadians );
+	// Parent
+	sp.ui.ext.ooui.Tool.prototype.onSelect.call( this );
+};
+
+/**
+ * UserInterface tilt up tool
+ *
+ * @class
+ * @extends sp.ui.ext.ooui.PitchTool
+ * @constructor
+ * @param {OO.ui.ToolGroup} toolGroup
+ * @param {Object} [config] Configuration options
+ */
+sp.ui.ext.ooui.TiltUpTool = function SpUiExtOouiZoomInTool( toolGroup, config ) {
+	sp.ui.ext.ooui.PitchTool.call( this, toolGroup, config );
+};
+OO.inheritClass( sp.ui.ext.ooui.TiltUpTool, sp.ui.ext.ooui.PitchTool );
+sp.ui.ext.ooui.TiltUpTool.static.name = 'tiltup';
+sp.ui.ext.ooui.TiltUpTool.static.icon = 'tiltup';
+sp.ui.ext.ooui.TiltUpTool.static.title = 'Tilt up';
+sp.ui.ext.ooui.TiltUpTool.static.changeAngle = 10;
+sp.ui.ext.ooui.TiltUpTool.static.commandName = 'tiltup';
+
+sp.ui.toolFactory.register( sp.ui.ext.ooui.TiltUpTool );
+
+/**
+ * UserInterface tilt down tool
+ *
+ * @class
+ * @extends sp.ui.ext.ooui.PitchTool
+ * @constructor
+ * @param {OO.ui.ToolGroup} toolGroup
+ * @param {Object} [config] Configuration options
+ */
+sp.ui.ext.ooui.TiltDownTool = function SpUiExtOouiZoomInTool( toolGroup, config ) {
+	sp.ui.ext.ooui.PitchTool.call( this, toolGroup, config );
+};
+OO.inheritClass( sp.ui.ext.ooui.TiltDownTool, sp.ui.ext.ooui.PitchTool );
+sp.ui.ext.ooui.TiltDownTool.static.name = 'tiltdown';
+sp.ui.ext.ooui.TiltDownTool.static.icon = 'tiltdown';
+sp.ui.ext.ooui.TiltDownTool.static.title = 'Tilt down';
+sp.ui.ext.ooui.TiltDownTool.static.changeAngle = -10;
+sp.ui.ext.ooui.TiltDownTool.static.commandName = 'tiltdown';
+
+sp.ui.toolFactory.register( sp.ui.ext.ooui.TiltDownTool );
 
 /**
  * Label tool.

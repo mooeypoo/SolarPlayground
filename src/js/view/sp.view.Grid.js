@@ -4,146 +4,133 @@
  *
  * @class
  * @param {sp.container.Screen} screen Screen handler
+ * @param {sp.view.Converter} view View handler
  * @param {Object} [config] Configuration object
  */
-sp.view.Grid = function SpViewGrid( screen, config ) {
+sp.view.Grid = function SpViewGrid( screen, view, config ) {
+	this.screen = screen;
+	this.viewConverter = view;
+
 	// Configuration
 	this.config = config || {};
 
-	this.screen = screen;
-
-	this.color = config.grid_color || '#575757';
-
-	this.zoom = this.config.zoom || 1;
-	this.pitch = this.config.pitch || 0;
-	this.yaw = this.config.yaw;
+	this.color = this.config.grid_color || '#575757';
 	this.spacing = this.config.spacing || { x: 45, y: 45 };
-
-	this.canvasDimensions = this.config.canvasDimensions || { 'width': 0, 'height': 0 };
-	this.scenarioCenterPoint = {
-		'x': this.canvasDimensions.width / 2,
-		'y': this.canvasDimensions.height / 2
-	};
 };
 
 /**
  * Draw the grid on the canvas, based on the scenario centerpoint
- * and the pitch and yaw.
+ * and the pitch.
  */
 sp.view.Grid.prototype.draw = function SpViewDraw() {
-	var dx,
+	var dx, margin, topPt, botPt,
+		toRadians = Math.PI / 180,
 		counter = 0,
-		xtop = 0,
-		xbottom = 0,
-		ypitch = 0,
 		dimensions = this.screen.getDimensions(),
 		context = this.screen.getContext(),
-		center = this.getCenterPoint();
+		center = this.viewConverter.getCenterPoint(),
+		pitch = this.viewConverter.getPitchAngle();
+	// TODO: Add support for yaw
 
-	// Calculate the shift
-	dx = ( center.y / 2 ) * Math.tan( this.pitch );
-//	dy = this.spacing.y * Math.cos( this.pitch );
-//	maxy = dimensions.width - dx;
-	// Draw grid
-	while (
-		xtop >= 0 && xtop <= dimensions.width ||
-		xbottom >= 0 && xbottom <= dimensions.width
-	) {
-		xtop = ( center.x - dx ) + counter * this.spacing.x;
-		xbottom = ( center.x + dx ) + counter * this.spacing.x;
-		this.screen.drawLine(
-			{
-				'x': xtop,
-				'y': 0
-			},
-			{
-				'x': xbottom,
-				'y': dimensions.height
-			},
-			this.color,
-			1,
-			true
-		);
+	// TODO: Draw an elliptical grid based on the orbits
 
-		// Mirror
-		xtop = ( center.x - dx ) - counter * this.spacing.x;
-		xbottom = ( center.x + dx ) - counter * this.spacing.x;
-		this.screen.drawLine(
-			{
-				'x': xtop,
-				'y': 0
-			},
-			{
-				'x': xbottom,
-				'y': dimensions.height
-			},
-			this.color,
-			1,
-			true
-		);
-		counter++;
+	// Calculate margin
+	if ( pitch > Math.PI / 4 ) {
+		margin = ( dimensions.height / 2 ) * Math.tan( pitch );
+	} else if ( pitch > 0 && pitch < Math.PI / 4 ) {
+		margin = ( dimensions.height / 2 ) * Math.tan( Math.PI / 4 - pitch );
+	} else {
+		margin = 0;
 	}
-/*
+	H = dimensions.height / 2 - margin;
+	d = H * Math.tan( pitch );
+
+	topEdge = center.y - H;
+	bottomEdge = center.y + H;
+
+	// Draw top and bottom margins
+	this.screen.drawLine(
+		[ 0, topEdge ],
+		[ dimensions.width, topEdge ],
+		this.color, 1, false
+	);
+	this.screen.drawLine(
+		[ 0, bottomEdge ],
+		[ dimensions.width, bottomEdge ],
+		this.color, 1, false
+	);
+
+	// Draw x origin
+	this.screen.drawLine(
+		[ 0, center.y ],
+		[ dimensions.width, center.y ],
+		this.color, 1, false
+	);
+
+	// Draw x grid up and down (from center)
 	counter = 0;
-	while ( ypitch >= maxy && ypitch <= dimensions.height - maxy ) {
-		ypitch = ( center.y + dy ) + counter * this.spacing.y;
+	gridPoint = center.y;
+	while ( gridPoint - this.spacing.x > topEdge ) {
+		gridPoint = center.y - this.spacing.x * counter;
 		this.screen.drawLine(
-			{
-				'x': maxy,
-				'y': ypitch
-			},
-			{
-				'x': dimensions.height - maxy,
-				'y': ypitch
-			},
-			this.color,
-			1,
-			true
-		);
-		// Mirror
-		ypitch = ( center.y - dy ) - counter * this.spacing.y;
-		this.screen.drawLine(
-			{
-				'x': 0,
-				'y': ypitch
-			},
-			{
-				'x': dimensions.width,
-				'y': ypitch
-			},
-			this.color,
-			1,
-			true
+			[ 0, gridPoint ],
+			[ dimensions.width, gridPoint ],
+			this.color, 1, false
 		);
 		counter++;
 	}
-/*
-	// Draw y axis
-	context.beginPath();
-	context.moveTo( 0, center.y );
-	context.lineTo( dimensions.width, center.y );
-	context.strokeStyle = this.color;
-	if ( context.setLineDash ) {
-		context.setLineDash( [ 5, 7 ] );
+
+	counter = 0;
+	gridPoint = center.y;
+	while ( gridPoint + this.spacing.x < bottomEdge ) {
+		gridPoint = center.y + this.spacing.x * counter;
+		this.screen.drawLine(
+			[ 0, gridPoint ],
+			[ dimensions.width, gridPoint ],
+			this.color, 1, false
+		);
+		counter++;
 	}
-	context.lineWidth = 1;
-	context.stroke();*/
-};
 
-/**
- * Set the scenario center point
- * @param {Object} coords x/y coordinates of the center of the system
- */
-sp.view.Grid.prototype.setCenterPoint = function ( coords ) {
-	coords = coords || {};
+	// Draw y origin (tilted as necessary)
+	originGridPointTop = center.x + d;
+	originGridPointBottom = center.x - d;
+	this.screen.drawLine(
+		[ center.x + d, topEdge ],
+		[ center.x - d, bottomEdge ],
+		this.color, 1, false
+	);
 
-	x = coords.x || 0;
-	y = coords.y || 0;
+	// Draw y grid left and right (from center)
+	gridPointTop = originGridPointTop;
+	gridPointBottom = originGridPointBottom;
+	while (
+		gridPointTop > 0 && gridPointTop < dimensions.width ||
+		gridPointBottom > 0 && gridPointBottom < dimensions.width
+	) {
+		gridPointTop += this.spacing.y;
+		gridPointBottom += this.spacing.y;
+		this.screen.drawLine(
+			[ gridPointTop, topEdge ],
+			[ gridPointBottom, bottomEdge ],
+			this.color, 1, false
+		);
+	}
 
-	this.scenarioCenterPoint = {
-		'x': x,
-		'y': y
-	};
+	gridPointTop = originGridPointTop;
+	gridPointBottom = originGridPointBottom;
+	while (
+		gridPointTop > 0 && gridPointTop < dimensions.width ||
+		gridPointBottom > 0 && gridPointBottom < dimensions.width
+	) {
+		gridPointTop -= this.spacing.y;
+		gridPointBottom -= this.spacing.y;
+		this.screen.drawLine(
+			[ gridPointTop, topEdge ],
+			[ gridPointBottom, bottomEdge ],
+			this.color, 1, false
+		);
+	}
 };
 
 /**
@@ -151,5 +138,5 @@ sp.view.Grid.prototype.setCenterPoint = function ( coords ) {
  * @returns {Object} x/y coordinates of the current center point
  */
 sp.view.Grid.prototype.getCenterPoint = function () {
-	return this.scenarioCenterPoint;
+	return this.viewConverter.getCenterPoint();
 };

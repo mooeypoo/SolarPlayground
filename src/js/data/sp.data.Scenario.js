@@ -42,12 +42,7 @@ sp.data.Scenario = function SpDataScenario( screen, scenario, config ) {
 		}
 	} );
 
-	this.grid = new sp.view.Grid( this.screen, {
-		'zoom': this.config.init_zoom || 1,
-		'canvasDimensions': canvasDimensions,
-		'yaw': this.config.init_yaw * toRadians || 0,
-		'pitch': this.config.init_pitch * toRadians || 0
-	} );
+	this.grid = new sp.view.Grid( this.screen, this.viewConverter );
 
 	this.showTrails = this.config.show_trails || false;
 	this.showGrid = this.config.show_grid || false;
@@ -66,6 +61,7 @@ sp.data.Scenario = function SpDataScenario( screen, scenario, config ) {
 
 	// Events
 	this.screen.connect( this, { 'drag': 'onScreenDrag' } );
+	this.viewConverter.connect( this, { 'pitch': 'onPitchChange' } );
 };
 
 /* Inheritance */
@@ -91,6 +87,12 @@ OO.mixinClass( sp.data.Scenario, OO.EventEmitter );
  * Change the zoom level for the scenario
  */
 
+/**
+ * @event pitch
+ * @param {number} pitch Current pitch angle
+ * Change the pitch angle for display
+ */
+
 /* Methods */
 
 /**
@@ -112,6 +114,15 @@ sp.data.Scenario.prototype.onScreenDrag = function ( action, coords ) {
 };
 
 /**
+ * Propogate the pitch event from the view controller
+ * @param {number} pitch Current pitch angle
+ * @fires pitch
+ */
+sp.data.Scenario.prototype.onPitchChange = function ( pitch ) {
+	this.emit( 'pitch', pitch );
+};
+
+/**
  * Process the solar playground simulator objects
  * @param {Object} scenarioObjects Simulation objects definition
  */
@@ -129,9 +140,9 @@ sp.data.Scenario.prototype.processObjects = function ( scenarioObjects ) {
 		// Collect all radii
 		if ( scenarioObjects[o].vars.r ) {
 			if ( scenarioObjects[o].type === 'star' ) {
-				radii['star'].push( Number( scenarioObjects[o].vars.r ) );
+				radii.star.push( Number( scenarioObjects[o].vars.r ) );
 			} else {
-				radii['planet'].push( Number( scenarioObjects[o].vars.r ) );
+				radii.planet.push( Number( scenarioObjects[o].vars.r ) );
 			}
 		}
 	}
@@ -328,6 +339,34 @@ sp.data.Scenario.prototype.resume = function () {
 };
 
 /**
+ * Toggle the grid display
+ * @param {Boolean} isShowGrid Show grid
+ * @fires grid
+ */
+sp.data.Scenario.prototype.toggleGrid = function ( isShowGrid ) {
+	if ( isShowGrid === undefined ) {
+		isShowGrid = !this.showGrid;
+	}
+	isShowGrid = !!isShowGrid;
+
+	this.showGrid = isShowGrid;
+	// Clear canvas
+	this.screen.clear();
+
+	// Draw canvas
+	this.draw( this.time );
+
+	this.emit( 'grid', this.showGrid );
+};
+
+/**
+ * Check whether the scenario is paused
+ */
+sp.data.Scenario.prototype.isShowGrid = function () {
+	return this.showGrid;
+};
+
+/**
  * Increase or decrease scenario zoom levels
  * @param {number} z Zoom level, negative for zoom out
  */
@@ -377,8 +416,25 @@ sp.data.Scenario.prototype.getCenterPoint = function () {
  */
 sp.data.Scenario.prototype.addToCenterPoint = function ( x, y ) {
 	this.viewConverter.addToCenterPoint( x, y );
-}
+};
 
+/**
+ * Set the pitch angle for the scenario
+ * @param {[type]} pitch [description]
+ */
 sp.data.Scenario.prototype.setPitchAngle = function ( pitch ) {
 	this.viewConverter.setPitchAngle( pitch );
+	this.flushAllTrails();
+	if ( this.isPaused() ) {
+		this.screen.clear();
+		this.draw( this.time, true );
+	}
+};
+
+/**
+ * Get the current pitch angle
+ * @returns {number} Pitch angle
+ */
+sp.data.Scenario.prototype.getPitchAngle = function () {
+	return this.viewConverter.getPitchAngle();
 };

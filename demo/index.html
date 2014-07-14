@@ -1,76 +1,76 @@
 <!DOCTYPE html>
 <html class="no-js">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>Solar Playground >> Moriel Schottlender</title>
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+		<head>
+			<meta charset="utf-8">
+			<meta http-equiv="X-UA-Compatible" content="IE=edge">
+			<title>Solar Playground >> Moriel Schottlender</title>
+			<meta name="description" content="">
+			<meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <!-- Libraries -->
-        <script type="text/javascript" src="../lib/jquery-1.11.1.min.js"></script>
-        <script type="text/javascript" src="../lib/oojs/dist/oojs.js"></script>
+			<!-- Libraries -->
+			<script type="text/javascript" src="../lib/jquery-1.11.1.min.js"></script>
+			<script type="text/javascript" src="../lib/oojs/dist/oojs.js"></script>
 
-        <!-- OOJS-UI -->
-        <script src="../lib/oojs-ui/dist/oojs-ui.js"></script>
-        <link rel="stylesheet" href="../lib/oojs-ui/dist/oojs-ui.svg.css">
-        <link rel="stylesheet" href="../lib/oojs-ui/dist/oojs-ui-apex.css">
+			<!-- OOJS-UI -->
+			<script src="../lib/oojs-ui/dist/oojs-ui.js"></script>
+			<link rel="stylesheet" href="../lib/oojs-ui/dist/oojs-ui.svg.css">
+			<link rel="stylesheet" href="../lib/oojs-ui/dist/oojs-ui-apex.css">
 
-        <!-- SolarPlayground files -->
-        <script type="text/javascript" src="../dist/SolarPlayground.dist.js"></script>
-        <link rel="stylesheet" href="../dist/SolarPlayground.dist.css" -->
+			<!-- SolarPlayground files -->
+			<script type="text/javascript" src="../dist/SolarPlayground.dist.js"></script>
+			<link rel="stylesheet" href="../dist/SolarPlayground.dist.css" -->
 
-        <style>
-            body {
-                font-family: verdana;
-                color: #ffffff;
-                background-color: #333333;
-            }
+			<style>
+				body {
+					font-family: verdana;
+					color: #ffffff;
+					background-color: #333333;
+				}
 
-            h1 { font-size: 22px; }
-        </style>
-    </head>
-    <body>
-        <script type="text/javascript">
-            $( document ).ready( function () {
-                var c1, c2, paused = false;
+				h1 { font-size: 22px; }
+			</style>
+		</head>
+		<body>
+			<script type="text/javascript">
+				$( document ).ready( function () {
+					var c1, c2, paused = false;
 
-                playground = new sp.System();
+					playground = new sp.System();
 
-                playground.setContainer( 'sp_container_1', {
-                    'width': 400,
-                    'height': 400
-                } );
-                playground.setContainer( 'sp_container_2', {
-                    'width': 400,
-                    'height': 400
-                } );
+					playground.setContainer( 'sp_container_1', {
+						'width': 400,
+						'height': 400
+					} );
+					playground.setContainer( 'sp_container_2', {
+						'width': 400,
+						'height': 400
+					} );
 
-                playground.setContainer( 'sp_container_3', {
-                    'width': 400,
-                    'height': 400
-                } );
+					playground.setContainer( 'sp_container_3', {
+						'width': 400,
+						'height': 400
+					} );
 
-                playground.getContainer( 'sp_container_1' )
-                    .loadFromFile( 'geocentric', {
-                        'show_grid': true
-                    } );
+					playground.getContainer( 'sp_container_1' )
+						.loadFromFile( 'geocentric', {
+							'show_grid': true
+						} );
 
-                playground.getContainer( 'sp_container_2' )
-                    .loadFromFile( 'heliocentric' );
+					playground.getContainer( 'sp_container_2' )
+						.loadFromFile( 'heliocentric' );
 
-                playground.getContainer( 'sp_container_3' )
-                    .loadFromFile( 'heliocentric', {
-                        'show_grid': true,
-                        'init_pitch': 80
-                    } );
-            } );
-        </script>
-        <h1>Solar Playground Demo (v0.1-alpha)</h1>
-        <p>By Moriel Schottlender</p>
-        <h2>Geocentric vs Heliocentric</h2>
-        <div id="sp_container_1"></div>
-        <div id="sp_container_2"></div>
-        <div id="sp_container_3"></div>
-    </body>
+					playground.getContainer( 'sp_container_3' )
+						.loadFromFile( 'heliocentric', {
+							'show_grid': true,
+							'init_pitch': 30
+						} );
+				} );
+			</script>
+			<h1>Solar Playground Demo (v0.1-alpha)</h1>
+			<p>By Moriel Schottlender</p>
+			<h2>Geocentric vs Heliocentric</h2>
+			<div id="sp_container_1"></div>
+			<div id="sp_container_2"></div>
+			<div id="sp_container_3"></div>
+		</body>
 </html>

@@ -213,3 +213,7 @@ sp.view.Converter.prototype.setPitchAngle = function ( pitch ) {
 		this.emit( 'pitch', this.pitch );
 	}
 };
+
+sp.view.Converter.prototype.getPitchAngle = function () {
+	return this.pitch;
+};

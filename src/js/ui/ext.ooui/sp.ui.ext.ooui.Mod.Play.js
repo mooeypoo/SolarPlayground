@@ -41,7 +41,9 @@ sp.ui.ext.ooui.Mod.Play.static.toolbarGroups = [
 	// Play tools
 	{
 		'type': 'bar',
-		'include': [ { 'group': 'playTools' } ]
+		'include': [ { 'group': 'playTools' } ],
+		// TODO: Figure out a better organization for the toolbar
+		'exclude': [ 'pause' ]
 	},
 	// POV menu
 	{
@@ -58,7 +60,8 @@ sp.ui.ext.ooui.Mod.Play.static.toolbarGroups = [
 	},
 	{
 		'type': 'bar',
-		'include': [ { 'group': 'viewTools' } ]
+		'include': [ { 'group': 'viewTools' } ],
+		'exclude': [ 'speed' ]
 	}
 ];
 
@@ -123,6 +126,7 @@ sp.ui.ext.ooui.Mod.Play.prototype.onScenarioLoaded = function () {
 	// Events
 	this.container.getScenario().connect( this, { 'pause': [ 'onScenarioChanged', 'play' ] } );
 	this.container.getScenario().connect( this, { 'pov': [ 'onScenarioChanged', 'pov' ] } );
+	this.container.getScenario().connect( this, { 'grid': [ 'onScenarioChanged', 'grid' ] } );
 
 	// Update the toolbar
 	this.toolbar.emit( 'updateState' );

@@ -122,16 +122,16 @@ sp.container.Screen.prototype.drawCircle = function ( coords, radius, color, has
 
 /**
  * Draw a line on the canvas
- * @param {Object} coords_start Canvas coordinates to start of line
- * @param {Object} coords_end Canvas coordinates to end of line
+ * @param {number[]} coords_start Canvas coordinates to start of line
+ * @param {number[]} coords_end Canvas coordinates to end of line
  * @param {string} [color] Line color
  * @param {string} [width] Line width
  * @param {boolean} [isDashed] Make the line dashed
  */
 sp.container.Screen.prototype.drawLine = function ( coords_start, coords_end, color, width, isDashed ) {
 	this.context.beginPath();
-	this.context.moveTo( coords_start.x, coords_start.y );
-	this.context.lineTo( coords_end.x, coords_end.y );
+	this.context.moveTo( coords_start[0], coords_start[1] );
+	this.context.lineTo( coords_end[0], coords_end[1] );
 	if ( isDashed && this.context.setLineDash ) {
 		this.context.setLineDash( [ 5, 7 ] );
 	}
