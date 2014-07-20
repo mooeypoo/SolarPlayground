@@ -5,9 +5,7 @@
  *
  * @param {Object} [config] Configuration object
  */
-sp.calc.Calculator = function SpScenarioCalculator( config ) {
-
-};
+sp.calc.Calculator = function SpScenarioCalculator( config ) {};
 
 /**
  * Astronomical constants. Mostly related to the solar
