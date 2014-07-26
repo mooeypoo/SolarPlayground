@@ -22,13 +22,50 @@
 			<link rel="stylesheet" href="dist/SolarPlayground.dist.css" -->
 
 			<style>
-				body {
-					font-family: verdana;
-					color: #ffffff;
-					background-color: #333333;
+				body, html {
+					background-color: #cccccc;
+					padding: 0;
+					margin: 0;
 				}
-
-				h1 { font-size: 22px; }
+				#main {
+					font-family: verdana;
+					color: #111111;
+					padding-left: 2em;
+					padding-right: 2em;
+					width: 950px;
+					margin-left: auto;
+					margin-right: auto;
+				}
+				#topbar_back {
+					background-color: #111111;
+					width: 100%;
+					display: inline-block;
+				}
+				#topbar {
+					width: 950px;
+					margin-left: auto;
+					margin-right: auto;
+				}
+				#logo {
+					float: left;
+					background: url( 'logo.png' );
+					width: 585px;
+					height: 185px;
+					margin-bottom: 20px;
+				}
+				#version {
+					color: #cccccc;
+					margin-top: 120px;
+					float: left;
+				}
+				#version h1 {
+					font-size: 1.5em;
+					margin: 0;
+				}
+				#version h2 {
+					font-size: 1em;
+					margin: 5px 0 0 0;
+				}
 			</style>
 		</head>
 		<body>
@@ -40,40 +77,46 @@
 						'scenario_dir': 'demo/scenarios'
 					} );
 
-					playground.setContainer( 'sp_container_1', {
-						'width': 400,
-						'height': 400
-					} );
-					playground.setContainer( 'sp_container_2', {
-						'width': 400,
-						'height': 400
-					} );
-
-					playground.setContainer( 'sp_container_3', {
-						'width': 400,
-						'height': 400
-					} );
-
-					playground.getContainer( 'sp_container_1' )
+					playground
+						.setContainer( 'sp_container_1', {
+							'width': 400,
+							'height': 400
+						} )
 						.loadFromFile( 'geocentric', {
 							'show_grid': true
 						} );
 
-					playground.getContainer( 'sp_container_2' )
+					playground
+						.setContainer( 'sp_container_2', {
+							'width': 400,
+							'height': 400
+						} )
 						.loadFromFile( 'heliocentric' );
 
-					playground.getContainer( 'sp_container_3' )
+					playground
+						.setContainer( 'sp_container_3', {
+							'width': 400,
+							'height': 400
+						} )
 						.loadFromFile( 'heliocentric', {
 							'show_grid': true,
 							'init_pitch': 30
 						} );
+
 				} );
 			</script>
-			<h1>Solar Playground Demo (v0.1-alpha)</h1>
-			<p>By Moriel Schottlender</p>
-			<h2>Geocentric vs Heliocentric</h2>
-			<div id="sp_container_1"></div>
-			<div id="sp_container_2"></div>
-			<div id="sp_container_3"></div>
+			<div id="topbar_back">
+				<div id="topbar">
+					<div id="logo"></div>
+					<div id="version"><h1>v 1.0-Alpha</h1><h2>by Moriel Schottlender</h2></div>
+				</div>
+			</div>
+			<div id="main">
+				<p>By Moriel Schottlender</p>
+				<h2>Geocentric vs Heliocentric</h2>
+				<div id="sp_container_1"></div>
+				<div id="sp_container_2"></div>
+				<div id="sp_container_3"></div>
+			</div>
 		</body>
 </html>
