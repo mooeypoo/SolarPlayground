@@ -1,0 +1,56 @@
+/**
+ * jQUERYUI Tools
+ */
+.sp-jqueryui-toolbar {
+	width: 100%;
+	height: 40px;
+	background: -moz-linear-gradient(center top , #ffffff 0%, #f1f7fb 100%) repeat scroll 0 0 #dadada;
+	background: #dadada;
+	padding: 2px;
+}
+.sp-ui-jqueryui-tool-icon {
+	background-position: center center;
+	background-repeat: no-repeat;
+	width: 35px;
+	height: 35px;
+	display: inline-block;
+}
+.sp-ui-jqueryui-sep {
+	width: 10px;
+	display: inline-block;
+}
+
+.sp-ui-jqueryui-tool {
+	width: 35px;
+	height: 35px;
+	display: inline-block;
+	margin: 2px;
+}
+
+.sp-ui-jqueryui-icon-play {
+	background-image: url( 'images/tools/play.png' );
+}
+
+.sp-ui-jqueryui-icon-pause {
+	background-image: url( 'images/tools/pause.png' );
+}
+
+.sp-ui-jqueryui-icon-zoomin {
+	background-image: url( 'images/tools/zoom_in.png' );
+}
+
+.sp-ui-jqueryui-icon-zoomout {
+	background-image: url( 'images/tools/zoom_out.png' );
+}
+
+.sp-ui-jqueryui-icon-tiltup {
+	background-image: url( 'images/tools/tiltup.png' );
+}
+
+.sp-ui-jqueryui-icon-tiltdown {
+	background-image: url( 'images/tools/tiltdown.png' );
+}
+
+.sp-ui-jqueryui-icon-grid {
+	background-image: url( 'images/tools/grid.png' );
+}

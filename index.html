@@ -17,9 +17,15 @@
 			<link rel="stylesheet" href="lib/oojsui/oojs-ui.svg.css">
 			<link rel="stylesheet" href="lib/oojsui/oojs-ui-apex.css">
 
+			<!-- JQUERY-UI -->
+			<script src="lib/jqueryui/jquery-ui.js"></script>
+			<link rel="stylesheet" href="lib/jqueryui/jquery-ui.css">
+<!--			<link rel="stylesheet" href="lib/jqueryui/jquery-ui.structure.min.css">
+			<link rel="stylesheet" href="lib/jqueryui/jquery-ui.theme.min.css">
+-->
 			<!-- SolarPlayground files -->
 			<script type="text/javascript" src="dist/SolarPlayground.dist.js"></script>
-			<link rel="stylesheet" href="dist/SolarPlayground.dist.css" -->
+			<link rel="stylesheet" href="dist/SolarPlayground.dist.css">
 
 			<style>
 				body, html {
@@ -80,7 +86,8 @@
 					playground
 						.setContainer( 'sp_container_1', {
 							'width': 400,
-							'height': 400
+							'height': 400,
+							'gui': 'jqueryui'
 						} )
 						.loadFromFile( 'geocentric', {
 							'show_grid': true
@@ -102,8 +109,8 @@
 							'show_grid': true,
 							'init_pitch': 30
 						} );
-
 				} );
+				$( '#test' ).button();
 			</script>
 			<div id="topbar_back">
 				<div id="topbar">

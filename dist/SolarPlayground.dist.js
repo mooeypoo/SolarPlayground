@@ -191,6 +191,7 @@ OO.mixinClass( sp.System, OO.EventEmitter );
  * @param {string} container_id The id of the DOM that this container
  * will be attached to
  * @param {Object} [config] Configuration object
+ * @chainable
  * @throws {Error} If container_id is undefined or empty
  * @return {sp.Container} The new container
  */
@@ -204,6 +205,7 @@ sp.System.prototype.setContainer = function ( container_id, config ) {
 		'container': '#' + container_id,
 		'width': config.width || this.config.width,
 		'height': config.height || this.config.height,
+		'gui': config.gui || 'ooui',
 		scenario_dir: this.config.scenario_dir,
 		directory_sep: this.config.directory_sep,
 		scenario_prefix: config.scenario_prefix || this.config.scenario_prefix,
@@ -534,7 +536,7 @@ sp.container.Manager = function SpContainerManager( config ) {
 	this.loader = new sp.container.Loader( config );
 
 	this.$container = $( config.container )
-		.addClass( 'sp-container' )
+		.addClass( 'sp-container' );
 
 	// Canvas and context
 	this.screen = new sp.container.Screen( config );
@@ -542,7 +544,7 @@ sp.container.Manager = function SpContainerManager( config ) {
 
 	// Gui
 	guiLoader = new sp.ui.Loader( {
-		'module': 'ooui', // Default module
+		'module': config.gui || 'ooui', // Default module
 		'container': this
 	} );
 	this.gui = guiLoader.initialize();
@@ -567,7 +569,7 @@ OO.mixinClass( sp.container.Manager, OO.EventEmitter );
  * @returns {jQuery.Promise}
  */
 sp.container.Manager.prototype.loadFromFile = function ( scenarioName, overrideConfig ) {
-	var targetName,
+	var targetName, objList,
 		deferred = $.Deferred(),
 		filePrefix = this.config.scenario_prefix || '',
 		targetDir = this.config.scenario_dir + this.config.directory_sep;
@@ -583,7 +585,7 @@ sp.container.Manager.prototype.loadFromFile = function ( scenarioName, overrideC
 			this.setScenario( scenario );
 			// Add pov objects to gui
 			objList = this.scenario.getAllObjects();
-			for ( o in objList ) {
+			for ( var o in objList ) {
 				this.gui.addToPOVList(
 					o,
 					objList[o].getName()
@@ -2080,10 +2082,14 @@ OO.mixinClass( sp.ui.Loader, OO.EventEmitter );
  */
 sp.ui.Loader.prototype.initialize = function () {
 	var module;
+	this.$spinner.show();
 	/// TODO: Use a factory instead of this quick and somewhat
 	/// lame 'switch' statement, so we can allow for proper
-	/// modules for the GUI, like jQueryUI or whatever else.
-	switch ( this.module ) {
+	/// modules for the GUI
+	switch ( this.moduleName ) {
+		case 'jqueryui':
+			this.module = new sp.ui.ext.jqueryui.Mod.Play( this.container, this.settings );
+			break;
 		case 'ooui':
 		default:
 			this.module = new sp.ui.ext.ooui.Mod.Play( this.container, this.settings );
@@ -2141,7 +2147,8 @@ OO.mixinClass( sp.ui.ext.Play, OO.EventEmitter );
 /**
  * Initialize the Gui
  * @abstract
- * @returns {OO.ui.Toolbar}
+ * @throws {Error} If the method is not implemented in the child class
+ * @returns {sp.ui.ext.Play}
  */
 sp.ui.ext.Play.prototype.initialize = function () {
 	throw new Error( 'sp.Gui.Module.Initialize must be implemented in child class.' );
@@ -2153,6 +2160,7 @@ sp.ui.ext.Play.prototype.initialize = function () {
  * @param {string} name Tool name
  * @param {string} title Title or alternate text
  * @param {string} [icon] Tool icon
+ * @throws {Error} If the method is not implemented in the child class
  */
 sp.ui.ext.Play.prototype.addToPOVList = function ( name, title, icon ) {
 	throw new Error( 'sp.Gui.Module.addToPOVList must be implemented in child class.' );
@@ -2256,7 +2264,7 @@ sp.ui.ext.ooui.Mod.Play.static.commands = [
 
 /**
  * Initialize the Gui
- * @returns {OO.ui.Toolbar}
+ * @returns {sp.ui.ext.ooui.Mod.Play}
  */
 sp.ui.ext.ooui.Mod.Play.prototype.initialize = function () {
 	var i, tools, tname;
@@ -2914,3 +2922,463 @@ sp.ui.ext.ooui.SpeedSliderTool.static.title = 'speed';
 sp.ui.ext.ooui.SpeedSliderTool.static.commandName = 'speed';
 
 sp.ui.toolFactory.register( sp.ui.ext.ooui.SpeedSliderTool );
+
+/**
+ * UI jQueryUI Module namespace
+ * @property {Object}
+ */
+sp.ui.ext.jqueryui = {
+	'Mod': {}
+};
+
+/**
+ * jQueryUI Gui module
+ *
+ * @class sp.ui.ext.jqueryui.Mod.Play
+ *
+ * @param {sp.Container} container The container to attach the GUI to
+ * @param {Object} [config] Gui module definition
+ */
+sp.ui.ext.jqueryui.Mod.Play = function SpUiExtJqueryUiModPlay( container, config ) {
+	config = config || {};
+
+	// Parent constructor
+	sp.ui.ext.jqueryui.Mod.Play.super.call( this, container, config );
+
+	this.buttonSets = {};
+	this.buttons = {};
+
+	// Events
+	this.container.connect( this, { 'scenarioLoaded': 'onScenarioLoaded' } );
+};
+
+/* Inheritance */
+OO.inheritClass( sp.ui.ext.jqueryui.Mod.Play, sp.ui.ext.Play );
+
+/* Static */
+
+/* Events */
+
+/**
+ * Play or pause scenario
+ * @event play
+ * @param {boolean} isPlay Play scenario or pause
+ */
+
+/**
+ * Zoom in or out
+ * @event zoom
+ * @param {number} zoomLevel How much to zoom. Negative to zoom out.
+ */
+
+/**
+ * Change point of view object
+ * @event pov
+ * @param {string} povObjName New POV object name or key
+ */
+
+/* Methods */
+
+/**
+ * Initialize the Gui
+ * @returns {sp.ui.ext.jqueryui.Mod.Play}
+ */
+sp.ui.ext.jqueryui.Mod.Play.prototype.initialize = function () {
+	var tool,
+		$separator = $( '<div>' )
+			.addClass( 'sp-ui-jqueryui-sep' );
+
+	this.$toolbar = $( '<div>' )
+		.addClass( 'sp-jqueryui-toolbar' );
+
+	this.buttonSets = {};
+	this.buttons = {};
+
+	// Add buttons
+	this.buttons.play = new sp.ui.ext.jqueryui.CheckButtonTool( {
+		'name': 'play',
+		'icon': 'play'
+	} );
+
+	this.buttons.povList = new sp.ui.ext.jqueryui.SelectTool( {
+		'name': 'pov'
+	} );
+
+	this.buttons.zoomin = new sp.ui.ext.jqueryui.ClickButtonTool( {
+		'name': 'zoomin',
+		'icon': 'zoomin',
+		'action': 1000
+	} );
+	this.buttons.zoomout = new sp.ui.ext.jqueryui.ClickButtonTool( {
+		'name': 'zoomout',
+		'icon': 'zoomout',
+		'action': -1000
+	} );
+
+	this.buttons.grid = new sp.ui.ext.jqueryui.CheckButtonTool( {
+		'name': 'grid',
+		'icon': 'grid'
+	} );
+
+	this.$toolbar.append( [
+		this.buttons.play.$element,
+		$separator.clone(),
+		this.buttons.povList.$element,
+		$separator.clone(),
+		this.buttons.zoomin.$element,
+		this.buttons.zoomout.$element,
+		$separator.clone(),
+		this.buttons.grid.$element
+	] );
+
+	this.container.addToolbar( this.$toolbar );
+
+	this.buttons.play.connect( this, { 'change': 'onPlayChange' } );
+	this.buttons.povList.connect( this, { 'change': 'onPovChange' } );
+	this.buttons.zoomin.connect( this, { 'click': 'onZoomClick' } );
+	this.buttons.zoomout.connect( this, { 'click': 'onZoomClick' } );
+	this.buttons.grid.connect( this, { 'change': 'onGridChange' } );
+
+	return this;
+};
+
+/**
+ * Respond to new scenario loaded
+ * @fires updateState
+ */
+sp.ui.ext.jqueryui.Mod.Play.prototype.onScenarioLoaded = function () {
+	if ( this.container.getScenario() ) {
+		this.container.getScenario().disconnect( this );
+	}
+	// Events
+	this.container.getScenario().connect( this, { 'pause': [ 'onScenarioChanged', 'pause' ] } );
+	this.container.getScenario().connect( this, { 'pov': [ 'onScenarioChanged', 'pov' ] } );
+	this.container.getScenario().connect( this, { 'grid': [ 'onScenarioChanged', 'grid' ] } );
+
+	// Update POV
+	this.buttons.play.setValue( !this.container.getScenario().isPaused() );
+	this.buttons.povList.setValue( this.container.getScenario().getPOV() );
+	this.buttons.grid.setValue( this.container.getScenario().isShowGrid() );
+};
+
+/**
+ * Respond to change in scenario state
+ * @fires updateState
+ */
+sp.ui.ext.jqueryui.Mod.Play.prototype.onScenarioChanged = function ( action, status ) {
+	switch ( action ) {
+		case 'pause':
+			this.buttons.play.setValue( !status );
+			break;
+		case 'pov':
+			this.buttons.povList.setValue( status );
+			break;
+		case 'grid':
+			this.buttons.grid.setValue( status );
+			break;
+	}
+};
+
+/**
+ * Respond to play button change
+ * @param {Boolean} isPlay Play scenario
+ */
+sp.ui.ext.jqueryui.Mod.Play.prototype.onPlayChange = function ( isPlay ) {
+	this.container.getScenario().togglePaused( !isPlay );
+};
+
+/**
+ * Respond to zoom buttons change
+ * @param {number} zoomFactor Zoom factor
+ */
+sp.ui.ext.jqueryui.Mod.Play.prototype.onZoomClick = function ( zoomFactor ) {
+	this.container.getScenario().setZoom( zoomFactor );
+};
+
+/**
+ * Respond to pov change
+ * @param {string} pov New POV item
+ */
+sp.ui.ext.jqueryui.Mod.Play.prototype.onPovChange = function ( pov ) {
+	this.container.getScenario().setPOV( pov );
+};
+
+/**
+ * Respond to grid button change
+ * @param {Boolean} isGrid Show grid
+ */
+sp.ui.ext.jqueryui.Mod.Play.prototype.onGridChange = function ( isGrid ) {
+	this.container.getScenario().toggleGrid( isGrid );
+};
+/**
+ * Add a tool to the POV list
+ * @param {string} name Tool name
+ * @param {string} title Title or alternate text
+ * @param {string} [icon] Tool icon
+ */
+sp.ui.ext.jqueryui.Mod.Play.prototype.addToPOVList = function ( name, title, icon ) {
+	this.buttons.povList.addOption( name, title );
+};
+
+/**
+ * jQueryUI toolset.
+ *
+ * @class
+ * @constructor
+ * @param {Object} [config] Configuration options
+ */
+sp.ui.ext.jqueryui.Buttonset = function SpUiExtJqueryUiButtonset( config ) {
+	var tool;
+
+	config = config || {};
+
+	this.$element = $( '<div>' )
+		.addClass( 'sp-ui-jqueryui-toolset' );
+
+	if ( config.name ) {
+		this.$element.addClass( 'sp-ui-jqueryui-toolset-' + config.name );
+	}
+
+	this.tools = config.tools || [];
+
+	this.$element.buttonset();
+};
+
+/**
+ * Add tool to toolset
+ * @param {[type]} tool [description]
+ */
+sp.ui.ext.jqueryui.Buttonset.prototype.addButton = function ( tool ) {
+	this.tools.push( tool );
+	this.$element.append( tool.$element );
+};
+
+/**
+ * jQueryUI click tool.
+ *
+ * @class
+ * @constructor
+ * @param {Object} [config] Configuration options
+ */
+sp.ui.ext.jqueryui.ClickButtonTool = function SpUiExtJqueryUiClickButtonTool( config ) {
+	config = config || {};
+
+	// Mixin constructors
+	OO.EventEmitter.call( this );
+
+	this.name = config.name || 'general';
+	this.action = config.action;
+
+	this.$element = $( '<button>' )
+		.prop( 'id', 'sp-ui-jqueryui-tool-' + this.name )
+		.addClass( 'sp-ui-jqueryui-clickButtonTool' );
+
+	if ( config.icon ) {
+		this.$element.addClass( 'sp-ui-jqueryui-tool-icon sp-ui-jqueryui-icon-' + config.icon );
+	}
+
+	if ( config.label ) {
+		this.$element.text( config.label );
+	}
+
+	// Events
+	this.$element.on( 'click', $.proxy( this.onClick , this ) );
+
+	this.$element.button();
+};
+
+/* Inheritance */
+
+OO.inheritClass( sp.ui.ext.jqueryui.ClickButtonTool, OO.EventEmitter );
+
+/* Events */
+
+/**
+ * Button click
+ * @event click
+ */
+
+/* Methods */
+
+/**
+ * Respond to a click event
+ * @param {jQuery.event} event Click event
+ * @fires click
+ */
+sp.ui.ext.jqueryui.ClickButtonTool.prototype.onClick = function ( event ) {
+	this.emit( 'click', this.action );
+	event.preventDefault();
+};
+
+/**
+ * jQueryUI check tool.
+ *
+ * @class
+ * @constructor
+ * @param {Object} [config] Configuration options
+ */
+sp.ui.ext.jqueryui.CheckButtonTool = function SpUiExtJqueryUiCheckButtonTool( config ) {
+	config = config || {};
+	// Mixin constructors
+	OO.EventEmitter.call( this );
+
+	this.value = false;
+	this.name = config.name || 'general';
+
+	this.$checkbox = $( '<input>' )
+		.prop( 'type', 'checkbox' )
+		.prop( 'id', 'sp-ui-jqueryui-tool-' + this.name )
+		.prop( 'checked', false );
+	this.$label = $( '<label>' )
+		.attr( 'for', 'sp-ui-jqueryui-tool-' + this.name );
+
+	if ( config.icon ) {
+		this.$label
+			.addClass( 'sp-ui-jqueryui-tool-icon sp-ui-jqueryui-icon-' + config.icon );
+	}
+	if ( config.label ) {
+		this.$label.text( config.label );
+	}
+
+	this.$element = $( '<div>' )
+		.addClass( 'sp-ui-jqueryui-tool sp-ui-jqueryui-tool-checkButtonTool' )
+		.append( [ this.$checkbox, this.$label ] );
+
+	// Events
+	this.$checkbox.on( 'change', $.proxy( this.onChange , this ) );
+
+	this.$checkbox.button();
+};
+
+/* Inheritance */
+
+OO.inheritClass( sp.ui.ext.jqueryui.CheckButtonTool, OO.EventEmitter );
+
+/* Events */
+
+/**
+ * State change from selected to released
+ * @event change
+ */
+
+/* Methods */
+
+/**
+ * Respond to a change event
+ * @param {jQuery.event} event Click event
+ * @fires change
+ */
+sp.ui.ext.jqueryui.CheckButtonTool.prototype.onChange = function ( event ) {
+	var oldValue = this.value;
+
+	this.value = this.$checkbox.prop( 'checked' );
+	if ( this.value !== oldValue ) {
+		this.emit( 'change', this.value );
+	}
+	event.preventDefault();
+};
+
+/**
+ * Return the current value of the button
+ * @return {boolean} Checked or unchecked
+ */
+sp.ui.ext.jqueryui.CheckButtonTool.prototype.getValue = function () {
+	return this.value;
+};
+
+/**
+ * Set the value of the button
+ * @param {[type]} checked [description]
+ */
+sp.ui.ext.jqueryui.CheckButtonTool.prototype.setValue = function ( checked ) {
+	this.value = !!checked;
+	this.$checkbox.prop( 'checked', this.value );
+	this.$checkbox.button( 'refresh' );
+};
+
+/**
+ * jQueryUI select tool.
+ *
+ * @class
+ * @constructor
+ * @param {Object} [config] Configuration options
+ */
+sp.ui.ext.jqueryui.SelectTool = function SpUiExtJqueryUiSelectTool( config ) {
+	config = config || {};
+
+	// Mixin constructors
+	OO.EventEmitter.call( this );
+
+	this.name = config.name || 'general';
+	this.action = config.action;
+
+	this.$element = $( '<select>' )
+		.prop( 'id', 'sp-ui-jqueryui-tool-' + this.name )
+		.addClass( 'sp-ui-jqueryui-selectTool' );
+
+	this.options = {};
+	this.value = '';
+
+	// Events
+	this.$element.on( 'change', $.proxy( this.onChange , this ) );
+};
+
+/* Inheritance */
+
+OO.inheritClass( sp.ui.ext.jqueryui.SelectTool, OO.EventEmitter );
+
+/**
+ * Respond to change event
+ * @param {jQuery.event} event Change event
+ */
+sp.ui.ext.jqueryui.SelectTool.prototype.onChange = function ( event, val ) {
+	var oldValue = this.value;
+
+	this.value = this.$element.val();
+	if ( this.value !== oldValue ) {
+		this.emit( 'change', this.value );
+	}
+};
+
+/**
+ * Select a specific value from the options
+ * @param {string} value The value to select
+ */
+sp.ui.ext.jqueryui.SelectTool.prototype.setValue = function ( value ) {
+	if ( this.value !== value ) {
+		this.value = value;
+		this.$element.val( value );
+	}
+};
+
+/**
+ * Add an option to the select list
+ * @param {string} value The value of the new option
+ * @param {string} label The label of the new option
+ */
+sp.ui.ext.jqueryui.SelectTool.prototype.addOption = function ( value, label ) {
+	var option = $( '<option>' )
+		.attr( 'value', value )
+		.text( label );
+
+	this.options[name] = value;
+	this.$element.append( option );
+};
+
+/**
+ * Remove an option from the select list
+ * @param {string} value Value of the option to remove
+ */
+sp.ui.ext.jqueryui.SelectTool.prototype.removeOption = function ( value ) {
+	if ( this.options[value] ) {
+		delete this.options[value];
+		this.$element.find( 'option[value=' + value + ']' ).remove();
+	}
+};
+
+/**
+ * Remove all options in the select list
+ */
+sp.ui.ext.jqueryui.SelectTool.prototype.empty = function () {
+	this.$element.empty();
+};

@@ -44,7 +44,8 @@ OO.mixinClass( sp.ui.ext.Play, OO.EventEmitter );
 /**
  * Initialize the Gui
  * @abstract
- * @returns {OO.ui.Toolbar}
+ * @throws {Error} If the method is not implemented in the child class
+ * @returns {sp.ui.ext.Play}
  */
 sp.ui.ext.Play.prototype.initialize = function () {
 	throw new Error( 'sp.Gui.Module.Initialize must be implemented in child class.' );
@@ -56,6 +57,7 @@ sp.ui.ext.Play.prototype.initialize = function () {
  * @param {string} name Tool name
  * @param {string} title Title or alternate text
  * @param {string} [icon] Tool icon
+ * @throws {Error} If the method is not implemented in the child class
  */
 sp.ui.ext.Play.prototype.addToPOVList = function ( name, title, icon ) {
 	throw new Error( 'sp.Gui.Module.addToPOVList must be implemented in child class.' );

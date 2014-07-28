@@ -37,10 +37,14 @@ OO.mixinClass( sp.ui.Loader, OO.EventEmitter );
  */
 sp.ui.Loader.prototype.initialize = function () {
 	var module;
+	this.$spinner.show();
 	/// TODO: Use a factory instead of this quick and somewhat
 	/// lame 'switch' statement, so we can allow for proper
-	/// modules for the GUI, like jQueryUI or whatever else.
-	switch ( this.module ) {
+	/// modules for the GUI
+	switch ( this.moduleName ) {
+		case 'jqueryui':
+			this.module = new sp.ui.ext.jqueryui.Mod.Play( this.container, this.settings );
+			break;
 		case 'ooui':
 		default:
 			this.module = new sp.ui.ext.ooui.Mod.Play( this.container, this.settings );

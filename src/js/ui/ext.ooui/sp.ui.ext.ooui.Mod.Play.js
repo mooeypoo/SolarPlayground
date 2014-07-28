@@ -96,7 +96,7 @@ sp.ui.ext.ooui.Mod.Play.static.commands = [
 
 /**
  * Initialize the Gui
- * @returns {OO.ui.Toolbar}
+ * @returns {sp.ui.ext.ooui.Mod.Play}
  */
 sp.ui.ext.ooui.Mod.Play.prototype.initialize = function () {
 	var i, tools, tname;

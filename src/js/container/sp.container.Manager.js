@@ -17,7 +17,7 @@ sp.container.Manager = function SpContainerManager( config ) {
 	this.loader = new sp.container.Loader( config );
 
 	this.$container = $( config.container )
-		.addClass( 'sp-container' )
+		.addClass( 'sp-container' );
 
 	// Canvas and context
 	this.screen = new sp.container.Screen( config );
@@ -25,7 +25,7 @@ sp.container.Manager = function SpContainerManager( config ) {
 
 	// Gui
 	guiLoader = new sp.ui.Loader( {
-		'module': 'ooui', // Default module
+		'module': config.gui || 'ooui', // Default module
 		'container': this
 	} );
 	this.gui = guiLoader.initialize();
@@ -50,7 +50,7 @@ OO.mixinClass( sp.container.Manager, OO.EventEmitter );
  * @returns {jQuery.Promise}
  */
 sp.container.Manager.prototype.loadFromFile = function ( scenarioName, overrideConfig ) {
-	var targetName,
+	var targetName, objList,
 		deferred = $.Deferred(),
 		filePrefix = this.config.scenario_prefix || '',
 		targetDir = this.config.scenario_dir + this.config.directory_sep;
@@ -66,7 +66,7 @@ sp.container.Manager.prototype.loadFromFile = function ( scenarioName, overrideC
 			this.setScenario( scenario );
 			// Add pov objects to gui
 			objList = this.scenario.getAllObjects();
-			for ( o in objList ) {
+			for ( var o in objList ) {
 				this.gui.addToPOVList(
 					o,
 					objList[o].getName()

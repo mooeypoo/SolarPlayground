@@ -39,6 +39,7 @@ OO.mixinClass( sp.System, OO.EventEmitter );
  * @param {string} container_id The id of the DOM that this container
  * will be attached to
  * @param {Object} [config] Configuration object
+ * @chainable
  * @throws {Error} If container_id is undefined or empty
  * @return {sp.Container} The new container
  */
@@ -52,6 +53,7 @@ sp.System.prototype.setContainer = function ( container_id, config ) {
 		'container': '#' + container_id,
 		'width': config.width || this.config.width,
 		'height': config.height || this.config.height,
+		'gui': config.gui || 'ooui',
 		scenario_dir: this.config.scenario_dir,
 		directory_sep: this.config.directory_sep,
 		scenario_prefix: config.scenario_prefix || this.config.scenario_prefix,
