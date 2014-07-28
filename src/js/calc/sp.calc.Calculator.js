@@ -179,7 +179,7 @@ sp.calc.Calculator.solveKepler = function ( vars, jd ) {
 	omega = om - bigOm;
 
 	// Mean anomaly
-	M = L - om + b *
+	M = vars.M || L - om + b *
 		Math.pow( T, 2 ) + c * Math.cos( f * T ) + s * Math.sin( f * T );
 	M = to_radians( M ) % 180;
 
@@ -199,6 +199,6 @@ sp.calc.Calculator.solveKepler = function ( vars, jd ) {
 		'x': x,
 		'y': y,
 		'z': y
-	}
+	};
 	return dimensions;
 };

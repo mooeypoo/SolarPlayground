@@ -31,7 +31,8 @@ sp.view.Converter = function SpViewConverter( config ) {
 	// Set up visible canvas-scaled radius steps in pixels
 	this.radii = {
 		'star': [ 25, 30, 32, 35 ],
-		'planet': [ 4, 8, 10, 12, 14, 16 ]
+		'planet': [ 10, 12, 14, 16 ],
+		'moon': [ 4, 8, 10, 12 ]
 	};
 	// Define the step between each value
 	this.radius_step = {
