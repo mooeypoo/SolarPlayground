@@ -424,7 +424,7 @@ sp.calc.Calculator.solveKepler = function ( vars, jd ) {
 	omega = om - bigOm;
 
 	// Mean anomaly
-	M = L - om + b *
+	M = vars.M || L - om + b *
 		Math.pow( T, 2 ) + c * Math.cos( f * T ) + s * Math.sin( f * T );
 	M = to_radians( M ) % 180;
 
@@ -444,7 +444,7 @@ sp.calc.Calculator.solveKepler = function ( vars, jd ) {
 		'x': x,
 		'y': y,
 		'z': y
-	}
+	};
 	return dimensions;
 };
 
@@ -990,7 +990,7 @@ OO.mixinClass( sp.data.CelestialBody, OO.EventEmitter );
  * @param {number} time Time unit
  */
 sp.data.CelestialBody.prototype.getSpaceCoordinates = function ( time ) {
-	var dest, M, G, period;
+	var dest, M, G, period, centerOfOrbitCoords;
 
 	time = time || 0;
 
@@ -1005,11 +1005,34 @@ sp.data.CelestialBody.prototype.getSpaceCoordinates = function ( time ) {
 		}
 
 		// TODO: Cache coordinates
+		// TODO: Allow for calculation based on period
+		if ( this.vars.a && this.vars.e && this.vars.I && this.vars.L && this.vars.long_peri && this.vars.long_node ) {
+			this.coordinates = sp.calc.Calculator.solveKepler(
+				this.vars,
+				time
+			);
+		} else if ( this.vars.p && this.vars.r ) {
+			// Calculate based on Period
+			this.coordinates = { x: 0, y: 0, z: 0 };
+			return this.coordinates;
+		} else {
+			// Not enough details.
+			this.coordinates = { x: 0, y: 0, z: 0 };
+			return this.coordinates;
+		}
 
-		this.coordinates = sp.calc.Calculator.solveKepler(
-			this.vars,
-			time
-		);
+		// TODO: Calculate the position relative to the orbit mass to allow for
+		// sub systems like moons
+
+		// Adjust the coordinates from center of orbit to world coordinates
+		centerOfOrbitCoords = this.orbiting.getSpaceCoordinates( time );
+		if ( centerOfOrbitCoords ) {
+			this.coordinates = {
+				'x': this.coordinates.x + centerOfOrbitCoords.x,
+				'y': this.coordinates.y + centerOfOrbitCoords.y,
+				'z': this.coordinates.z + centerOfOrbitCoords.z
+			};
+		}
 	} else {
 		this.coordinates = { x: 0, y: 0, z: 0 };
 	}
@@ -1592,7 +1615,8 @@ sp.view.Converter = function SpViewConverter( config ) {
 	// Set up visible canvas-scaled radius steps in pixels
 	this.radii = {
 		'star': [ 25, 30, 32, 35 ],
-		'planet': [ 4, 8, 10, 12, 14, 16 ]
+		'planet': [ 10, 12, 14, 16 ],
+		'moon': [ 4, 8, 10, 12 ]
 	};
 	// Define the step between each value
 	this.radius_step = {
