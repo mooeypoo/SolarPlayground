@@ -19,6 +19,10 @@ sp.container.Manager = function SpContainerManager( config ) {
 	this.$container = $( config.container )
 		.addClass( 'sp-container' );
 
+	// Adjust height
+	// Remove 40px for top bar
+	config.height -= 40;
+
 	// Canvas and context
 	this.screen = new sp.container.Screen( config );
 	this.$container.append( this.screen.$canvas );

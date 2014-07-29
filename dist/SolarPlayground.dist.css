@@ -3,9 +3,10 @@
  */
 .sp-container {
   background-color: #111111;
-  border: 2px solid #000000;
+  border: 1px solid #000000;
   display: inline-block;
-  color: #666666; }
+  color: #666666;
+  margin: 10px; }
 
 .sp-container-spinner {
   background-image: url("images/loader.gif");
@@ -51,12 +52,28 @@
 /**
  * jQUERYUI Tools
  */
-.sp-jqueryui-toolbar {
-  width: 100%;
+.sp-ui-jqueryui-toolbar {
   height: 40px;
   background: -moz-linear-gradient(center top, white 0%, #f1f7fb 100%) repeat scroll 0 0 #dadada;
   background: #dadada;
   padding: 2px; }
+
+.sp-ui-jqueryui-statusbar {
+  height: 30px;
+  background: #dadada;
+  padding: 2px; }
+
+.sp-ui-jqueryui-labelTool {
+  margin: 0;
+  margin: 5px 0 0 0; }
+
+.sp-ui-jqueryui-labelTool-label {
+  margin-right: 5px;
+  font-weight: bold;
+  font-size: 0.9em; }
+
+.sp-ui-jqueryui-labelTool-value {
+  font-size: 0.9em; }
 
 .sp-ui-jqueryui-tool-icon {
   background-position: center center;

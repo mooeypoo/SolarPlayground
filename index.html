@@ -72,6 +72,12 @@
 					font-size: 1em;
 					margin: 5px 0 0 0;
 				}
+				pre {
+					border: 1px #333333 solid;
+					background: #B5B5B5;
+					padding: 10px;
+					font-size: 1.1em;
+				}
 			</style>
 		</head>
 		<body>
@@ -85,32 +91,22 @@
 
 					playground
 						.setContainer( 'sp_container_1', {
-							'width': 400,
-							'height': 400,
+							'width': 950,
+							'height': 500,
 							'gui': 'jqueryui'
 						} )
-						.loadFromFile( 'geocentric', {
-							'show_grid': true
+						.loadFromFile( 'solarsystem', {
+							'show_grid': true,
+							'init_pov': 'earth'
 						} );
 
 					playground
 						.setContainer( 'sp_container_2', {
-							'width': 400,
-							'height': 400
+							'width': 950,
+							'height': 500
 						} )
-						.loadFromFile( 'heliocentric' );
-
-					playground
-						.setContainer( 'sp_container_3', {
-							'width': 400,
-							'height': 400
-						} )
-						.loadFromFile( 'heliocentric', {
-							'show_grid': true,
-							'init_pitch': 30
-						} );
+						.loadFromFile( 'solarsystem' );
 				} );
-				$( '#test' ).button();
 			</script>
 			<div id="topbar_back">
 				<div id="topbar">
@@ -119,11 +115,37 @@
 				</div>
 			</div>
 			<div id="main">
-				<p>By Moriel Schottlender</p>
-				<h2>Geocentric vs Heliocentric</h2>
+				<p>Instantiate the system for the whole page:</p>
+<pre>
+playground = new sp.System( {
+	'scenario_dir': 'demo/scenarios'
+} );
+</pre>
+				<p>Then set up each container with its own scenario and parameters:</p>
+				<h2>Heliocentric (gui module: OOJS-UI)</h2>
+<pre>
+playground
+	.setContainer( 'sp_container_1', {
+		'width': 950,
+		'height': 500
+	} )
+	.loadFromFile( 'solarsystem' );
+</pre>
 				<div id="sp_container_1"></div>
+				<h2>Geocentric (gui module: jQueryUI)</h2>
+<pre>
+playground
+	.setContainer( 'sp_container_2', {
+		'width': 950,
+		'height': 500,
+		'gui': 'jqueryui'
+	} )
+	.loadFromFile( 'solarsystem', {
+		'show_grid': true,
+		'init_pov': 'earth'
+	} );
+</pre>
 				<div id="sp_container_2"></div>
-				<div id="sp_container_3"></div>
 			</div>
 		</body>
 </html>

@@ -1,13 +1,34 @@
 /**
  * jQUERYUI Tools
  */
-.sp-jqueryui-toolbar {
-	width: 100%;
+.sp-ui-jqueryui-toolbar {
 	height: 40px;
 	background: -moz-linear-gradient(center top , #ffffff 0%, #f1f7fb 100%) repeat scroll 0 0 #dadada;
 	background: #dadada;
 	padding: 2px;
 }
+
+.sp-ui-jqueryui-statusbar {
+	height: 30px;
+	background: #dadada;
+	padding: 2px;
+}
+
+.sp-ui-jqueryui-labelTool {
+	margin:0;
+	margin: 5px 0 0 0;
+}
+
+.sp-ui-jqueryui-labelTool-label {
+	margin-right: 5px;
+	font-weight: bold;
+	font-size: 0.9em;
+}
+
+.sp-ui-jqueryui-labelTool-value {
+	font-size: 0.9em;
+}
+
 .sp-ui-jqueryui-tool-icon {
 	background-position: center center;
 	background-repeat: no-repeat;
@@ -15,6 +36,7 @@
 	height: 35px;
 	display: inline-block;
 }
+
 .sp-ui-jqueryui-sep {
 	width: 10px;
 	display: inline-block;

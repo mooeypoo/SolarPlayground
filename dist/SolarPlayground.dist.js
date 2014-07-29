@@ -538,6 +538,10 @@ sp.container.Manager = function SpContainerManager( config ) {
 	this.$container = $( config.container )
 		.addClass( 'sp-container' );
 
+	// Adjust height
+	// Remove 40px for top bar
+	config.height -= 40;
+
 	// Canvas and context
 	this.screen = new sp.container.Screen( config );
 	this.$container.append( this.screen.$canvas );
@@ -2191,6 +2195,37 @@ sp.ui.ext.Play.prototype.addToPOVList = function ( name, title, icon ) {
 };
 
 /**
+ * Status bar module
+ *
+ * @class sp.ui.ext.Play
+ * @abstract
+ *
+ * @param {sp.Container} container The container to attach the GUI to
+ * @param {Object} [config] Gui module definition
+ */
+sp.ui.ext.StatusBar = function SpUiExtStatusBar ( container, config ) {
+	config = config || {};
+
+	// Mixin constructors
+	OO.EventEmitter.call( this );
+
+	this.container = container;
+};
+
+/* Inheritance */
+OO.mixinClass( sp.ui.ext.StatusBar, OO.EventEmitter );
+
+/**
+ * Initialize the Gui
+ * @abstract
+ * @throws {Error} If the method is not implemented in the child class
+ * @returns {sp.ui.ext.Play}
+ */
+sp.ui.ext.StatusBar.prototype.initialize = function () {
+	throw new Error( 'sp.Gui.Module.Initialize must be implemented in child class.' );
+};
+
+/**
  * UI OOUI Module namespace
  * @property {Object}
  */
@@ -2972,6 +3007,8 @@ sp.ui.ext.jqueryui.Mod.Play = function SpUiExtJqueryUiModPlay( container, config
 	this.buttonSets = {};
 	this.buttons = {};
 
+	this.statusBar = new sp.ui.ext.jqueryui.Mod.StatusBar( container, config );
+
 	// Events
 	this.container.connect( this, { 'scenarioLoaded': 'onScenarioLoaded' } );
 };
@@ -3013,10 +3050,11 @@ sp.ui.ext.jqueryui.Mod.Play.prototype.initialize = function () {
 			.addClass( 'sp-ui-jqueryui-sep' );
 
 	this.$toolbar = $( '<div>' )
-		.addClass( 'sp-jqueryui-toolbar' );
+		.addClass( 'sp-ui-jqueryui-toolbar' );
 
 	this.buttonSets = {};
 	this.buttons = {};
+	this.labels = {};
 
 	// Add buttons
 	this.buttons.play = new sp.ui.ext.jqueryui.CheckButtonTool( {
@@ -3033,6 +3071,7 @@ sp.ui.ext.jqueryui.Mod.Play.prototype.initialize = function () {
 		'icon': 'zoomin',
 		'action': 1000
 	} );
+
 	this.buttons.zoomout = new sp.ui.ext.jqueryui.ClickButtonTool( {
 		'name': 'zoomout',
 		'icon': 'zoomout',
@@ -3057,6 +3096,16 @@ sp.ui.ext.jqueryui.Mod.Play.prototype.initialize = function () {
 
 	this.container.addToolbar( this.$toolbar );
 
+	// Status bar
+	this.labels.zoom = new sp.ui.ext.jqueryui.LabelTool( {
+		'label': 'Zoom level'
+	} );
+	this.statusBar.$element.append( [
+		this.labels.zoom.$element
+	] );
+
+	this.container.addToolbar( this.statusBar.$element, 'bottom' );
+
 	this.buttons.play.connect( this, { 'change': 'onPlayChange' } );
 	this.buttons.povList.connect( this, { 'change': 'onPovChange' } );
 	this.buttons.zoomin.connect( this, { 'click': 'onZoomClick' } );
@@ -3078,11 +3127,13 @@ sp.ui.ext.jqueryui.Mod.Play.prototype.onScenarioLoaded = function () {
 	this.container.getScenario().connect( this, { 'pause': [ 'onScenarioChanged', 'pause' ] } );
 	this.container.getScenario().connect( this, { 'pov': [ 'onScenarioChanged', 'pov' ] } );
 	this.container.getScenario().connect( this, { 'grid': [ 'onScenarioChanged', 'grid' ] } );
+	this.container.getScenario().connect( this, { 'zoom': [ 'onScenarioChanged', 'zoom' ] } );
 
 	// Update POV
 	this.buttons.play.setValue( !this.container.getScenario().isPaused() );
 	this.buttons.povList.setValue( this.container.getScenario().getPOV() );
 	this.buttons.grid.setValue( this.container.getScenario().isShowGrid() );
+	this.labels.zoom.setValue( this.container.getScenario().getZoom() );
 };
 
 /**
@@ -3099,6 +3150,9 @@ sp.ui.ext.jqueryui.Mod.Play.prototype.onScenarioChanged = function ( action, sta
 			break;
 		case 'grid':
 			this.buttons.grid.setValue( status );
+			break;
+		case 'zoom':
+			this.labels.zoom.setValue( this.container.getScenario().getZoom() );
 			break;
 	}
 };
@@ -3143,6 +3197,33 @@ sp.ui.ext.jqueryui.Mod.Play.prototype.onGridChange = function ( isGrid ) {
 sp.ui.ext.jqueryui.Mod.Play.prototype.addToPOVList = function ( name, title, icon ) {
 	this.buttons.povList.addOption( name, title );
 };
+
+/**
+ * jQueryUI Gui module
+ *
+ * @class sp.ui.ext.jqueryui.Mod.Play
+ *
+ * @param {sp.Container} container The container to attach the GUI to
+ * @param {Object} [config] Gui module definition
+ */
+sp.ui.ext.jqueryui.Mod.StatusBar = function SpUiExtJqueryUiModStatusBar( container, config ) {
+	var $separator = $( '<div>' )
+			.addClass( 'sp-ui-jqueryui-sep' );
+
+	config = config || {};
+
+	// Parent constructor
+	sp.ui.ext.jqueryui.Mod.StatusBar.super.call( this, container, config );
+
+	this.$element = $( '<div>' )
+		.addClass( 'sp-ui-jqueryui-statusbar' );
+
+	// Events
+//	this.container.connect( this, { 'scenarioLoaded': 'onScenarioLoaded' } );
+};
+
+/* Inheritance */
+OO.inheritClass( sp.ui.ext.jqueryui.Mod.StatusBar, sp.ui.ext.StatusBar );
 
 /**
  * jQueryUI toolset.
@@ -3318,6 +3399,47 @@ sp.ui.ext.jqueryui.CheckButtonTool.prototype.setValue = function ( checked ) {
 	this.value = !!checked;
 	this.$checkbox.prop( 'checked', this.value );
 	this.$checkbox.button( 'refresh' );
+};
+
+/**
+ * jQueryUI label.
+ *
+ * @class
+ * @constructor
+ * @param {Object} [config] Configuration options
+ */
+sp.ui.ext.jqueryui.LabelTool = function SpUiExtJqueryUiLabelTool( config ) {
+	config = config || {};
+
+	this.$element = $( '<div>' )
+		.addClass( 'sp-ui-jqueryui-labelTool' );
+
+	this.value = config.value;
+
+	this.$label = $( '<span>' )
+		.addClass( 'sp-ui-jqueryui-labelTool-label' )
+		.text( config.label + ':' )
+		.appendTo( this.$element );
+	this.$value = $( '<span>' )
+		.addClass( 'sp-ui-jqueryui-labelTool-value' )
+		.text( config.value )
+		.appendTo( this.$element );
+};
+
+/**
+ * Set value
+ * @param {string} value New presented value
+ */
+sp.ui.ext.jqueryui.LabelTool.prototype.setValue = function ( value ) {
+	this.value = value;
+	this.$value.text( value );
+};
+
+/**
+ * Get value
+ */
+sp.ui.ext.jqueryui.LabelTool.prototype.getValue = function () {
+	return this.value;
 };
 
 /**
