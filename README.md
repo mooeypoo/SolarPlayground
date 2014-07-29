@@ -6,7 +6,7 @@ This project is created as a graduate project. It is still being built, and is d
 
 Feel free to make suggestions by [posting them in an issue](https://github.com/mooeypoo/SolarPlayground/issues).
 
-For a quick demo [click here](http://moriel.smarterthanthat.com/apps/SolarPlayground/).
+For a quick demo [click here](http://mooeypoo.github.io/SolarPlayground/).
 
 ### Introduction
 
