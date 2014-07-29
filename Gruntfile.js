@@ -22,9 +22,11 @@ module.exports = function ( grunt ) {
 					'src/js/ui/ext.ooui/tools/sp.ui.ext.ooui.POVTool.js',
 					'src/js/ui/ext.ooui/tools/sp.ui.ext.ooui.SliderTool.js',
 					'src/js/ui/ext.jqueryui/sp.ui.ext.jqueryui.Mod.Play.js',
+					'src/js/ui/ext.jqueryui/sp.ui.ext.jqueryui.Mod.StatusBar.js',
 					'src/js/ui/ext.jqueryui/tools/sp.ui.ext.jqueryui.Buttonset.js',
 					'src/js/ui/ext.jqueryui/tools/sp.ui.ext.jqueryui.ClickButtonTool.js',
 					'src/js/ui/ext.jqueryui/tools/sp.ui.ext.jqueryui.CheckButtonTool.js',
+					'src/js/ui/ext.jqueryui/tools/sp.ui.ext.jqueryui.LabelTool.js',
 					'src/js/ui/ext.jqueryui/tools/sp.ui.ext.jqueryui.SelectTool.js'
 				],
 				dest: 'dist/SolarPlayground.dist.js'

@@ -23,6 +23,8 @@ sp.ui.ext.jqueryui.Mod.Play = function SpUiExtJqueryUiModPlay( container, config
 	this.buttonSets = {};
 	this.buttons = {};
 
+	this.statusBar = new sp.ui.ext.jqueryui.Mod.StatusBar( container, config );
+
 	// Events
 	this.container.connect( this, { 'scenarioLoaded': 'onScenarioLoaded' } );
 };
@@ -64,10 +66,11 @@ sp.ui.ext.jqueryui.Mod.Play.prototype.initialize = function () {
 			.addClass( 'sp-ui-jqueryui-sep' );
 
 	this.$toolbar = $( '<div>' )
-		.addClass( 'sp-jqueryui-toolbar' );
+		.addClass( 'sp-ui-jqueryui-toolbar' );
 
 	this.buttonSets = {};
 	this.buttons = {};
+	this.labels = {};
 
 	// Add buttons
 	this.buttons.play = new sp.ui.ext.jqueryui.CheckButtonTool( {
@@ -84,6 +87,7 @@ sp.ui.ext.jqueryui.Mod.Play.prototype.initialize = function () {
 		'icon': 'zoomin',
 		'action': 1000
 	} );
+
 	this.buttons.zoomout = new sp.ui.ext.jqueryui.ClickButtonTool( {
 		'name': 'zoomout',
 		'icon': 'zoomout',
@@ -108,6 +112,16 @@ sp.ui.ext.jqueryui.Mod.Play.prototype.initialize = function () {
 
 	this.container.addToolbar( this.$toolbar );
 
+	// Status bar
+	this.labels.zoom = new sp.ui.ext.jqueryui.LabelTool( {
+		'label': 'Zoom level'
+	} );
+	this.statusBar.$element.append( [
+		this.labels.zoom.$element
+	] );
+
+	this.container.addToolbar( this.statusBar.$element, 'bottom' );
+
 	this.buttons.play.connect( this, { 'change': 'onPlayChange' } );
 	this.buttons.povList.connect( this, { 'change': 'onPovChange' } );
 	this.buttons.zoomin.connect( this, { 'click': 'onZoomClick' } );
@@ -129,11 +143,13 @@ sp.ui.ext.jqueryui.Mod.Play.prototype.onScenarioLoaded = function () {
 	this.container.getScenario().connect( this, { 'pause': [ 'onScenarioChanged', 'pause' ] } );
 	this.container.getScenario().connect( this, { 'pov': [ 'onScenarioChanged', 'pov' ] } );
 	this.container.getScenario().connect( this, { 'grid': [ 'onScenarioChanged', 'grid' ] } );
+	this.container.getScenario().connect( this, { 'zoom': [ 'onScenarioChanged', 'zoom' ] } );
 
 	// Update POV
 	this.buttons.play.setValue( !this.container.getScenario().isPaused() );
 	this.buttons.povList.setValue( this.container.getScenario().getPOV() );
 	this.buttons.grid.setValue( this.container.getScenario().isShowGrid() );
+	this.labels.zoom.setValue( this.container.getScenario().getZoom() );
 };
 
 /**
@@ -150,6 +166,9 @@ sp.ui.ext.jqueryui.Mod.Play.prototype.onScenarioChanged = function ( action, sta
 			break;
 		case 'grid':
 			this.buttons.grid.setValue( status );
+			break;
+		case 'zoom':
+			this.labels.zoom.setValue( this.container.getScenario().getZoom() );
 			break;
 	}
 };
