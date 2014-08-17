@@ -13,6 +13,7 @@ sp.container.Manager = function SpContainerManager( config ) {
 	this.config = config || {};
 	this.scenario = null;
 
+	this.container_id = this.config.id;
 	// Scenario loader
 	this.loader = new sp.container.Loader( config );
 
@@ -53,7 +54,7 @@ OO.mixinClass( sp.container.Manager, OO.EventEmitter );
  *  that will override whatever is in the scenario file.
  * @returns {jQuery.Promise}
  */
-sp.container.Manager.prototype.loadFromFile = function ( scenarioName, overrideConfig ) {
+sp.container.Manager.prototype.loadFromName = function ( scenarioName, overrideConfig ) {
 	var targetName, objList,
 		deferred = $.Deferred(),
 		filePrefix = this.config.scenario_prefix || '',
@@ -105,6 +106,15 @@ sp.container.Manager.prototype.addToolbar = function ( $toolbar, position ) {
 sp.container.Manager.prototype.setScenario = function ( s ) {
 	this.scenario = s;
 
+	// Draw
+	this.screen.clear();
+	this.scenario.draw();
+};
+
+/**
+ * Redraw the scenario elements
+ */
+sp.container.Manager.prototype.redrawScenario = function () {
 	// Draw
 	this.screen.clear();
 	this.scenario.draw();
@@ -179,6 +189,14 @@ sp.container.Manager.prototype.execute = function ( action, method ) {
 };
 
 /**
+ * Get the container id
+ * @return {string} Container id
+ */
+sp.container.Manager.prototype.getID = function () {
+	return this.container_id;
+};
+
+/**
  * Add all commands from initialization options.
  *
  * Commands and triggers must be registered under the same name prior to adding them to the surface.
@@ -216,4 +234,20 @@ sp.container.Manager.prototype.addCommands = function ( names ) {
 /*		this.triggers[names[i]] = triggers;*/
 		this.emit( 'addCommand', names[i], command, triggers );
 	}
+};
+
+/**
+ * Get container screen
+ * @return {sp.container.Screen} Screen
+ */
+sp.container.Manager.prototype.getScreen = function () {
+	return this.screen;
+};
+
+/**
+ * Get container screen
+ * @return {sp.container.Screen} Screen
+ */
+sp.container.Manager.prototype.getCanvas = function () {
+	return this.screen.getCanvas();
 };

@@ -101,6 +101,9 @@ sp.ui.ext.ooui.Mod.Play.static.commands = [
 sp.ui.ext.ooui.Mod.Play.prototype.initialize = function () {
 	var i, tools, tname;
 
+	// Call parent
+	sp.ui.ext.Play.prototype.initialize.call( this );
+
 	this.toolbar = new sp.ui.ext.ooui.Toolbar( this, this.container );
 	this.toolbar.setup( this.constructor.static.toolbarGroups );
 	// TODO: Add commands to container (future!)

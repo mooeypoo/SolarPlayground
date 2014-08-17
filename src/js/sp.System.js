@@ -50,6 +50,7 @@ sp.System.prototype.setContainer = function ( container_id, config ) {
 
 	// Add a container
 	this.containers[container_id] = new sp.container.Manager( {
+		'id': container_id,
 		'container': '#' + container_id,
 		'width': config.width || this.config.width,
 		'height': config.height || this.config.height,

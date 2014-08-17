@@ -14,9 +14,12 @@ sp.container.Screen = function SpContainerScreen( config ) {
 
 	this.canvasCenterPoint = { x: 0, y: 0 };
 
+	this.canvasID = 'canvas_' + this.config.id;
+
 	// Initialize
 	this.$canvas = $( '<canvas>' )
 		.addClass( 'sp-container-canvas' )
+		.prop( 'id', this.canvasID )
 		.attr( 'width', this.config.width )
 		.attr( 'height', this.config.height );
 
@@ -183,6 +186,14 @@ sp.container.Screen.prototype.getCenterPoint = function () {
 };
 
 /**
+ * Get canvas jQuery element
+ * @return {jQuery} Canvas jQuery element
+ */
+sp.container.Screen.prototype.getCanvas = function () {
+	return this.$canvas;
+};
+
+/**
  * Get the canvas context
  * @returns {Object} Canvas context
  */
@@ -198,5 +209,13 @@ sp.container.Screen.prototype.getDimensions = function () {
 	return {
 		'width': this.$canvas.width(),
 		'height': this.$canvas.height()
-	}
+	};
+};
+
+/**
+ * Get canvas id
+ * @return {string} Canvas id
+ */
+sp.container.Screen.prototype.getID = function () {
+	return this.canvasID;
 };

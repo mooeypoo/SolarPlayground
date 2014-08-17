@@ -65,6 +65,9 @@ sp.ui.ext.jqueryui.Mod.Play.prototype.initialize = function () {
 		$separator = $( '<div>' )
 			.addClass( 'sp-ui-jqueryui-sep' );
 
+	// Call parent
+	sp.ui.ext.Play.prototype.initialize.call( this );
+
 	this.$toolbar = $( '<div>' )
 		.addClass( 'sp-ui-jqueryui-toolbar' );
 

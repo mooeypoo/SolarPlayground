@@ -218,3 +218,11 @@ sp.view.Converter.prototype.setPitchAngle = function ( pitch ) {
 sp.view.Converter.prototype.getPitchAngle = function () {
 	return this.pitch;
 };
+
+/**
+ * Set new canvas dimensions
+ * @param {[type]} dimensions [description]
+ */
+sp.view.Converter.prototype.setCanvasDimensions = function ( dimensions ) {
+	this.canvasDimensions = dimensions;
+};

@@ -1,0 +1,16 @@
+/**
+ * General GUI tools
+ */
+.sp-ui-fullscreen-button {
+	display: inline-block;
+	right: 5px;
+	bottom: 5px;
+	position: absolute;
+	font-size: 0.9em;
+	opacity: 0.65;
+	filter: alpha( opacity=65 ); /* For IE8 and earlier */
+	color: #ffffff;
+	background-color: #000000;
+	padding: 5px;
+	cursor: pointer;
+}

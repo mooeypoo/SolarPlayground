@@ -1,5 +1,22 @@
-/**
- * SolarPlayground - The adaptive javascript-based solar
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/**
+</span> * SolarPlayground - The adaptive javascript-based solar
  * system simulator.
  *
  * @author Moriel Schottlender
@@ -8,36 +25,36 @@
  * Solar Playground system.
  */
 ( function () {
-	/**
-	 * Definition of the namespace with its sub-namespaces
+<span id='global-property-solarPlayground'>	/**
+</span>	 * Definition of the namespace with its sub-namespaces
 	 * @property {Object}
 	 */
 	var solarPlayground = {
-		'container': {
-			'elements': {}
+		&#39;container&#39;: {
+			&#39;elements&#39;: {}
 		},
-		'data': {
-			'items': {}
+		&#39;data&#39;: {
+			&#39;items&#39;: {}
 		},
-		'calc': {},
-		'view': {},
-		'ui': {
-			'ext': {}
+		&#39;calc&#39;: {},
+		&#39;view&#39;: {},
+		&#39;ui&#39;: {
+			&#39;ext&#39;: {}
 		}
 	};
 
-	/**
-	 * General method to produce logs into the console
+<span id='global-method-log'>	/**
+</span>	 * General method to produce logs into the console
 	 * or some files.
 	 *
 	 * @param {String} type Message type: LOG, ERROR
 	 * @param {String} msg Log message
 	 */
 	solarPlayground.log = function SpLog( type, msg ) {
-		type = type || 'LOG';
+		type = type || &#39;LOG&#39;;
 		// TODO: Condition the console logging only on debug mode
 		// otherwise output logs to a file
-		window.console.log( '[' + type + '] ' + msg );
+		window.console.log( &#39;[&#39; + type + &#39;] &#39; + msg );
 	};
 
 	// Add to the global namespace
@@ -55,7 +72,7 @@
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation files
- * (the "Software"), to deal in the Software without restriction,
+ * (the &quot;Software&quot;), to deal in the Software without restriction,
  * including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software,
  * and to permit persons to whom the Software is furnished to do so,
@@ -68,7 +85,7 @@
  * including courses, books, instructional videos, presentations, etc.
  * without the express written consent of David Geary.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
  * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -118,12 +135,12 @@ window.requestNextAnimationFrame = ( function () {
 		// Check the Gecko version. Gecko is used by browsers
 		// other than Firefox. Gecko 2.0 corresponds to
 		// Firefox 4.0.
-		index = userAgent.indexOf( 'rv:' );
+		index = userAgent.indexOf( &#39;rv:&#39; );
 
-		if ( userAgent.indexOf( 'Gecko' ) != -1) {
+		if ( userAgent.indexOf( &#39;Gecko&#39; ) != -1) {
 			geckoVersion = userAgent.substr( index + 3, 3 );
 
-			if ( geckoVersion === '2.0' ) {
+			if ( geckoVersion === &#39;2.0&#39; ) {
 				// Forces the return statement to fall through
 				// to the setTimeout() function.
 				window.mozRequestAnimationFrame = undefined;
@@ -150,8 +167,8 @@ window.requestNextAnimationFrame = ( function () {
 		};
 } ) ();
 
-/**
- * Solar Playground main system controller
+<span id='sp-System'>/**
+</span> * Solar Playground main system controller
  *
  * @class sp.System
  * @mixins OO.EventEmitter
@@ -170,9 +187,9 @@ sp.System = function SpSystem( config ) {
 	config = config || {};
 
 	defaultConfig = {
-		scenario_dir: 'scenarios', // Default directory unless otherwise specified
-		scenario_prefix: 'scenario.', // Default scenario file prefix
-		directory_sep: '/',
+		scenario_dir: &#39;scenarios&#39;, // Default directory unless otherwise specified
+		scenario_prefix: &#39;scenario.&#39;, // Default scenario file prefix
+		directory_sep: &#39;/&#39;,
 		width: $( window ).width() - 100,
 		height: $( window ).height() - 100
 	};
@@ -186,8 +203,8 @@ OO.mixinClass( sp.System, OO.EventEmitter );
 
 /* Methods */
 
-/**
- * Add a container
+<span id='sp-System-method-setContainer'>/**
+</span> * Add a container
  * @param {string} container_id The id of the DOM that this container
  * will be attached to
  * @param {Object} [config] Configuration object
@@ -197,20 +214,19 @@ OO.mixinClass( sp.System, OO.EventEmitter );
  */
 sp.System.prototype.setContainer = function ( container_id, config ) {
 	if ( !container_id ) {
-		throw Error( 'sp.System.setContainer must supply a valid container_id.' );
+		throw Error( &#39;sp.System.setContainer must supply a valid container_id.&#39; );
 	}
 
 	// Add a container
 	this.containers[container_id] = new sp.container.Manager( {
-		'id': container_id,
-		'container': '#' + container_id,
-		'width': config.width || this.config.width,
-		'height': config.height || this.config.height,
-		'gui': config.gui || 'ooui',
+		&#39;container&#39;: &#39;#&#39; + container_id,
+		&#39;width&#39;: config.width || this.config.width,
+		&#39;height&#39;: config.height || this.config.height,
+		&#39;gui&#39;: config.gui || &#39;ooui&#39;,
 		scenario_dir: this.config.scenario_dir,
 		directory_sep: this.config.directory_sep,
 		scenario_prefix: config.scenario_prefix || this.config.scenario_prefix,
-		// TODO: When 'build' mode is created, it should be either
+		// TODO: When &#39;build&#39; mode is created, it should be either
 		// enabled right on instantiation or allow to be added later
 		buildMode: false
 	} );
@@ -218,8 +234,8 @@ sp.System.prototype.setContainer = function ( container_id, config ) {
 	return this.containers[container_id];
 };
 
-/**
- * Retrueve the container by its id
+<span id='sp-System-method-getContainer'>/**
+</span> * Retrueve the container by its id
  * @param {string} container_id The id of the DOM that this container
  * is attached to
  * @throws {Error} If there are no containers defined
@@ -227,25 +243,25 @@ sp.System.prototype.setContainer = function ( container_id, config ) {
  */
 sp.System.prototype.getContainer = function ( container_id ) {
 	if ( !this.containers ) {
-		throw Error( 'Cannot get container, no containers are defined.' );
+		throw Error( &#39;Cannot get container, no containers are defined.&#39; );
 	}
 	return this.containers[container_id];
 };
 
-/**
- * Get configuration option or full configuration object.
+<span id='sp-System-method-getConfig'>/**
+</span> * Get configuration option or full configuration object.
  * @param {string} [option] Configuration key
  * @returns {string|Object} Configuration object
  */
 sp.System.prototype.getConfig = function ( option ) {
-	if ( this.config && option ) {
+	if ( this.config &amp;&amp; option ) {
 		return this.config[option];
 	}
 	return this.config;
 };
 
-/**
- * Solar Playground calculator. Contains methods for calculations across the scenarios.
+<span id='sp-calc-Calculator'>/**
+</span> * Solar Playground calculator. Contains methods for calculations across the scenarios.
  *
  * @class sp.calc.Calculator
  *
@@ -253,20 +269,20 @@ sp.System.prototype.getConfig = function ( option ) {
  */
 sp.calc.Calculator = function SpScenarioCalculator( config ) {};
 
-/**
- * Astronomical constants. Mostly related to the solar
+<span id='sp-calc-Calculator-property-constants'>/**
+</span> * Astronomical constants. Mostly related to the solar
  * system but also to other calculations.
  * @property {Object}
  */
 sp.calc.Calculator.constants = {
 	// Astronomical units (AU) in km
-	'AU': 149597871, // km
+	&#39;AU&#39;: 149597871, // km
 	// Gravitational constant in N*(m/kg)^2
-	'G': 6.67 * Math.pow( 10, -11 )
+	&#39;G&#39;: 6.67 * Math.pow( 10, -11 )
 };
 
-/**
- * Calculate the absolute time needed for proper calculations.
+<span id='sp-calc-Calculator-method-translateTime'>/**
+</span> * Calculate the absolute time needed for proper calculations.
  * In our case, it is the number of days from 1999 Dec 31, 0:00 UT
  * @param {number} year Requested year (YYYY)
  * @param {number} month Requested month
@@ -281,7 +297,7 @@ sp.calc.Calculator.translateTime = function ( year, month, day, time_of_day ) {
 	day = day || 10;
 	time_of_day = time_of_day || 0;
 
-	// The day calculation must be integer calculation, so 'Math.floor' must
+	// The day calculation must be integer calculation, so &#39;Math.floor&#39; must
 	// be used for all divisions
 	totalDays = 367 * year - 7 *
 		Math.floor( ( year + Math.floor( ( month + 9 ) / 12 ) ) / 4 ) +
@@ -293,8 +309,8 @@ sp.calc.Calculator.translateTime = function ( year, month, day, time_of_day ) {
 	return totalDays;
 };
 
-/**
- * Translate date to th enumber of centuries from J2000.0
+<span id='sp-calc-Calculator-method-getCenturies'>/**
+</span> * Translate date to th enumber of centuries from J2000.0
  * @param {number} year Requested year (yyyy)
  * @param {number} [month] Requested month
  * @param {number} [day] Requested day of the month
@@ -315,8 +331,8 @@ sp.calc.Calculator.getCenturies = function ( year, month, day, hours, minutes, s
 	return D / 36525;
 };
 
-/**
- * Return a JDN (Julian Day Number) from J2000.0, converted from a Gregorian date and time
+<span id='sp-calc-Calculator-method-getJDNTime'>/**
+</span> * Return a JDN (Julian Day Number) from J2000.0, converted from a Gregorian date and time
  * @param {number} year Requested year (yyyy)
  * @param {number} month Requested month
  * @param {number} day Requested day of the month
@@ -349,8 +365,8 @@ sp.calc.Calculator.getJDNTime = function ( year, month, day, hours, minutes, sec
 	return JD - 2451545.0;
 };
 
-/**
- * Solve the Kepler equation for the given parameters to get the object's
+<span id='sp-calc-Calculator-method-solveKepler'>/**
+</span> * Solve the Kepler equation for the given parameters to get the object&#39;s
  * position in space. This position is raw heliocentric space coordiates
  *
  * Calculation taken from NASA JPL Formula:
@@ -374,16 +390,16 @@ sp.calc.Calculator.solveKepler = function ( vars, jd ) {
 		x_tag, y_tag, z_tag,
 		ITERLIMIT = 1000,
 		ERRORLIMIT = Math.pow( 10, -4 ),
-		/**
-		 * Convert angles to radians
+<span id='sp-calc-Calculator-method-'>		/**
+</span>		 * Convert angles to radians
 		 * @param {number} angle Angle
 		 * @returns {number} Radians
 		 */
 		to_radians = function toRadians( angle ) {
 			return angle * ( 180 / Math.PI );
 		},
-		/**
-		 * Approximate the eccententric anomaly by iteration
+<span id='sp-calc-Calculator-method-'>		/**
+</span>		 * Approximate the eccententric anomaly by iteration
 		 * @param {number} e Eccentricity
 		 * @param {number} M Mean anomaly
 		 * @returns {number} Eccentric anomaly in radians
@@ -394,7 +410,7 @@ sp.calc.Calculator.solveKepler = function ( vars, jd ) {
 			dE = 1,
 			i = 0;
 
-			while ( ITERLIMIT-- && Math.abs( dE ) > ERRORLIMIT ) {
+			while ( ITERLIMIT-- &amp;&amp; Math.abs( dE ) &gt; ERRORLIMIT ) {
 				dM = M - ( E_n - e_star * Math.sin( to_radians( E_n ) ) );
 				dE = dM / ( 1 - e * Math.cos( to_radians( E_n ) ) );
 				E_n = E_n + dE;
@@ -438,19 +454,19 @@ sp.calc.Calculator.solveKepler = function ( vars, jd ) {
 	z = 0;
 
 	// TODO: Figure out how to adjust to a system
-	// where two or more stars are the 'heliocentric'
+	// where two or more stars are the &#39;heliocentric&#39;
 	// coordinate center, like binary systems
 
 	dimensions = {
-		'x': x,
-		'y': y,
-		'z': y
+		&#39;x&#39;: x,
+		&#39;y&#39;: y,
+		&#39;z&#39;: y
 	};
 	return dimensions;
 };
 
-/**
- * Solar Playground container scenario loader
+<span id='sp-container-Loader'>/**
+</span> * Solar Playground container scenario loader
  *
  * @class
  * @mixins OO.EventEmitter
@@ -467,10 +483,10 @@ sp.container.Loader = function SpContainerLoader( config ) {
 /* Inheritance */
 OO.mixinClass( sp.container.Loader, OO.EventEmitter );
 
-/**
- * Load a scenario
+<span id='sp-container-Loader-method-loadFromFile'>/**
+</span> * Load a scenario
  * @param {String} scenarioName Scenario name. The system will search for
- *  an ajax response from source 'scenario.[name].json' in the scenario
+ *  an ajax response from source &#39;scenario.[name].json&#39; in the scenario
  *  directory.
  */
 sp.container.Loader.prototype.loadFromFile = function ( scenarioName, filename ) {
@@ -481,15 +497,15 @@ sp.container.Loader.prototype.loadFromFile = function ( scenarioName, filename )
 			deferred.resolve( response );
 		}, this ) )
 		.fail( function () {
-			sp.log( 'Error', 'Scenario ' + targetName + ' not found in directory "' + targetDir + '"' );
+			sp.log( &#39;Error&#39;, &#39;Scenario &#39; + targetName + &#39; not found in directory &quot;&#39; + targetDir + &#39;&quot;&#39; );
 			deferred.reject();
 		} );
 
 	return deferred;
 };
 
-/**
- * Load and run a scenario
+<span id='sp-container-Loader-method-loadFromObject'>/**
+</span> * Load and run a scenario
  * @param {Object} scenarioObject Scenario configuration object
  * @fires scenarioLoaded
  */
@@ -515,11 +531,11 @@ sp.container.Loader.prototype.loadFromObject = function ( scenarioObject ) {
 		);
 	}
 
-	this.emit( 'scenarioLoaded', this.scenario );
+	this.emit( &#39;scenarioLoaded&#39;, this.scenario );
 };
 
-/**
- * Solar Playground container manager
+<span id='sp-container-Manager'>/**
+</span> * Solar Playground container manager
  *
  * @class sp.container.Manager
  * @mixins OO.EventEmitter
@@ -533,12 +549,11 @@ sp.container.Manager = function SpContainerManager( config ) {
 	this.config = config || {};
 	this.scenario = null;
 
-	this.container_id = this.config.id;
 	// Scenario loader
 	this.loader = new sp.container.Loader( config );
 
 	this.$container = $( config.container )
-		.addClass( 'sp-container' );
+		.addClass( &#39;sp-container&#39; );
 
 	// Adjust height
 	// Remove 40px for top bar
@@ -550,8 +565,8 @@ sp.container.Manager = function SpContainerManager( config ) {
 
 	// Gui
 	guiLoader = new sp.ui.Loader( {
-		'module': config.gui || 'ooui', // Default module
-		'container': this
+		&#39;module&#39;: config.gui || &#39;ooui&#39;, // Default module
+		&#39;container&#39;: this
 	} );
 	this.gui = guiLoader.initialize();
 };
@@ -559,16 +574,16 @@ sp.container.Manager = function SpContainerManager( config ) {
 /* Inheritance */
 OO.mixinClass( sp.container.Manager, OO.EventEmitter );
 
-/**
- * @event scenarioLoaded
+<span id='sp-container-Manager-event-scenarioLoaded'>/**
+</span> * @event scenarioLoaded
  * @param {sp.Scenario} scenario Reference to the loaded scenario
  * Scenario fully loaded and ready to be run.
  */
 
 /* Methods */
 
-/**
- * Load scenario from file.
+<span id='sp-container-Manager-method-loadFromName'>/**
+</span> * Load scenario from file.
  * @param {string} scenarioName The scenario name
  * @param {Object} [overrideConfig] Optional configuration parameters
  *  that will override whatever is in the scenario file.
@@ -577,13 +592,13 @@ OO.mixinClass( sp.container.Manager, OO.EventEmitter );
 sp.container.Manager.prototype.loadFromName = function ( scenarioName, overrideConfig ) {
 	var targetName, objList,
 		deferred = $.Deferred(),
-		filePrefix = this.config.scenario_prefix || '',
+		filePrefix = this.config.scenario_prefix || &#39;&#39;,
 		targetDir = this.config.scenario_dir + this.config.directory_sep;
 
 	deferred = $.Deferred();
 
-	scenarioName = scenarioName || 'example';
-	targetName = targetDir + filePrefix + scenarioName + '.json';
+	scenarioName = scenarioName || &#39;example&#39;;
+	targetName = targetDir + filePrefix + scenarioName + &#39;.json&#39;;
 
 	this.loader.loadFromFile( scenarioName, targetName )
 		.done( $.proxy( function ( scenarioObject ) {
@@ -597,30 +612,30 @@ sp.container.Manager.prototype.loadFromName = function ( scenarioName, overrideC
 					objList[o].getName()
 				);
 			}
-			this.emit( 'scenarioLoaded' );
+			this.emit( &#39;scenarioLoaded&#39; );
 			deferred.resolve( this );
 		}, this ) );
 
 	return deferred;
 };
 
-/**
- * Add a toolbar to the container
+<span id='sp-container-Manager-method-addToolbar'>/**
+</span> * Add a toolbar to the container
  * @param {jQuery} $toolbar jQuery toolbar element
- * @param {string} [position] Position in the container; 'top' or 'bottom'
+ * @param {string} [position] Position in the container; &#39;top&#39; or &#39;bottom&#39;
  */
 sp.container.Manager.prototype.addToolbar = function ( $toolbar, position ) {
-	position = position || 'top';
+	position = position || &#39;top&#39;;
 
-	if ( position === 'top' ) {
+	if ( position === &#39;top&#39; ) {
 		this.$container.prepend( $toolbar );
 	} else {
 		this.$container.append( $toolbar );
 	}
 };
 
-/**
- * Attach scenario object to this container
+<span id='sp-container-Manager-method-setScenario'>/**
+</span> * Attach scenario object to this container
  * @param {sp.Scenario} s Scenario object
  */
 sp.container.Manager.prototype.setScenario = function ( s ) {
@@ -631,25 +646,16 @@ sp.container.Manager.prototype.setScenario = function ( s ) {
 	this.scenario.draw();
 };
 
-/**
- * Redraw the scenario elements
- */
-sp.container.Manager.prototype.redrawScenario = function () {
-	// Draw
-	this.screen.clear();
-	this.scenario.draw();
-};
-
-/**
- * Retrieve the scenario attached to this container
+<span id='sp-container-Manager-method-getScenario'>/**
+</span> * Retrieve the scenario attached to this container
  * @returns {sp.Scenario} s Scenario object
  */
 sp.container.Manager.prototype.getScenario = function () {
 	return this.scenario;
 };
 
-/**
- * Toggle between pause and resume the scenario
+<span id='sp-container-Manager-method-togglePaused'>/**
+</span> * Toggle between pause and resume the scenario
  * @param {boolean} [isPaused] Optional. If supplied, pauses or resumes the scenario
  * @fires pause
  */
@@ -659,15 +665,15 @@ sp.container.Manager.prototype.togglePaused = function ( isPaused ) {
 	}
 };
 
-/**
- * Check whether the scenario is paused
+<span id='sp-container-Manager-method-isPaused'>/**
+</span> * Check whether the scenario is paused
  */
 sp.container.Manager.prototype.isPaused = function () {
 	return this.scenario.isPaused();
 };
 
-/**
- * Set scenario zoom
+<span id='sp-container-Manager-method-setZoom'>/**
+</span> * Set scenario zoom
  * @param {number} zoom Zoom factor
  * @fires zoom
  */
@@ -683,8 +689,8 @@ sp.container.Manager.prototype.setPitchAngle = function ( pitch ) {
 	}
 };
 
-/**
- * Execute an action or command.
+<span id='sp-container-Manager-method-execute'>/**
+</span> * Execute an action or command.
  *
  * @method
  * @param {string} action Symbolic name of action
@@ -708,16 +714,8 @@ sp.container.Manager.prototype.execute = function ( action, method ) {
 	return false;
 };
 
-/**
- * Get the container id
- * @return {string} Container id
- */
-sp.container.Manager.prototype.getID = function () {
-	return this.container_id;
-};
-
-/**
- * Add all commands from initialization options.
+<span id='sp-container-Manager-method-addCommands'>/**
+</span> * Add all commands from initialization options.
  *
  * Commands and triggers must be registered under the same name prior to adding them to the surface.
  *
@@ -731,49 +729,33 @@ sp.container.Manager.prototype.getID = function () {
 sp.container.Manager.prototype.addCommands = function ( names ) {
 	var i, j, len, key, command, triggers, trigger;
 
-	for ( i = 0, len = names.length; i < len; i++ ) {
+	for ( i = 0, len = names.length; i &lt; len; i++ ) {
 		command = sp.ui.commandRegistry.lookup( names[i] );
 		if ( !command ) {
-			throw new Error( 'No command registered by that name: ' + names[i] );
+			throw new Error( &#39;No command registered by that name: &#39; + names[i] );
 		}
 
 /*		// Normalize trigger key
 		triggers = ve.ui.triggerRegistry.lookup( names[i] );
 		if ( !triggers ) {
-			throw new Error( 'No triggers registered by that name: ' + names[i] );
+			throw new Error( &#39;No triggers registered by that name: &#39; + names[i] );
 		}
-		for ( j = triggers.length - 1; j >= 0; j-- ) {
+		for ( j = triggers.length - 1; j &gt;= 0; j-- ) {
 			trigger = triggers[j];
 			key = trigger.toString();
 			// Validate trigger
 			if ( key.length === 0 ) {
-				throw new Error( 'Incomplete trigger: ' + trigger );
+				throw new Error( &#39;Incomplete trigger: &#39; + trigger );
 			}
 			this.commands[key] = command;
 		}*/
 /*		this.triggers[names[i]] = triggers;*/
-		this.emit( 'addCommand', names[i], command, triggers );
+		this.emit( &#39;addCommand&#39;, names[i], command, triggers );
 	}
 };
 
-/**
- * Get container screen
- * @return {sp.container.Screen} Screen
- */
-sp.container.Manager.prototype.getScreen = function () {
-	return this.screen;
-};
-
-/**
- * Get container screen
- * @return {sp.container.Screen} Screen
- */
-sp.container.Manager.prototype.getCanvas = function () {
-	return this.screen.getCanvas();
-};
-
-/**
- * Solar Playground screen controller for canvas and context elements
+<span id='sp-container-Screen'>/**
+</span> * Solar Playground screen controller for canvas and context elements
  *
  * @class sp.container.Screen
  * @mixins OO.EventEmitter
@@ -788,22 +770,19 @@ sp.container.Screen = function SpContainerScreen( config ) {
 
 	this.canvasCenterPoint = { x: 0, y: 0 };
 
-	this.canvasID = 'canvas_' + this.config.id;
-
 	// Initialize
-	this.$canvas = $( '<canvas>' )
-		.addClass( 'sp-container-canvas' )
-		.prop( 'id', this.canvasID )
-		.attr( 'width', this.config.width )
-		.attr( 'height', this.config.height );
+	this.$canvas = $( &#39;&lt;canvas&gt;&#39; )
+		.addClass( &#39;sp-container-canvas&#39; )
+		.attr( &#39;width&#39;, this.config.width )
+		.attr( &#39;height&#39;, this.config.height );
 
-	this.context = this.$canvas[0].getContext( '2d' );
+	this.context = this.$canvas[0].getContext( &#39;2d&#39; );
 
 	// Events
-	this.$canvas.on( 'mousedown', $.proxy( this.onCanvasMouseDown, this ) );
-	this.$canvas.on( 'mousemove', $.proxy( this.onCanvasMouseMove, this ) );
-	this.$canvas.on( 'mouseup', $.proxy( this.onCanvasMouseUp, this ) );
-	this.$canvas.on( 'mouseout', $.proxy( this.onCanvasMouseUp, this ) );
+	this.$canvas.on( &#39;mousedown&#39;, $.proxy( this.onCanvasMouseDown, this ) );
+	this.$canvas.on( &#39;mousemove&#39;, $.proxy( this.onCanvasMouseMove, this ) );
+	this.$canvas.on( &#39;mouseup&#39;, $.proxy( this.onCanvasMouseUp, this ) );
+	this.$canvas.on( &#39;mouseout&#39;, $.proxy( this.onCanvasMouseUp, this ) );
 };
 
 /* Inheritance */
@@ -812,54 +791,54 @@ OO.mixinClass( sp.container.Screen, OO.EventEmitter );
 
 /* Events */
 
-/**
- * @event drag
- * @param {string} action Drag action 'start', 'during' or 'end'
+<span id='sp-container-Screen-event-drag'>/**
+</span> * @event drag
+ * @param {string} action Drag action &#39;start&#39;, &#39;during&#39; or &#39;end&#39;
  * @param {Object|null} coords Mouse x/y coordinates.
- *  * For 'start' action, coords are mouseStartingPoint
- *  * For 'during' action, coords are the relative distance between
+ *  * For &#39;start&#39; action, coords are mouseStartingPoint
+ *  * For &#39;during&#39; action, coords are the relative distance between
  *    the current mouse coordinates and the initial dragging point.
- *    (In other words, it is the distance 'dragged' by the mouse)
- *  * For 'end' action, coords are not supplied.
+ *    (In other words, it is the distance &#39;dragged&#39; by the mouse)
+ *  * For &#39;end&#39; action, coords are not supplied.
  * point, depending on the action.
  * Dragging the mouse on the screen (moving while mousedown)
  */
 
-/**
- * Propogate canvas mousedown event
+<span id='sp-container-Screen-method-onCanvasMouseDown'>/**
+</span> * Propogate canvas mousedown event
  * @param {Event} e Event
  * @fires startDrag
  */
 sp.container.Screen.prototype.onCanvasMouseDown = function ( e ) {
 	this.canvasMouseMoving = true;
 	this.mouseStartingPoint = {
-		'x': e.pageX,
-		'y': e.pageY
+		&#39;x&#39;: e.pageX,
+		&#39;y&#39;: e.pageY
 	};
-	this.emit( 'drag', 'start', this.mouseStartingPoint );
+	this.emit( &#39;drag&#39;, &#39;start&#39;, this.mouseStartingPoint );
 };
 
-/**
- * Respond to canvas mouse move
+<span id='sp-container-Screen-method-onCanvasMouseMove'>/**
+</span> * Respond to canvas mouse move
  * @param {Event} e Event
  * @fires drag
  */
 sp.container.Screen.prototype.onCanvasMouseMove = function ( e ) {
 	var coords;
-	if ( this.canvasMouseMoving && !$.isEmptyObject( this.mouseStartingPoint ) ) {
+	if ( this.canvasMouseMoving &amp;&amp; !$.isEmptyObject( this.mouseStartingPoint ) ) {
 		dx = e.pageX - this.mouseStartingPoint.x;
 		dy = e.pageY - this.mouseStartingPoint.y;
 
 		coords = {
-			'x': dx + this.canvasCenterPoint.x,
-			'y': dy + this.canvasCenterPoint.y
+			&#39;x&#39;: dx + this.canvasCenterPoint.x,
+			&#39;y&#39;: dy + this.canvasCenterPoint.y
 		};
-		this.emit( 'drag', 'during', coords );
+		this.emit( &#39;drag&#39;, &#39;during&#39;, coords );
 	}
 };
 
-/**
- * Propogate canvas mouseup event
+<span id='sp-container-Screen-method-onCanvasMouseUp'>/**
+</span> * Propogate canvas mouseup event
  * @param {Event} e Event
  * @fires drag
  */
@@ -867,11 +846,11 @@ sp.container.Screen.prototype.onCanvasMouseUp = function ( e ) {
 	this.canvasMouseMoving = false;
 	this.mouseStartingPoint = {};
 	this.canvasCenterPoint = {};
-	this.emit( 'drag', 'end' );
+	this.emit( &#39;drag&#39;, &#39;end&#39; );
 };
 
-/**
- * Draw a circle on the canvas
+<span id='sp-container-Screen-method-drawCircle'>/**
+</span> * Draw a circle on the canvas
  * @param {Object} coords Canvas coordinates
  * @param {number} [radius] Circle radius
  * @param {string} [color] Circle color
@@ -886,9 +865,9 @@ sp.container.Screen.prototype.drawCircle = function ( coords, radius, color, has
 		radius || 5, 0, 2 * Math.PI,
 		false
 	);
-	this.context.fillStyle = color || 'white';
+	this.context.fillStyle = color || &#39;white&#39;;
 	if ( hasShadow ) {
-		this.context.shadowColor = color || 'white';
+		this.context.shadowColor = color || &#39;white&#39;;
 		this.context.shadowBlur = 20;
 		this.context.shadowOffsetX = 0;
 		this.context.shadowOffsetY = 0;
@@ -897,8 +876,8 @@ sp.container.Screen.prototype.drawCircle = function ( coords, radius, color, has
 	this.context.restore();
 };
 
-/**
- * Draw a line on the canvas
+<span id='sp-container-Screen-method-drawLine'>/**
+</span> * Draw a line on the canvas
  * @param {number[]} coords_start Canvas coordinates to start of line
  * @param {number[]} coords_end Canvas coordinates to end of line
  * @param {string} [color] Line color
@@ -909,16 +888,16 @@ sp.container.Screen.prototype.drawLine = function ( coords_start, coords_end, co
 	this.context.beginPath();
 	this.context.moveTo( coords_start[0], coords_start[1] );
 	this.context.lineTo( coords_end[0], coords_end[1] );
-	if ( isDashed && this.context.setLineDash ) {
+	if ( isDashed &amp;&amp; this.context.setLineDash ) {
 		this.context.setLineDash( [ 5, 7 ] );
 	}
 	this.context.lineWidth = width || 1;
-	this.context.strokeStyle = color || '#ffffff';
+	this.context.strokeStyle = color || &#39;#ffffff&#39;;
 	this.context.stroke();
 };
 
-/**
- * Clear an area on the canvas
+<span id='sp-container-Screen-method-clear'>/**
+</span> * Clear an area on the canvas
  * @param {number} [square] Dimensions and coordinates of the square
  * to clear. If not set, the entire canvas will be cleared.
  * @param {number} [square.top] Top coordinate of the square
@@ -940,62 +919,46 @@ sp.container.Screen.prototype.clear = function ( square ) {
 	this.context.clearRect( square.left, square.top, square.width, square.height );
 };
 
-/**
- * Set the center point of the center of the scenario.
+<span id='sp-container-Screen-method-setCenterPoint'>/**
+</span> * Set the center point of the center of the scenario.
  * @param {Object} coords Center of scenario coordinates
  */
 sp.container.Screen.prototype.setCenterPoint = function ( coords ) {
 	this.canvasCenterPoint = {
-		'x': coords.x,
-		'y': coords.y
+		&#39;x&#39;: coords.x,
+		&#39;y&#39;: coords.y
 	};
 };
 
-/**
- * Get the canvas center point
+<span id='sp-container-Screen-method-getCenterPoint'>/**
+</span> * Get the canvas center point
  * @returns {Object} Center point
  */
 sp.container.Screen.prototype.getCenterPoint = function () {
 	return this.canvasCenterPoint;
 };
 
-/**
- * Get canvas jQuery element
- * @return {jQuery} Canvas jQuery element
- */
-sp.container.Screen.prototype.getCanvas = function () {
-	return this.$canvas;
-};
-
-/**
- * Get the canvas context
+<span id='sp-container-Screen-method-getContext'>/**
+</span> * Get the canvas context
  * @returns {Object} Canvas context
  */
 sp.container.Screen.prototype.getContext = function () {
-	return this.$canvas[0].getContext( '2d' );
+	return this.$canvas[0].getContext( &#39;2d&#39; );
 };
 
-/**
- * Get the canvas dimensions
+<span id='sp-container-Screen-method-getDimensions'>/**
+</span> * Get the canvas dimensions
  * @returns {Object} Width and height of the canvas
  */
 sp.container.Screen.prototype.getDimensions = function () {
 	return {
-		'width': this.$canvas.width(),
-		'height': this.$canvas.height()
-	};
+		&#39;width&#39;: this.$canvas.width(),
+		&#39;height&#39;: this.$canvas.height()
+	}
 };
 
-/**
- * Get canvas id
- * @return {string} Canvas id
- */
-sp.container.Screen.prototype.getID = function () {
-	return this.canvasID;
-};
-
-/**
- * Celestial object, defines a moving object in space.
+<span id='sp-data-CelestialBody'>/**
+</span> * Celestial object, defines a moving object in space.
  *
  * @class sp.data.CelestialBody
  * @mixins OO.EventEmitter
@@ -1021,20 +984,20 @@ sp.data.CelestialBody = function SpDataScenarioCelestialObject( config ) {
 	this.numTrailPoints = 80;
 
 	// Attributes
-	this.name = config.name || '';
-	this.description = config.description || '';
+	this.name = config.name || &#39;&#39;;
+	this.description = config.description || &#39;&#39;;
 	this.view = config.graphic || {};
 
 	this.transform = { x: 0, y: 0, angle: 0, scale: 1 };
 
 	this.vars = config.vars;
 
-	this.initial_position = config.initial_position || { 'x': 0, 'y': 0 };
+	this.initial_position = config.initial_position || { &#39;x&#39;: 0, &#39;y&#39;: 0 };
 
 	// Link to the object it is orbiting
 	this.orbiting = null;
 
-	this.type = config.type || 'planet';
+	this.type = config.type || &#39;planet&#39;;
 
 	// Initial radius
 	this.radius = Number( config.vars.r ) || 10;
@@ -1043,8 +1006,8 @@ sp.data.CelestialBody = function SpDataScenarioCelestialObject( config ) {
 /* Inheritance */
 OO.mixinClass( sp.data.CelestialBody, OO.EventEmitter );
 
-/**
- * Get space coordinates per time.
+<span id='sp-data-CelestialBody-method-getSpaceCoordinates'>/**
+</span> * Get space coordinates per time.
  * @param {number} time Time unit
  */
 sp.data.CelestialBody.prototype.getSpaceCoordinates = function ( time ) {
@@ -1053,7 +1016,7 @@ sp.data.CelestialBody.prototype.getSpaceCoordinates = function ( time ) {
 	time = time || 0;
 
 	if ( this.orbiting ) {
-		// Find period if it doesn't exist
+		// Find period if it doesn&#39;t exist
 		if ( !this.vars.p ) {
 			// Calculate period
 			a = this.vars.a[0];// * sp.Scenario.Calculator.constants.AU;
@@ -1064,12 +1027,12 @@ sp.data.CelestialBody.prototype.getSpaceCoordinates = function ( time ) {
 
 		// TODO: Cache coordinates
 		// TODO: Allow for calculation based on period
-		if ( this.vars.a && this.vars.e && this.vars.I && this.vars.L && this.vars.long_peri && this.vars.long_node ) {
+		if ( this.vars.a &amp;&amp; this.vars.e &amp;&amp; this.vars.I &amp;&amp; this.vars.L &amp;&amp; this.vars.long_peri &amp;&amp; this.vars.long_node ) {
 			this.coordinates = sp.calc.Calculator.solveKepler(
 				this.vars,
 				time
 			);
-		} else if ( this.vars.p && this.vars.r ) {
+		} else if ( this.vars.p &amp;&amp; this.vars.r ) {
 			// Calculate based on Period
 			this.coordinates = { x: 0, y: 0, z: 0 };
 			return this.coordinates;
@@ -1086,9 +1049,9 @@ sp.data.CelestialBody.prototype.getSpaceCoordinates = function ( time ) {
 		centerOfOrbitCoords = this.orbiting.getSpaceCoordinates( time );
 		if ( centerOfOrbitCoords ) {
 			this.coordinates = {
-				'x': this.coordinates.x + centerOfOrbitCoords.x,
-				'y': this.coordinates.y + centerOfOrbitCoords.y,
-				'z': this.coordinates.z + centerOfOrbitCoords.z
+				&#39;x&#39;: this.coordinates.x + centerOfOrbitCoords.x,
+				&#39;y&#39;: this.coordinates.y + centerOfOrbitCoords.y,
+				&#39;z&#39;: this.coordinates.z + centerOfOrbitCoords.z
 			};
 		}
 	} else {
@@ -1097,86 +1060,86 @@ sp.data.CelestialBody.prototype.getSpaceCoordinates = function ( time ) {
 	return this.coordinates;
 };
 
-/**
- * Store the coordinate in the trail queue. Stores the space coordinates.
+<span id='sp-data-CelestialBody-method-storeTrailPoint'>/**
+</span> * Store the coordinate in the trail queue. Stores the space coordinates.
  * Dequeue the first when trail number cap is reached.
  * @param {Object} coordinates Coordinates of the trails
  */
 sp.data.CelestialBody.prototype.storeTrailPoint = function ( coordinates ) {
 	// Store coordinates for trails
 	this.trails.push( coordinates );
-	if ( this.trails.length > this.numTrailPoints ) {
+	if ( this.trails.length &gt; this.numTrailPoints ) {
 		// Dequeue the first
 		this.trails.shift();
 	}
 };
 
-/**
- * Get the trail points.
+<span id='sp-data-CelestialBody-method-getTrailPoints'>/**
+</span> * Get the trail points.
  * @returns {Object[]} Space coordinates for the trails
  */
 sp.data.CelestialBody.prototype.getTrailPoints = function () {
 	return this.trails;
 };
 
-/**
- * Flush the trails queue completely.
+<span id='sp-data-CelestialBody-method-flushTrailPoints'>/**
+</span> * Flush the trails queue completely.
  */
 sp.data.CelestialBody.prototype.flushTrailPoints = function () {
 	this.trails = [];
 	this.frameCounter = 0;
 };
 
-/**
- * Get object type
- * @returns {string} Celestial object type, 'star' or 'planet'
+<span id='sp-data-CelestialBody-method-getType'>/**
+</span> * Get object type
+ * @returns {string} Celestial object type, &#39;star&#39; or &#39;planet&#39;
  */
 sp.data.CelestialBody.prototype.getType = function () {
 	return this.type;
 };
 
-/**
- * Get object name
+<span id='sp-data-CelestialBody-method-getName'>/**
+</span> * Get object name
  * @returns {string} Celestial object name
  */
 sp.data.CelestialBody.prototype.getName = function () {
 	return this.name;
 };
 
-/**
- * Get object description
+<span id='sp-data-CelestialBody-method-getDescription'>/**
+</span> * Get object description
  * @returns {string} Celestial object description
  */
 sp.data.CelestialBody.prototype.getDescription = function () {
 	return this.description;
 };
 
-/**
- * Set the object this object is orbiting
+<span id='sp-data-CelestialBody-method-setOrbit'>/**
+</span> * Set the object this object is orbiting
  * @param {sp.data.CelestialBody} obj Object that is the center of the orbit
  */
 sp.data.CelestialBody.prototype.setOrbit = function ( obj ) {
 	this.orbiting = obj;
 };
 
-/**
- * Retrieve the object that is the center of orbit
+<span id='sp-data-CelestialBody-method-getOrbit'>/**
+</span> * Retrieve the object that is the center of orbit
  * @returns {sp.data.CelestialBody} obj Object that is the center of the orbit
  */
 sp.data.CelestialBody.prototype.getOrbit = function () {
 	return this.orbiting;
 };
 
-/**
- * Set object name
+<span id='sp-data-CelestialBody-method-setName'>/**
+</span> * Set object name
  * @param {string} name New object name
  */
 sp.data.CelestialBody.prototype.setName = function ( name ) {
 	this.name = name;
 };
 
-/**
- * Set object description
+<span id='sp-data-CelestialBody-method-setDescription'>/**
+</span> * Set object description
  * @param {string} desc New object description
  */
 sp.data.CelestialBody.prototype.setDescription = function ( desc ) {
@@ -1191,16 +1154,16 @@ sp.data.CelestialBody.prototype.getView = function () {
 	return this.view;
 }
 
-/**
- * Get the planet radius if it exists.
+<span id='sp-data-CelestialBody-method-'>/**
+</span> * Get the planet radius if it exists.
  * @returns {number|null} Planet radius in km
  */
 sp.data.CelestialBody.prototype.getRadius = function () {
 	return this.vars.r;
 };
 
-/**
- * Solar playground scenario
+<span id='sp-data-Scenario'>/**
+</span> * Solar playground scenario
  *
  * @class sp.data.Scenario
  * @mixins OO.EventEmitter
@@ -1233,13 +1196,13 @@ sp.data.Scenario = function SpDataScenario( screen, scenario, config ) {
 	// view controller
 	canvasDimensions = this.screen.getDimensions();
 	this.viewConverter = new sp.view.Converter( {
-		'zoom': this.config.init_zoom || 1,
-		'canvasDimensions': canvasDimensions,
-		'yaw': this.config.init_yaw * toRadians || 0,
-		'pitch': this.config.init_pitch * toRadians || 0,
-		'scale': {
-			'orbit': this.config.orbit_scale || 0.5 * Math.pow( 10, -5 ),
-			'planets': this.config.planet_scale
+		&#39;zoom&#39;: this.config.init_zoom || 1,
+		&#39;canvasDimensions&#39;: canvasDimensions,
+		&#39;yaw&#39;: this.config.init_yaw * toRadians || 0,
+		&#39;pitch&#39;: this.config.init_pitch * toRadians || 0,
+		&#39;scale&#39;: {
+			&#39;orbit&#39;: this.config.orbit_scale || 0.5 * Math.pow( 10, -5 ),
+			&#39;planets&#39;: this.config.planet_scale
 		}
 	} );
 
@@ -1261,8 +1224,8 @@ sp.data.Scenario = function SpDataScenario( screen, scenario, config ) {
 	this.processObjects( scenario.objects || {} );
 
 	// Events
-	this.screen.connect( this, { 'drag': 'onScreenDrag' } );
-	this.viewConverter.connect( this, { 'pitch': 'onPitchChange' } );
+	this.screen.connect( this, { &#39;drag&#39;: &#39;onScreenDrag&#39; } );
+	this.viewConverter.connect( this, { &#39;pitch&#39;: &#39;onPitchChange&#39; } );
 };
 
 /* Inheritance */
@@ -1270,68 +1233,68 @@ OO.mixinClass( sp.data.Scenario, OO.EventEmitter );
 
 /* Events */
 
-/**
- * @event paused
+<span id='sp-data-Scenario-event-paused'>/**
+</span> * @event paused
  * @param {boolean} [isPaused] Paused or resumed
  * Change in pause/resume state
  */
 
-/**
- * @event pov
+<span id='sp-data-Scenario-event-pov'>/**
+</span> * @event pov
  * @param {string} pov_key The key of the new POV object
  * Change in point-of-view (POV) for the scenario
  */
 
-/**
- * @event zoom
+<span id='sp-data-Scenario-event-zoom'>/**
+</span> * @event zoom
  * @param {number} zoom Current zoom factor
  * Change the zoom level for the scenario
  */
 
-/**
- * @event pitch
+<span id='sp-data-Scenario-event-pitch'>/**
+</span> * @event pitch
  * @param {number} pitch Current pitch angle
  * Change the pitch angle for display
  */
 
 /* Methods */
 
-/**
- * Respond to screen drag
- * @param {string} action Action parameter for 'start', 'during', and 'end'
+<span id='sp-data-Scenario-method-onScreenDrag'>/**
+</span> * Respond to screen drag
+ * @param {string} action Action parameter for &#39;start&#39;, &#39;during&#39;, and &#39;end&#39;
  * @param {Object} [coords] Coordinates
  */
 sp.data.Scenario.prototype.onScreenDrag = function ( action, coords ) {
-	if ( action === 'start' ) {
+	if ( action === &#39;start&#39; ) {
 		this.screen.setCenterPoint( this.getCenterPoint() );
-	} else if ( action === 'during' ) {
-		this.setCenterPoint( { 'x': coords.x, 'y': coords.y } );
+	} else if ( action === &#39;during&#39; ) {
+		this.setCenterPoint( { &#39;x&#39;: coords.x, &#39;y&#39;: coords.y } );
 		this.flushAllTrails();
 		this.screen.clear();
 		this.draw();
-	} else if ( action === 'end' ) {
+	} else if ( action === &#39;end&#39; ) {
 		this.screen.setCenterPoint( this.getCenterPoint() );
 	}
 };
 
-/**
- * Propogate the pitch event from the view controller
+<span id='sp-data-Scenario-method-onPitchChange'>/**
+</span> * Propogate the pitch event from the view controller
  * @param {number} pitch Current pitch angle
  * @fires pitch
  */
 sp.data.Scenario.prototype.onPitchChange = function ( pitch ) {
-	this.emit( 'pitch', pitch );
+	this.emit( &#39;pitch&#39;, pitch );
 };
 
-/**
- * Process the solar playground simulator objects
+<span id='sp-data-Scenario-method-processObjects'>/**
+</span> * Process the solar playground simulator objects
  * @param {Object} scenarioObjects Simulation objects definition
  */
 sp.data.Scenario.prototype.processObjects = function ( scenarioObjects ) {
 	var o, co, radii_diff, step_size, radius, circle_radius, smallest_radii,
 		radii = {
-			'star': [],
-			'planet': []
+			&#39;star&#39;: [],
+			&#39;planet&#39;: []
 		};
 
 	// Initialize celestial objects
@@ -1340,7 +1303,7 @@ sp.data.Scenario.prototype.processObjects = function ( scenarioObjects ) {
 
 		// Collect all radii
 		if ( scenarioObjects[o].vars.r ) {
-			if ( scenarioObjects[o].type === 'star' ) {
+			if ( scenarioObjects[o].type === &#39;star&#39; ) {
 				radii.star.push( Number( scenarioObjects[o].vars.r ) );
 			} else {
 				radii.planet.push( Number( scenarioObjects[o].vars.r ) );
@@ -1353,26 +1316,26 @@ sp.data.Scenario.prototype.processObjects = function ( scenarioObjects ) {
 
 	// Figure out which objects orbit what
 	for ( co in this.objects ) {
-		if ( scenarioObjects[co] && this.objects[scenarioObjects[co].orbiting] ) {
+		if ( scenarioObjects[co] &amp;&amp; this.objects[scenarioObjects[co].orbiting] ) {
 			// Connect the object to its center of orbit
 			this.objects[co].setOrbit( this.objects[scenarioObjects[co].orbiting] );
 		}
 	}
 
 	// Set initial POV
-	if ( this.pov_key && this.objects[this.pov_key] ) {
+	if ( this.pov_key &amp;&amp; this.objects[this.pov_key] ) {
 		this.pov_object = this.objects[this.pov_key];
 		this.viewConverter.setPOV( this.objects[this.pov_key].getSpaceCoordinates( 0 ) );
 	}
 };
 
-/**
- * Set the POV object
+<span id='sp-data-Scenario-method-setPOV'>/**
+</span> * Set the POV object
  * @param {string} povKey Object key for the pov
  * @fires pov
  */
 sp.data.Scenario.prototype.setPOV = function ( povKey ) {
-	if ( povKey && this.objects[povKey] && this.pov_key !== povKey ) {
+	if ( povKey &amp;&amp; this.objects[povKey] &amp;&amp; this.pov_key !== povKey ) {
 		this.pov_key = povKey;
 
 		this.pov_object = this.objects[this.pov_key];
@@ -1381,20 +1344,20 @@ sp.data.Scenario.prototype.setPOV = function ( povKey ) {
 		this.flushAllTrails();
 		this.draw();
 
-		this.emit( 'pov', this.pov_key );
+		this.emit( &#39;pov&#39;, this.pov_key );
 	}
 };
 
-/**
- * Get the POV key currently set
+<span id='sp-data-Scenario-method-getPOV'>/**
+</span> * Get the POV key currently set
  * @returns {string} POV key
  */
 sp.data.Scenario.prototype.getPOV = function () {
 	return this.pov_key;
 };
 
-/**
- * Draw all elements
+<span id='sp-data-Scenario-method-draw'>/**
+</span> * Draw all elements
  * @param {number} time Time
  * @param {boolean} ignoreTrails Ignore trails despite settings
  */
@@ -1410,7 +1373,7 @@ sp.data.Scenario.prototype.draw = function ( time, ignoreTrails ) {
 	for ( o in this.objects ) {
 		coords = this.objects[o].getSpaceCoordinates( time );
 
-		// TODO: Allow POV that isn't an object
+		// TODO: Allow POV that isn&#39;t an object
 		// Update POV coordinates
 		if ( o === this.pov_key ) {
 			this.viewConverter.setPOV( coords );
@@ -1431,24 +1394,24 @@ sp.data.Scenario.prototype.draw = function ( time, ignoreTrails ) {
 				radius,
 				graphic.color,
 				// Add a shadow to stars
-				this.objects[o].getType() === 'star'
+				this.objects[o].getType() === &#39;star&#39;
 			);
 		}
 
 		// Draw trails
-		if ( !ignoreTrails && this.showTrails && o !== this.pov_key ) {
+		if ( !ignoreTrails &amp;&amp; this.showTrails &amp;&amp; o !== this.pov_key ) {
 			// Store trails
-			// If 'canvasCoords' is null, still store to continue
+			// If &#39;canvasCoords&#39; is null, still store to continue
 			// with the movement
 			this.frameCounter++;
-			if ( this.frameCounter >= this.trailsFrameGap ) {
+			if ( this.frameCounter &gt;= this.trailsFrameGap ) {
 				this.objects[o].storeTrailPoint( canvasCoords );
 				this.frameCounter = 0;
 			}
 
 			// Get the trail points
 			trails = this.objects[o].getTrailPoints();
-			for ( i = 0; i < trails.length; i++ ) {
+			for ( i = 0; i &lt; trails.length; i++ ) {
 				// But only draw if we have the trails
 				if ( trails[i] ) {
 					// Draw all trails as dots
@@ -1456,7 +1419,7 @@ sp.data.Scenario.prototype.draw = function ( time, ignoreTrails ) {
 						trails[i],
 						1,
 						// TODO: Consider making trail colors a configuration option
-						graphic.color || '#FF005D' // Bright pink
+						graphic.color || &#39;#FF005D&#39; // Bright pink
 					);
 				}
 			}
@@ -1464,8 +1427,8 @@ sp.data.Scenario.prototype.draw = function ( time, ignoreTrails ) {
 	}
 };
 
-/**
- * Flush all trails from all objects
+<span id='sp-data-Scenario-method-flushAllTrails'>/**
+</span> * Flush all trails from all objects
  */
 sp.data.Scenario.prototype.flushAllTrails = function () {
 	var o;
@@ -1474,8 +1437,8 @@ sp.data.Scenario.prototype.flushAllTrails = function () {
 	}
 };
 
-/**
- * Run the scenario
+<span id='sp-data-Scenario-method-run'>/**
+</span> * Run the scenario
  */
 sp.data.Scenario.prototype.run = function () {
 	if ( !this.paused ) {
@@ -1492,16 +1455,16 @@ sp.data.Scenario.prototype.run = function () {
 	}
 };
 
-/**
- * Retrieve all the celestial objects attached to this scenario
+<span id='sp-data-Scenario-method-getAllObjects'>/**
+</span> * Retrieve all the celestial objects attached to this scenario
  * @returns {sp.data.Scenario.CelestialObject} All objects in the scenario
  */
 sp.data.Scenario.prototype.getAllObjects = function () {
 	return this.objects;
 };
 
-/**
- * Toggle between pause and resume the scenario
+<span id='sp-data-Scenario-method-togglePaused'>/**
+</span> * Toggle between pause and resume the scenario
  * @param {boolean} [isPause] Optional. If supplied, pauses or resumes the scenario
  * @fires paused
  */
@@ -1514,33 +1477,33 @@ sp.data.Scenario.prototype.togglePaused = function ( isPause ) {
 	this.paused = isPause;
 	this.run();
 
-	this.emit( 'pause', this.paused );
+	this.emit( &#39;pause&#39;, this.paused );
 };
 
-/**
- * Check whether the scenario is paused
+<span id='sp-data-Scenario-method-isPaused'>/**
+</span> * Check whether the scenario is paused
  */
 sp.data.Scenario.prototype.isPaused = function () {
 	return this.paused;
 };
 
-/**
- * Pause the scenario
+<span id='sp-data-Scenario-method-pause'>/**
+</span> * Pause the scenario
  */
 sp.data.Scenario.prototype.pause = function () {
 	this.togglePaused( true );
 };
 
-/**
- * Resume the scenario
+<span id='sp-data-Scenario-method-resume'>/**
+</span> * Resume the scenario
  */
 sp.data.Scenario.prototype.resume = function () {
 	this.togglePaused( false );
 	this.run();
 };
 
-/**
- * Toggle the grid display
+<span id='sp-data-Scenario-method-toggleGrid'>/**
+</span> * Toggle the grid display
  * @param {Boolean} isShowGrid Show grid
  * @fires grid
  */
@@ -1557,18 +1520,18 @@ sp.data.Scenario.prototype.toggleGrid = function ( isShowGrid ) {
 	// Draw canvas
 	this.draw( this.time );
 
-	this.emit( 'grid', this.showGrid );
+	this.emit( &#39;grid&#39;, this.showGrid );
 };
 
-/**
- * Check whether the scenario is paused
+<span id='sp-data-Scenario-method-isShowGrid'>/**
+</span> * Check whether the scenario is paused
  */
 sp.data.Scenario.prototype.isShowGrid = function () {
 	return this.showGrid;
 };
 
-/**
- * Increase or decrease scenario zoom levels
+<span id='sp-data-Scenario-method-setZoom'>/**
+</span> * Increase or decrease scenario zoom levels
  * @param {number} z Zoom level, negative for zoom out
  */
 sp.data.Scenario.prototype.setZoom = function ( z ) {
@@ -1578,19 +1541,19 @@ sp.data.Scenario.prototype.setZoom = function ( z ) {
 		this.screen.clear();
 		this.draw( this.time, true );
 	}
-	this.emit( 'zoom', z );
+	this.emit( &#39;zoom&#39;, z );
 };
 
-/**
- * Retrieve the zoom level
+<span id='sp-data-Scenario-method-getZoom'>/**
+</span> * Retrieve the zoom level
  * @returns {numver} Current zoom level
  */
 sp.data.Scenario.prototype.getZoom = function () {
 	return this.viewConverter.getZoom();
 };
 
-/**
- * Set the viewpoint's center point
+<span id='sp-data-Scenario-method-setCenterPoint'>/**
+</span> * Set the viewpoint&#39;s center point
  * @param {Object} coords x/y coordinates of the center of the system
  */
 sp.data.Scenario.prototype.setCenterPoint = function ( coords ) {
@@ -1602,16 +1565,16 @@ sp.data.Scenario.prototype.setCenterPoint = function ( coords ) {
 	}
 };
 
-/**
- * Get the current center point of the view
+<span id='sp-data-Scenario-method-getCenterPoint'>/**
+</span> * Get the current center point of the view
  * @returns {Object} x/y coordinates of the current center point
  */
 sp.data.Scenario.prototype.getCenterPoint = function () {
 	return this.viewConverter.getCenterPoint();
 };
 
-/**
- * Add to the center point
+<span id='sp-data-Scenario-method-addToCenterPoint'>/**
+</span> * Add to the center point
  * @param {number} [x] Amount to add to X coordinate
  * @param {number} [y] Amount to add to Y coordinate
  */
@@ -1619,8 +1582,8 @@ sp.data.Scenario.prototype.addToCenterPoint = function ( x, y ) {
 	this.viewConverter.addToCenterPoint( x, y );
 };
 
-/**
- * Set the pitch angle for the scenario
+<span id='sp-data-Scenario-method-setPitchAngle'>/**
+</span> * Set the pitch angle for the scenario
  * @param {[type]} pitch [description]
  */
 sp.data.Scenario.prototype.setPitchAngle = function ( pitch ) {
@@ -1632,24 +1595,16 @@ sp.data.Scenario.prototype.setPitchAngle = function ( pitch ) {
 	}
 };
 
-/**
- * Get the current pitch angle
+<span id='sp-data-Scenario-method-getPitchAngle'>/**
+</span> * Get the current pitch angle
  * @returns {number} Pitch angle
  */
 sp.data.Scenario.prototype.getPitchAngle = function () {
 	return this.viewConverter.getPitchAngle();
 };
 
-/**
- * Get the scenario's view converter object
- * @return {sp.view.Converter} View converter
- */
-sp.data.Scenario.prototype.getViewConverter = function () {
-	return this.viewConverter;
-};
-
-/**
- * Solar Playground view converter.
+<span id='sp-view-Converter'>/**
+</span> * Solar Playground view converter.
  * Converts between space coordinates and screen coordinates and controls the visual presentation.
  *
  * @class sp.view.Converter
@@ -1669,25 +1624,25 @@ sp.view.Converter = function SpViewConverter( config ) {
 	this.yaw = this.config.yaw;
 	this.pitch = this.config.pitch;
 
-	this.canvasDimensions = this.config.canvasDimensions || { 'width': 0, 'height': 0 };
+	this.canvasDimensions = this.config.canvasDimensions || { &#39;width&#39;: 0, &#39;height&#39;: 0 };
 	this.scenarioCenterPoint = {
-		'x': this.canvasDimensions.width / 2,
-		'y': this.canvasDimensions.height / 2
+		&#39;x&#39;: this.canvasDimensions.width / 2,
+		&#39;y&#39;: this.canvasDimensions.height / 2
 	};
 
-	this.pov = { 'x': 0, 'y': 0, 'z': 0 };
+	this.pov = { &#39;x&#39;: 0, &#39;y&#39;: 0, &#39;z&#39;: 0 };
 	this.radii_list = null;
 
 	// Set up visible canvas-scaled radius steps in pixels
 	this.radii = {
-		'star': [ 25, 30, 32, 35 ],
-		'planet': [ 10, 12, 14, 16 ],
-		'moon': [ 4, 8, 10, 12 ]
+		&#39;star&#39;: [ 25, 30, 32, 35 ],
+		&#39;planet&#39;: [ 10, 12, 14, 16 ],
+		&#39;moon&#39;: [ 4, 8, 10, 12 ]
 	};
 	// Define the step between each value
 	this.radius_step = {
-		'star': 0,
-		'planet': 0
+		&#39;star&#39;: 0,
+		&#39;planet&#39;: 0
 	};
 };
 
@@ -1696,16 +1651,16 @@ OO.mixinClass( sp.view.Converter, OO.EventEmitter );
 
 /* Events */
 
-/**
- * Change of the POV coordinates in space
+<span id='sp-view-Converter-event-changePOV'>/**
+</span> * Change of the POV coordinates in space
  * @event changePOV
  * @param {Object} New space coordinates of the POV
  */
 
 /* Methods */
 
-/**
- * Set the coordinates of the current POV object
+<span id='sp-view-Converter-method-setPOV'>/**
+</span> * Set the coordinates of the current POV object
  * @param {Object} pov_coords The 3d coordinates of the current POV
  * @fires changePOV
  */
@@ -1715,12 +1670,12 @@ sp.view.Converter.prototype.setPOV = function ( pov_coords ) {
 	}
 	if ( pov_coords.x !== this.pov.x || pov_coords.y !== this.pov.y ) {
 		this.pov = pov_coords;
-		this.emit( 'changePOV', pov_coords );
+		this.emit( &#39;changePOV&#39;, pov_coords );
 	}
 };
 
-/**
- * Translate between space coordinates and viewpoint coordinates
+<span id='sp-view-Converter-method-getCoordinates'>/**
+</span> * Translate between space coordinates and viewpoint coordinates
  * on the canvas.
  * @param {Object} spaceCoords Original 3D space coordinates
  * @returns {Object} Canvas 2d coordinates
@@ -1740,27 +1695,27 @@ sp.view.Converter.prototype.getCoordinates = function ( spaceCoords ) {
 	z = ( spaceCoords.z - this.pov.z ) * scale;
 
 	destination = {
-		'x': x * ca - y * sa + dx,
-		'y': x * sa + y * ca
+		&#39;x&#39;: x * ca - y * sa + dx,
+		&#39;y&#39;: x * sa + y * ca
 	};
 	destination.z = destination.y * sb;
 	destination.y = destination.y * cb + dy;
 
 	// Check if destination is inside the canvas. Return null otherwise.
 	if (
-		destination.x > 0 &&
-		destination.x <= this.canvasDimensions.width &&
-		destination.y > 0 &&
-		destination.y <= this.canvasDimensions.height
+		destination.x &gt; 0 &amp;&amp;
+		destination.x &lt;= this.canvasDimensions.width &amp;&amp;
+		destination.y &gt; 0 &amp;&amp;
+		destination.y &lt;= this.canvasDimensions.height
 	) {
 		return destination;
 	}
 };
 
-/**
- * Calculate radius size steps from a new radii list
+<span id='sp-view-Converter-method-setRadiiList'>/**
+</span> * Calculate radius size steps from a new radii list
  * @param {Object} rList Actual size radii of all celestial objects
- * divided into 'stars' and 'planets' to distinguish relative sizes better
+ * divided into &#39;stars&#39; and &#39;planets&#39; to distinguish relative sizes better
  */
 sp.view.Converter.prototype.setRadiiList = function ( rList ) {
 	var type, diff;
@@ -1781,45 +1736,45 @@ sp.view.Converter.prototype.setRadiiList = function ( rList ) {
 	}
 };
 
-/**
- * Translate between the original radius and the canvas radius in pixels
- * @param {number} orig_radius Object's original radius
+<span id='sp-view-Converter-method-getRadius'>/**
+</span> * Translate between the original radius and the canvas radius in pixels
+ * @param {number} orig_radius Object&#39;s original radius
  * @returns {number} Actual radius in pixels
  */
 sp.view.Converter.prototype.getRadius = function ( orig_radius, type ) {
 	var radius, index,
 		step = this.radius_step[type] || 1;
 
-	type = type || 'planet';
+	type = type || &#39;planet&#39;;
 	index = Math.floor( orig_radius / step );
 
-	if ( index > this.radii[type].length - 1 ) {
+	if ( index &gt; this.radii[type].length - 1 ) {
 		index = this.radii[type].length - 1;
 	}
 
 	radius = Math.sqrt( this.radii[type][ index ] * this.zoom ) / 100;
 
-	return ( radius >= 2 ) ? radius : 2;
+	return ( radius &gt;= 2 ) ? radius : 2;
 };
 
-/**
- * Increase or decrease scenario zoom levels
+<span id='sp-view-Converter-method-setZoom'>/**
+</span> * Increase or decrease scenario zoom levels
  * @param {number} z Zoom level, negative for zoom out
  */
 sp.view.Converter.prototype.setZoom = function ( z ) {
 	this.zoom += z;
 };
 
-/**
- * Get the current zoom factor
+<span id='sp-view-Converter-method-getZoom'>/**
+</span> * Get the current zoom factor
  * @returns {number} zoom Zoom factor
  */
 sp.view.Converter.prototype.getZoom = function () {
 	return this.zoom;
 };
 
-/**
- * Set the scenario center point
+<span id='sp-view-Converter-method-setCenterPoint'>/**
+</span> * Set the scenario center point
  * @param {Object} coords x/y coordinates of the center of the system
  */
 sp.view.Converter.prototype.setCenterPoint = function ( coords ) {
@@ -1829,21 +1784,21 @@ sp.view.Converter.prototype.setCenterPoint = function ( coords ) {
 	y = coords.y || 0;
 
 	this.scenarioCenterPoint = {
-		'x': x,
-		'y': y
+		&#39;x&#39;: x,
+		&#39;y&#39;: y
 	};
 };
 
-/**
- * Get the current center point of the view
+<span id='sp-view-Converter-method-getCenterPoint'>/**
+</span> * Get the current center point of the view
  * @returns {Object} x/y coordinates of the current center point
  */
 sp.view.Converter.prototype.getCenterPoint = function () {
 	return this.scenarioCenterPoint;
 };
 
-/**
- * Add to the center point
+<span id='sp-view-Converter-method-addToCenterPoint'>/**
+</span> * Add to the center point
  * @param {number} [x] Amount to add to X coordinate
  * @param {number} [y] Amount to add to Y coordinate
  */
@@ -1855,13 +1810,13 @@ sp.view.Converter.prototype.addToCenterPoint = function ( x, y ) {
 	this.scenarioCenterPoint.y += y;
 };
 
-/**
- * Set the pitch angle for the view
+<span id='sp-view-Converter-method-setPitchAngle'>/**
+</span> * Set the pitch angle for the view
  */
 sp.view.Converter.prototype.setPitchAngle = function ( pitch ) {
 	if ( this.pitch !== pitch ) {
 		this.pitch = pitch;
-		this.emit( 'pitch', this.pitch );
+		this.emit( &#39;pitch&#39;, this.pitch );
 	}
 };
 
@@ -1869,16 +1824,8 @@ sp.view.Converter.prototype.getPitchAngle = function () {
 	return this.pitch;
 };
 
-/**
- * Set new canvas dimensions
- * @param {[type]} dimensions [description]
- */
-sp.view.Converter.prototype.setCanvasDimensions = function ( dimensions ) {
-	this.canvasDimensions = dimensions;
-};
-
-/**
- * Solar Playground view grid.
+<span id='sp-view-Grid'>/**
+</span> * Solar Playground view grid.
  * Display a grid on the canvas
  *
  * @class
@@ -1893,12 +1840,12 @@ sp.view.Grid = function SpViewGrid( screen, view, config ) {
 	// Configuration
 	this.config = config || {};
 
-	this.color = this.config.grid_color || '#575757';
+	this.color = this.config.grid_color || &#39;#575757&#39;;
 	this.spacing = this.config.spacing || { x: 45, y: 45 };
 };
 
-/**
- * Draw the grid on the canvas, based on the scenario centerpoint
+<span id='sp-view-Grid-method-draw'>/**
+</span> * Draw the grid on the canvas, based on the scenario centerpoint
  * and the pitch.
  */
 sp.view.Grid.prototype.draw = function SpViewDraw() {
@@ -1914,9 +1861,9 @@ sp.view.Grid.prototype.draw = function SpViewDraw() {
 	// TODO: Draw an elliptical grid based on the orbits
 
 	// Calculate margin
-	if ( pitch > Math.PI / 4 ) {
+	if ( pitch &gt; Math.PI / 4 ) {
 		margin = ( dimensions.height / 2 ) * Math.tan( pitch );
-	} else if ( pitch > 0 && pitch < Math.PI / 4 ) {
+	} else if ( pitch &gt; 0 &amp;&amp; pitch &lt; Math.PI / 4 ) {
 		margin = ( dimensions.height / 2 ) * Math.tan( Math.PI / 4 - pitch );
 	} else {
 		margin = 0;
@@ -1949,7 +1896,7 @@ sp.view.Grid.prototype.draw = function SpViewDraw() {
 	// Draw x grid up and down (from center)
 	counter = 0;
 	gridPoint = center.y;
-	while ( gridPoint - this.spacing.x > topEdge ) {
+	while ( gridPoint - this.spacing.x &gt; topEdge ) {
 		gridPoint = center.y - this.spacing.x * counter;
 		this.screen.drawLine(
 			[ 0, gridPoint ],
@@ -1961,7 +1908,7 @@ sp.view.Grid.prototype.draw = function SpViewDraw() {
 
 	counter = 0;
 	gridPoint = center.y;
-	while ( gridPoint + this.spacing.x < bottomEdge ) {
+	while ( gridPoint + this.spacing.x &lt; bottomEdge ) {
 		gridPoint = center.y + this.spacing.x * counter;
 		this.screen.drawLine(
 			[ 0, gridPoint ],
@@ -1984,8 +1931,8 @@ sp.view.Grid.prototype.draw = function SpViewDraw() {
 	gridPointTop = originGridPointTop;
 	gridPointBottom = originGridPointBottom;
 	while (
-		gridPointTop > 0 && gridPointTop < dimensions.width ||
-		gridPointBottom > 0 && gridPointBottom < dimensions.width
+		gridPointTop &gt; 0 &amp;&amp; gridPointTop &lt; dimensions.width ||
+		gridPointBottom &gt; 0 &amp;&amp; gridPointBottom &lt; dimensions.width
 	) {
 		gridPointTop += this.spacing.y;
 		gridPointBottom += this.spacing.y;
@@ -1999,8 +1946,8 @@ sp.view.Grid.prototype.draw = function SpViewDraw() {
 	gridPointTop = originGridPointTop;
 	gridPointBottom = originGridPointBottom;
 	while (
-		gridPointTop > 0 && gridPointTop < dimensions.width ||
-		gridPointBottom > 0 && gridPointBottom < dimensions.width
+		gridPointTop &gt; 0 &amp;&amp; gridPointTop &lt; dimensions.width ||
+		gridPointBottom &gt; 0 &amp;&amp; gridPointBottom &lt; dimensions.width
 	) {
 		gridPointTop -= this.spacing.y;
 		gridPointBottom -= this.spacing.y;
@@ -2012,16 +1959,16 @@ sp.view.Grid.prototype.draw = function SpViewDraw() {
 	}
 };
 
-/**
- * Get the current center point of the view
+<span id='sp-view-Grid-method-getCenterPoint'>/**
+</span> * Get the current center point of the view
  * @returns {Object} x/y coordinates of the current center point
  */
 sp.view.Grid.prototype.getCenterPoint = function () {
 	return this.viewConverter.getCenterPoint();
 };
 
-/**
- * Command that executes an action.
+<span id='sp-ui-Command-method-constructor'><span id='sp-ui-Command'>/**
+</span></span> * Command that executes an action.
  *
  * @class
  *
@@ -2039,8 +1986,8 @@ sp.ui.Command = function SpUiCommand( name, action, method ) {
 
 /* Methods */
 
-/**
- * Execute command on a surface.
+<span id='sp-ui-Command-method-execute'>/**
+</span> * Execute command on a surface.
  *
  * @param {ve.ui.Surface} surface Surface to execute command on
  * @returns {Mixed} Result of command execution.
@@ -2049,8 +1996,8 @@ sp.ui.Command.prototype.execute = function ( surface ) {
 	return surface.execute.apply( surface, [ this.action, this.method ].concat( this.data ) );
 };
 
-/**
- * Get command action.
+<span id='sp-ui-Command-method-getAction'>/**
+</span> * Get command action.
  *
  * @returns {string} action Action to execute when command is triggered
  */
@@ -2058,8 +2005,8 @@ sp.ui.Command.prototype.getAction = function () {
 	return this.action;
 };
 
-/**
- * Get command method.
+<span id='sp-ui-Command-method-getMethod'>/**
+</span> * Get command method.
  *
  * @returns {string} method Method to call on action when executing
  */
@@ -2067,8 +2014,8 @@ sp.ui.Command.prototype.getMethod = function () {
 	return this.method;
 };
 
-/**
- * Get command name.
+<span id='sp-ui-Command-method-getName'>/**
+</span> * Get command name.
  *
  * @returns {string} name The symbolic name of the command.
  */
@@ -2076,8 +2023,8 @@ sp.ui.Command.prototype.getName = function () {
 	return this.name;
 };
 
-/**
- * Get command data.
+<span id='sp-ui-Command-method-getData'>/**
+</span> * Get command data.
  *
  * @returns {Array} data Additional data to pass to the action when executing
  */
@@ -2085,8 +2032,8 @@ sp.ui.Command.prototype.getData = function () {
 	return this.data;
 };
 
-/**
- * Command registry.
+<span id='sp-ui-CommandRegistry-method-constructor'><span id='sp-ui-CommandRegistry'>/**
+</span></span> * Command registry.
  *
  * @class sp.ui.CommandRegistry
  * @extends OO.Registry
@@ -2103,8 +2050,8 @@ OO.inheritClass( sp.ui.CommandRegistry, OO.Registry );
 
 /* Methods */
 
-/**
- * Register a constructor with the factory.
+<span id='sp-ui-CommandRegistry-method-register'>/**
+</span> * Register a constructor with the factory.
  *
  * @method
  * @param {sp.ui.Command} command Command object
@@ -2114,7 +2061,7 @@ sp.ui.CommandRegistry.prototype.register = function ( command ) {
 	// Validate arguments
 	if ( !( command instanceof sp.ui.Command ) ) {
 		throw new Error(
-			'command must be an instance of sp.ui.Command, cannot be a ' + typeof command
+			&#39;command must be an instance of sp.ui.Command, cannot be a &#39; + typeof command
 		);
 	}
 
@@ -2128,28 +2075,28 @@ sp.ui.commandRegistry = new sp.ui.CommandRegistry();
 /* Registrations */
 
 sp.ui.commandRegistry.register(
-	new sp.ui.Command( 'play', 'playTools', 'play' )
+	new sp.ui.Command( &#39;play&#39;, &#39;playTools&#39;, &#39;play&#39; )
 );
 /*sp.ui.commandRegistry.register(
-	new sp.ui.Command( 'speed', 'playTools', 'speed' )
+	new sp.ui.Command( &#39;speed&#39;, &#39;playTools&#39;, &#39;speed&#39; )
 );
 sp.ui.commandRegistry.register(
-	new sp.ui.Command( 'zoomin', 'viewTools', 'zoom', -1000 )
+	new sp.ui.Command( &#39;zoomin&#39;, &#39;viewTools&#39;, &#39;zoom&#39;, -1000 )
 );
 sp.ui.commandRegistry.register(
-	new sp.ui.Command( 'zoomout', 'viewTools', 'zoom', 1000 )
+	new sp.ui.Command( &#39;zoomout&#39;, &#39;viewTools&#39;, &#39;zoom&#39;, 1000 )
 );
 */
 
-/**
- * Gui Loader. Creates the gui to be attached to
+<span id='sp-ui-Loader'>/**
+</span> * Gui Loader. Creates the gui to be attached to
  * the SolarPlayground container.
  *
  * @class sp.ui.Loader
  * @mixins OO.EventEmitter
  *
  * @param {Object} config Gui definition
- * @config {string} module The GUI module. Defaults to 'ooui'
+ * @config {string} module The GUI module. Defaults to &#39;ooui&#39;
  * @config {jQuery} jQuery object for the container on top of which
  *  the GUI should be built.
  */
@@ -2159,36 +2106,36 @@ sp.ui.Loader = function SpGuiInitializer( config ) {
 	// Mixin constructors
 	OO.EventEmitter.call( this );
 
-	this.moduleName = config.module || 'ooui';
+	this.moduleName = config.module || &#39;ooui&#39;;
 	this.module = null;
 
 	this.scenario = config.scenario;
 	this.settings = config.settings || {};
 	this.container = config.container;
 
-	this.$spinner = $( '<div>' )
-		.addClass( 'sp-system-spinner' )
+	this.$spinner = $( &#39;&lt;div&gt;&#39; )
+		.addClass( &#39;sp-system-spinner&#39; )
 		.appendTo( this.container.$container );
 };
 
 /* Inheritance */
 OO.mixinClass( sp.ui.Loader, OO.EventEmitter );
 
-/**
- * Create the GUI according to the ui module
+<span id='sp-ui-Loader-method-initialize'>/**
+</span> * Create the GUI according to the ui module
  * @returns {sp.ui.ext.ooui.Mod.Play} The play module attached to the container
  */
 sp.ui.Loader.prototype.initialize = function () {
 	var module;
 	this.$spinner.show();
 	/// TODO: Use a factory instead of this quick and somewhat
-	/// lame 'switch' statement, so we can allow for proper
+	/// lame &#39;switch&#39; statement, so we can allow for proper
 	/// modules for the GUI
 	switch ( this.moduleName ) {
-		case 'jqueryui':
+		case &#39;jqueryui&#39;:
 			this.module = new sp.ui.ext.jqueryui.Mod.Play( this.container, this.settings );
 			break;
-		case 'ooui':
+		case &#39;ooui&#39;:
 		default:
 			this.module = new sp.ui.ext.ooui.Mod.Play( this.container, this.settings );
 			break;
@@ -2199,8 +2146,8 @@ sp.ui.Loader.prototype.initialize = function () {
 	return module;
 };
 
-/**
- * General Gui module. All 'Play' GUI modules should extend this.
+<span id='sp-ui-ext-Play'>/**
+</span> * General Gui module. All &#39;Play&#39; GUI modules should extend this.
  *
  * @class sp.ui.ext.Play
  *
@@ -2221,68 +2168,43 @@ OO.mixinClass( sp.ui.ext.Play, OO.EventEmitter );
 
 /* Events */
 
-/**
- * Play or pause scenario
+<span id='sp-ui-ext-Play-event-play'>/**
+</span> * Play or pause scenario
  * @event play
  * @param {boolean} isPlay Play scenario or pause
  */
 
-/**
- * Zoom in or out
+<span id='sp-ui-ext-Play-event-zoom'>/**
+</span> * Zoom in or out
  * @event zoom
  * @param {number} zoomLevel How much to zoom. Negative to zoom out.
  */
 
-/**
- * Change point of view object
+<span id='sp-ui-ext-Play-event-pov'>/**
+</span> * Change point of view object
  * @event pov
  * @param {string} povObjName New POV object name or key
  */
 
 /* Methods */
 
-/**
- * Initialize the Gui
+<span id='sp-ui-ext-Play-method-initialize'>/**
+</span> * Initialize the Gui
  * @returns {sp.ui.ext.Play}
  */
 sp.ui.ext.Play.prototype.initialize = function () {
-	var container,
-		containerID = this.container.getID();
+	// Set up global GUI features
 
-	// Preserve the original canvas dimensions
-	this.originalDimensions = this.container.getScreen().getDimensions();
+	// Full screen button
+	this.$fullscreen = $( &#39;&lt;div&gt;&#39; )
+		.addClass( &#39;sp-ui-fullscreen-button&#39; );
 
-	if ( containerID ) {
-		// Only attach a full screen button if the browser supports it
-		container = document.getElementById( containerID );
-		if (
-			container &&
-			(
-				container.requestFullscreen ||
-				container.msRequestFullscreen ||
-				container.mozRequestFullScreen ||
-				container.webkitRequestFullscreen
-			)
-		) {
-			// Full screen button
-			this.$fullscreen = $( '<div>' )
-				.addClass( 'sp-ui-fullscreen-button' )
-				.append(
-					$( '<span>' )
-						.text( 'Fullscreen' )
-				);
-
-			this.$fullscreen.on( 'click', $.proxy( this.onFullScreenClick, this ) );
-			this.container.$container.on( 'webkitfullscreenchange mozfullscreenchange fullscreenchange', $.proxy( this.onContainerFullscreen, this ) );
-
-			this.container.$container.append( this.$fullscreen );
-		}
-	}
+	this.container.$container.append( this.$fullscreen );
 	return this;
 };
 
-/**
- * Add a tool to the POV list
+<span id='sp-ui-ext-Play-method-addToPOVList'>/**
+</span> * Add a tool to the POV list
  * @abstract
  * @param {string} name Tool name
  * @param {string} title Title or alternate text
@@ -2290,81 +2212,11 @@ sp.ui.ext.Play.prototype.initialize = function () {
  * @throws {Error} If the method is not implemented in the child class
  */
 sp.ui.ext.Play.prototype.addToPOVList = function ( name, title, icon ) {
-	throw new Error( 'sp.Gui.Module.addToPOVList must be implemented in child class.' );
+	throw new Error( &#39;sp.Gui.Module.addToPOVList must be implemented in child class.&#39; );
 };
 
-/**
- * Request having the container in full screen
- */
-sp.ui.ext.Play.prototype.onFullScreenClick = function () {
-	var container,
-		containerID = this.container.getID();
-
-	if ( containerID ) {
-		container = document.getElementById( containerID );
-		if ( container.requestFullscreen ) {
-			container.requestFullscreen();
-		} else if ( container.msRequestFullscreen ) {
-			container.msRequestFullscreen();
-		} else if ( container.mozRequestFullScreen ) {
-			container.mozRequestFullScreen();
-		} else if ( container.webkitRequestFullscreen ) {
-			container.webkitRequestFullscreen();
-		} else {
-			sp.log( 'notice', 'Browser does not support full screen.' );
-		}
-	}
-};
-
-/**
- * Respond to container being in full screen mode
- * @return {[type]} [description]
- */
-sp.ui.ext.Play.prototype.onContainerFullscreen = function () {
-	var dimensions,
-		isInFullScreen = document.fullscreen || document.mozFullScreen || document.webkitIsFullScreen,
-		$canvas = this.container.getCanvas();
-	if ( isInFullScreen && $canvas ) {
-		// Going into fullscreen
-		this.$fullscreen.hide();
-		dimensions = {
-			'container': {
-				'width': window.outerWidth,
-				'height': window.outerHeight
-			},
-			'canvas': {
-				'width': window.outerWidth,
-				'height': window.outerHeight - 40
-			}
-		};
-	} else {
-		// Out of full screen
-		this.$fullscreen.show();
-		dimensions = {
-			'container': {
-				'width': this.originalDimensions.width,
-				'height': this.originalDimensions.height + 40
-			},
-			'canvas': {
-				'width': this.originalDimensions.width,
-				'height': this.originalDimensions.height
-			}
-		};
-	}
-
-	// Resize the container and canvas elements
-	if ( this.container.getScenario() ) {
-		this.container.$container.attr( dimensions.container );
-		$canvas.attr( dimensions.canvas );
-		this.container.getScenario().getViewConverter().setCanvasDimensions(
-			dimensions.canvas
-		);
-		this.container.redrawScenario();
-	}
-};
-
-/**
- * Status bar module
+<span id='sp-ui-ext-Play'>/**
+</span> * Status bar module
  *
  * @class sp.ui.ext.Play
  * @abstract
@@ -2384,29 +2236,29 @@ sp.ui.ext.StatusBar = function SpUiExtStatusBar ( container, config ) {
 /* Inheritance */
 OO.mixinClass( sp.ui.ext.StatusBar, OO.EventEmitter );
 
-/**
- * Initialize the Gui
+<span id='sp-ui-ext-Play-method-initialize'>/**
+</span> * Initialize the Gui
  * @abstract
  * @throws {Error} If the method is not implemented in the child class
  * @returns {sp.ui.ext.Play}
  */
 sp.ui.ext.StatusBar.prototype.initialize = function () {
-	throw new Error( 'sp.Gui.Module.Initialize must be implemented in child class.' );
+	throw new Error( &#39;sp.Gui.Module.Initialize must be implemented in child class.&#39; );
 };
 
-/**
- * UI OOUI Module namespace
+<span id='sp-ui-ext-Play-property-ooui'>/**
+</span> * UI OOUI Module namespace
  * @property {Object}
  */
 sp.ui.ext.ooui = {
-	'Mod': {}
+	&#39;Mod&#39;: {}
 };
 
 sp.ui.toolFactory = new OO.ui.ToolFactory();
 sp.ui.toolGroupFactory = new OO.ui.ToolGroupFactory();
 
-/**
- * OOUI Gui module
+<span id='sp-ui-ext-ooui-Mod-Play'>/**
+</span> * OOUI Gui module
  *
  * @class sp.ui.ext.ooui.Mod.Play
  *
@@ -2429,69 +2281,69 @@ OO.inheritClass( sp.ui.ext.ooui.Mod.Play, sp.ui.ext.Play );
 
 /* Static */
 
-/**
- * Define toolbar groups for OOUI
+<span id='sp-ui-ext-ooui-Mod-Play-property-toolbarGroups'>/**
+</span> * Define toolbar groups for OOUI
  * @property {Array}
  */
 sp.ui.ext.ooui.Mod.Play.static.toolbarGroups = [
 	// Play tools
 	{
-		'type': 'bar',
-		'include': [ { 'group': 'playTools' } ],
+		&#39;type&#39;: &#39;bar&#39;,
+		&#39;include&#39;: [ { &#39;group&#39;: &#39;playTools&#39; } ],
 		// TODO: Figure out a better organization for the toolbar
-		'exclude': [ 'pause' ]
+		&#39;exclude&#39;: [ &#39;pause&#39; ]
 	},
 	// POV menu
 	{
-		'type': 'menu',
-		'indicator': 'down',
-		'label': 'POV',
-		'icon': 'picture',
-		'include': [ { 'group': 'povTools' } ]
+		&#39;type&#39;: &#39;menu&#39;,
+		&#39;indicator&#39;: &#39;down&#39;,
+		&#39;label&#39;: &#39;POV&#39;,
+		&#39;icon&#39;: &#39;picture&#39;,
+		&#39;include&#39;: [ { &#39;group&#39;: &#39;povTools&#39; } ]
 	},
 	// View tools
 	{
-		'type': 'bar',
-		'include': [ { 'group': 'zoomTools' } ]
+		&#39;type&#39;: &#39;bar&#39;,
+		&#39;include&#39;: [ { &#39;group&#39;: &#39;zoomTools&#39; } ]
 	},
 	{
-		'type': 'bar',
-		'include': [ { 'group': 'viewTools' } ],
-		'exclude': [ 'speed' ]
+		&#39;type&#39;: &#39;bar&#39;,
+		&#39;include&#39;: [ { &#39;group&#39;: &#39;viewTools&#39; } ],
+		&#39;exclude&#39;: [ &#39;speed&#39; ]
 	}
 ];
 
 sp.ui.ext.ooui.Mod.Play.static.commands = [
-	'play',
-	'speed',
-	'zoomin',
-	'zoomout'
+	&#39;play&#39;,
+	&#39;speed&#39;,
+	&#39;zoomin&#39;,
+	&#39;zoomout&#39;
 ];
 
 /* Events */
 
-/**
- * Play or pause scenario
+<span id='sp-ui-ext-ooui-Mod-Play-event-play'>/**
+</span> * Play or pause scenario
  * @event play
  * @param {boolean} isPlay Play scenario or pause
  */
 
-/**
- * Zoom in or out
+<span id='sp-ui-ext-ooui-Mod-Play-event-zoom'>/**
+</span> * Zoom in or out
  * @event zoom
  * @param {number} zoomLevel How much to zoom. Negative to zoom out.
  */
 
-/**
- * Change point of view object
+<span id='sp-ui-ext-ooui-Mod-Play-event-pov'>/**
+</span> * Change point of view object
  * @event pov
  * @param {string} povObjName New POV object name or key
  */
 
 /* Methods */
 
-/**
- * Initialize the Gui
+<span id='sp-ui-ext-ooui-Mod-Play-method-initialize'>/**
+</span> * Initialize the Gui
  * @returns {sp.ui.ext.ooui.Mod.Play}
  */
 sp.ui.ext.ooui.Mod.Play.prototype.initialize = function () {
@@ -2506,16 +2358,16 @@ sp.ui.ext.ooui.Mod.Play.prototype.initialize = function () {
 //	this.container.addCommands( this.constructor.static.commands );
 	this.container.addToolbar( this.toolbar.$element );
 
-	this.toolbar.emit( 'updateState' );
+	this.toolbar.emit( &#39;updateState&#39; );
 
 	// Events
-	this.container.connect( this, { 'scenarioLoaded': 'onScenarioLoaded' } );
+	this.container.connect( this, { &#39;scenarioLoaded&#39;: &#39;onScenarioLoaded&#39; } );
 
 	return this;
 };
 
-/**
- * Respond to new scenario loaded
+<span id='sp-ui-ext-ooui-Mod-Play-method-onScenarioLoaded'>/**
+</span> * Respond to new scenario loaded
  * @fires updateState
  */
 sp.ui.ext.ooui.Mod.Play.prototype.onScenarioLoaded = function () {
@@ -2523,24 +2375,24 @@ sp.ui.ext.ooui.Mod.Play.prototype.onScenarioLoaded = function () {
 		this.container.getScenario().disconnect( this );
 	}
 	// Events
-	this.container.getScenario().connect( this, { 'pause': [ 'onScenarioChanged', 'play' ] } );
-	this.container.getScenario().connect( this, { 'pov': [ 'onScenarioChanged', 'pov' ] } );
-	this.container.getScenario().connect( this, { 'grid': [ 'onScenarioChanged', 'grid' ] } );
+	this.container.getScenario().connect( this, { &#39;pause&#39;: [ &#39;onScenarioChanged&#39;, &#39;play&#39; ] } );
+	this.container.getScenario().connect( this, { &#39;pov&#39;: [ &#39;onScenarioChanged&#39;, &#39;pov&#39; ] } );
+	this.container.getScenario().connect( this, { &#39;grid&#39;: [ &#39;onScenarioChanged&#39;, &#39;grid&#39; ] } );
 
 	// Update the toolbar
-	this.toolbar.emit( 'updateState' );
+	this.toolbar.emit( &#39;updateState&#39; );
 };
 
-/**
- * Respond to change in scenario state
+<span id='sp-ui-ext-ooui-Mod-Play-method-onScenarioChanged'>/**
+</span> * Respond to change in scenario state
  * @fires updateState
  */
 sp.ui.ext.ooui.Mod.Play.prototype.onScenarioChanged = function () {
-	this.toolbar.emit( 'updateState', arguments );
+	this.toolbar.emit( &#39;updateState&#39;, arguments );
 };
 
-/**
- * Add a tool to the POV list
+<span id='sp-ui-ext-ooui-Mod-Play-method-addToPOVList'>/**
+</span> * Add a tool to the POV list
  * @param {string} name Tool name
  * @param {string} title Title or alternate text
  * @param {string} [icon] Tool icon
@@ -2548,7 +2400,7 @@ sp.ui.ext.ooui.Mod.Play.prototype.onScenarioChanged = function () {
 sp.ui.ext.ooui.Mod.Play.prototype.addToPOVList = function ( name, title, icon ) {
 	var tool, toolDefinition;
 
-	icon = icon || 'picture';
+	icon = icon || &#39;picture&#39;;
 	toolDefinition = [
 		// name
 		name,
@@ -2562,16 +2414,16 @@ sp.ui.ext.ooui.Mod.Play.prototype.addToPOVList = function ( name, title, icon ) 
 	sp.ui.toolFactory.register( tool );
 };
 
-/**
- * Get the Gui toolbar
+<span id='sp-ui-ext-ooui-Mod-Play-method-getToolbar'>/**
+</span> * Get the Gui toolbar
  * @returns {OO.ui.Toolbar} The toolbar connected to the gui
  */
 sp.ui.ext.ooui.Mod.Play.prototype.getToolbar = function () {
 	return this.toolbar;
 };
 
-/**
- * Create a POV tool
+<span id='sp-ui-ext-ooui-Mod-Play-method-createPOVTool'>/**
+</span> * Create a POV tool
  * @param {string} name Tool name
  * @param {string} icon Tool icon
  * @param {string} title Title or alternate text
@@ -2589,8 +2441,8 @@ sp.ui.ext.ooui.Mod.Play.prototype.createPOVTool = function ( name, icon, title )
 	return Tool;
 };
 
-/**
- * OOUI Module Toolbar.
+<span id='sp-ui-ext-ooui-Toolbar-method-constructor'><span id='sp-ui-ext-ooui-Toolbar'>/**
+</span></span> * OOUI Module Toolbar.
  *
  * @class
  * @constructor
@@ -2611,24 +2463,24 @@ sp.ui.ext.ooui.Toolbar = function SpUiExtOouiToolbar( target, container, config 
 
 	this.target = target;
 	this.container = container;
-	this.container.connect( this, { 'addCommand': 'onContainerAddCommand' } );
+	this.container.connect( this, { &#39;addCommand&#39;: &#39;onContainerAddCommand&#39; } );
 };
 
 /* Inheritance */
 OO.inheritClass( sp.ui.ext.ooui.Toolbar, OO.ui.Toolbar );
 
-/**
- * Get the container attached to this toolbar
+<span id='sp-ui-ext-ooui-Toolbar-method-getContainer'>/**
+</span> * Get the container attached to this toolbar
  * @returns {sp.Container} Container
  */
 sp.ui.ext.ooui.Toolbar.prototype.getContainer = function () {
 	return this.container;
 };
 
-/**
- * Handle command being added to surface.
+<span id='sp-ui-ext-ooui-Toolbar-method-onContainerAddCommand'>/**
+</span> * Handle command being added to surface.
  *
- * If a matching tool is present, it's label will be updated.
+ * If a matching tool is present, it&#39;s label will be updated.
  *
  * @param {string} name Symbolic name of command and trigger
  */
@@ -2641,8 +2493,8 @@ sp.ui.ext.ooui.Toolbar.prototype.onContainerAddCommand = function ( name ) {
 sp.ui.ext.ooui.Toolbar.prototype.onMouseDown = function ( e ) {
 };
 
-/**
- * Regular button tool.
+<span id='sp-ui-ext-ooui-Tool-method-constructor'><span id='sp-ui-ext-ooui-Tool'>/**
+</span></span> * Regular button tool.
  *
  * @class
  * @extends OO.ui.Tool
@@ -2661,15 +2513,15 @@ OO.inheritClass( sp.ui.ext.ooui.Tool, OO.ui.Tool );
 
 /* Methods */
 
-/**
- * @inheritdoc
+<span id='sp-ui-ext-ooui-Tool-method-onUpdateState'>/**
+</span> * @inheritdoc
  */
 sp.ui.ext.ooui.Tool.prototype.onUpdateState = function () {
 	this.setDisabled( !this.toolbar.getContainer().getScenario() );
 };
 
-/**
- * @inheritdoc
+<span id='sp-ui-ext-ooui-Tool-method-onSelect'>/**
+</span> * @inheritdoc
  */
 sp.ui.ext.ooui.Tool.prototype.onSelect = function () {
 	if ( this.constructor.static.deactivateOnSelect ) {
@@ -2677,8 +2529,8 @@ sp.ui.ext.ooui.Tool.prototype.onSelect = function () {
 	}
 };
 
-/**
- * UserInterface play tool.
+<span id='sp-ui-ext-ooui-PlayTool-method-constructor'><span id='sp-ui-ext-ooui-PlayTool'>/**
+</span></span> * UserInterface play tool.
  *
  * @class
  * @extends sp.ui.ext.ooui.Tool
@@ -2690,14 +2542,14 @@ sp.ui.ext.ooui.PlayTool = function SpUiExtOouiPlayTool( toolGroup, config ) {
 	sp.ui.ext.ooui.Tool.call( this, toolGroup, config );
 };
 OO.inheritClass( sp.ui.ext.ooui.PlayTool, sp.ui.ext.ooui.Tool );
-sp.ui.ext.ooui.PlayTool.static.name = 'play';
-sp.ui.ext.ooui.PlayTool.static.group = 'playTools';
-sp.ui.ext.ooui.PlayTool.static.icon = 'play';
-sp.ui.ext.ooui.PlayTool.static.title = 'Play';
-sp.ui.ext.ooui.PlayTool.static.commandName = 'play';
+sp.ui.ext.ooui.PlayTool.static.name = &#39;play&#39;;
+sp.ui.ext.ooui.PlayTool.static.group = &#39;playTools&#39;;
+sp.ui.ext.ooui.PlayTool.static.icon = &#39;play&#39;;
+sp.ui.ext.ooui.PlayTool.static.title = &#39;Play&#39;;
+sp.ui.ext.ooui.PlayTool.static.commandName = &#39;play&#39;;
 
-/**
- * @inheritdoc
+<span id='sp-ui-ext-ooui-PlayTool-method-onUpdateState'>/**
+</span> * @inheritdoc
  */
 sp.ui.ext.ooui.PlayTool.prototype.onUpdateState = function () {
 	var isPaused = false;
@@ -2709,8 +2561,8 @@ sp.ui.ext.ooui.PlayTool.prototype.onUpdateState = function () {
 	}
 };
 
-/**
- * @inheritdoc
+<span id='sp-ui-ext-ooui-PlayTool-method-onSelect'>/**
+</span> * @inheritdoc
  */
 sp.ui.ext.ooui.PlayTool.prototype.onSelect = function () {
 	// Pause the scenario
@@ -2719,8 +2571,8 @@ sp.ui.ext.ooui.PlayTool.prototype.onSelect = function () {
 
 sp.ui.toolFactory.register( sp.ui.ext.ooui.PlayTool );
 
-/**
- * UserInterface pause tool.
+<span id='sp-ui-ext-ooui-PauseTool-method-constructor'><span id='sp-ui-ext-ooui-PauseTool'>/**
+</span></span> * UserInterface pause tool.
  *
  * @class
  * @extends sp.ui.ext.ooui.Tool
@@ -2732,14 +2584,14 @@ sp.ui.ext.ooui.PauseTool = function SpUiExtOouiPauseTool( toolGroup, config ) {
 	sp.ui.ext.ooui.Tool.call( this, toolGroup, config );
 };
 OO.inheritClass( sp.ui.ext.ooui.PauseTool, sp.ui.ext.ooui.Tool );
-sp.ui.ext.ooui.PauseTool.static.name = 'pause';
-sp.ui.ext.ooui.PauseTool.static.group = 'playTools';
-sp.ui.ext.ooui.PauseTool.static.icon = 'pause';
-sp.ui.ext.ooui.PauseTool.static.title = 'pause';
-sp.ui.ext.ooui.PauseTool.static.commandName = 'pause';
+sp.ui.ext.ooui.PauseTool.static.name = &#39;pause&#39;;
+sp.ui.ext.ooui.PauseTool.static.group = &#39;playTools&#39;;
+sp.ui.ext.ooui.PauseTool.static.icon = &#39;pause&#39;;
+sp.ui.ext.ooui.PauseTool.static.title = &#39;pause&#39;;
+sp.ui.ext.ooui.PauseTool.static.commandName = &#39;pause&#39;;
 
-/**
- * @inheritdoc
+<span id='sp-ui-ext-ooui-PauseTool-method-onUpdateState'>/**
+</span> * @inheritdoc
  */
 sp.ui.ext.ooui.PauseTool.prototype.onUpdateState = function () {
 	var isPaused = false;
@@ -2751,8 +2603,8 @@ sp.ui.ext.ooui.PauseTool.prototype.onUpdateState = function () {
 	}
 };
 
-/**
- * @inheritdoc
+<span id='sp-ui-ext-ooui-PauseTool-method-onSelect'>/**
+</span> * @inheritdoc
  */
 sp.ui.ext.ooui.PauseTool.prototype.onSelect = function () {
 	// Pause the scenario
@@ -2761,8 +2613,8 @@ sp.ui.ext.ooui.PauseTool.prototype.onSelect = function () {
 
 sp.ui.toolFactory.register( sp.ui.ext.ooui.PauseTool );
 
-/**
- * UserInterface zoom in tool.
+<span id='sp-ui-ext-ooui-ZoomTool-method-constructor'><span id='sp-ui-ext-ooui-ZoomTool'>/**
+</span></span> * UserInterface zoom in tool.
  *
  * @class
  * @extends sp.ui.ext.ooui.Tool
@@ -2774,10 +2626,10 @@ sp.ui.ext.ooui.ZoomTool = function SpUiExtOouiZoomTool( toolGroup, config ) {
 	sp.ui.ext.ooui.Tool.call( this, toolGroup, config );
 };
 OO.inheritClass( sp.ui.ext.ooui.ZoomTool, sp.ui.ext.ooui.Tool );
-sp.ui.ext.ooui.ZoomTool.static.group = 'zoomTools';
+sp.ui.ext.ooui.ZoomTool.static.group = &#39;zoomTools&#39;;
 sp.ui.ext.ooui.ZoomTool.static.deactivateOnSelect = true;
-/**
- * @inheritdoc
+<span id='sp-ui-ext-ooui-ZoomTool-method-onUpdateState'>/**
+</span> * @inheritdoc
  */
 sp.ui.ext.ooui.ZoomTool.prototype.onUpdateState = function () {
 	// Parent
@@ -2785,8 +2637,8 @@ sp.ui.ext.ooui.ZoomTool.prototype.onUpdateState = function () {
 	this.setDisabled( !!!this.toolbar.getContainer().getScenario() );
 };
 
-/**
- * @inheritdoc
+<span id='sp-ui-ext-ooui-ZoomTool-method-onSelect'>/**
+</span> * @inheritdoc
  */
 sp.ui.ext.ooui.ZoomTool.prototype.onSelect = function ( zoom ) {
 	this.toolbar.getContainer().getScenario().setZoom( zoom );
@@ -2794,8 +2646,8 @@ sp.ui.ext.ooui.ZoomTool.prototype.onSelect = function ( zoom ) {
 	sp.ui.ext.ooui.Tool.prototype.onSelect.call( this );
 };
 
-/**
- * UserInterface zoom in tool.
+<span id='sp-ui-ext-ooui-ZoomInTool-method-constructor'><span id='sp-ui-ext-ooui-ZoomInTool'>/**
+</span></span> * UserInterface zoom in tool.
  *
  * @class
  * @extends sp.ui.ext.ooui.ZoomTool
@@ -2807,13 +2659,13 @@ sp.ui.ext.ooui.ZoomInTool = function SpUiExtOouiZoomInTool( toolGroup, config ) 
 	sp.ui.ext.ooui.ZoomTool.call( this, toolGroup, config );
 };
 OO.inheritClass( sp.ui.ext.ooui.ZoomInTool, sp.ui.ext.ooui.ZoomTool );
-sp.ui.ext.ooui.ZoomInTool.static.name = 'zoomin';
-sp.ui.ext.ooui.ZoomInTool.static.icon = 'zoomin';
-sp.ui.ext.ooui.ZoomInTool.static.title = 'Zoom in';
-sp.ui.ext.ooui.ZoomInTool.static.commandName = 'zoomin';
+sp.ui.ext.ooui.ZoomInTool.static.name = &#39;zoomin&#39;;
+sp.ui.ext.ooui.ZoomInTool.static.icon = &#39;zoomin&#39;;
+sp.ui.ext.ooui.ZoomInTool.static.title = &#39;Zoom in&#39;;
+sp.ui.ext.ooui.ZoomInTool.static.commandName = &#39;zoomin&#39;;
 
-/**
- * @inheritdoc
+<span id='sp-ui-ext-ooui-ZoomInTool-method-onSelect'>/**
+</span> * @inheritdoc
  */
 sp.ui.ext.ooui.ZoomInTool.prototype.onSelect = function () {
 	// Parent
@@ -2822,8 +2674,8 @@ sp.ui.ext.ooui.ZoomInTool.prototype.onSelect = function () {
 
 sp.ui.toolFactory.register( sp.ui.ext.ooui.ZoomInTool );
 
-/**
- * UserInterface zoom out tool.
+<span id='sp-ui-ext-ooui-ZoomOutTool-method-constructor'><span id='sp-ui-ext-ooui-ZoomOutTool'>/**
+</span></span> * UserInterface zoom out tool.
  *
  * @class
  * @extends sp.ui.ext.ooui.ZoomTool
@@ -2835,13 +2687,13 @@ sp.ui.ext.ooui.ZoomOutTool = function SpUiExtOouiZoomOutTool( toolGroup, config 
 	sp.ui.ext.ooui.ZoomTool.call( this, toolGroup, config );
 };
 OO.inheritClass( sp.ui.ext.ooui.ZoomOutTool, sp.ui.ext.ooui.ZoomTool );
-sp.ui.ext.ooui.ZoomOutTool.static.name = 'zoomout';
-sp.ui.ext.ooui.ZoomOutTool.static.icon = 'zoomout';
-sp.ui.ext.ooui.ZoomOutTool.static.title = 'Zoom out';
-sp.ui.ext.ooui.ZoomOutTool.static.commandName = 'zoomout';
+sp.ui.ext.ooui.ZoomOutTool.static.name = &#39;zoomout&#39;;
+sp.ui.ext.ooui.ZoomOutTool.static.icon = &#39;zoomout&#39;;
+sp.ui.ext.ooui.ZoomOutTool.static.title = &#39;Zoom out&#39;;
+sp.ui.ext.ooui.ZoomOutTool.static.commandName = &#39;zoomout&#39;;
 
-/**
- * @inheritdoc
+<span id='sp-ui-ext-ooui-ZoomOutTool-method-onSelect'>/**
+</span> * @inheritdoc
  */
 sp.ui.ext.ooui.ZoomOutTool.prototype.onSelect = function () {
 	// Parent
@@ -2850,8 +2702,8 @@ sp.ui.ext.ooui.ZoomOutTool.prototype.onSelect = function () {
 
 sp.ui.toolFactory.register( sp.ui.ext.ooui.ZoomOutTool );
 
-/**
- * UserInterface grid tool.
+<span id='sp-ui-ext-ooui-GridTool-method-constructor'><span id='sp-ui-ext-ooui-GridTool'>/**
+</span></span> * UserInterface grid tool.
  *
  * @class
  * @extends sp.ui.ext.ooui.Tool
@@ -2863,14 +2715,14 @@ sp.ui.ext.ooui.GridTool = function SpUiExtOouiGridTool( toolGroup, config ) {
 	sp.ui.ext.ooui.Tool.call( this, toolGroup, config );
 };
 OO.inheritClass( sp.ui.ext.ooui.GridTool, sp.ui.ext.ooui.Tool );
-sp.ui.ext.ooui.GridTool.static.name = 'grid';
-sp.ui.ext.ooui.GridTool.static.group = 'viewTools';
-sp.ui.ext.ooui.GridTool.static.icon = 'grid';
-sp.ui.ext.ooui.GridTool.static.title = 'grid';
-sp.ui.ext.ooui.GridTool.static.commandName = 'grid';
+sp.ui.ext.ooui.GridTool.static.name = &#39;grid&#39;;
+sp.ui.ext.ooui.GridTool.static.group = &#39;viewTools&#39;;
+sp.ui.ext.ooui.GridTool.static.icon = &#39;grid&#39;;
+sp.ui.ext.ooui.GridTool.static.title = &#39;grid&#39;;
+sp.ui.ext.ooui.GridTool.static.commandName = &#39;grid&#39;;
 
-/**
- * @inheritdoc
+<span id='sp-ui-ext-ooui-GridTool-method-onUpdateState'>/**
+</span> * @inheritdoc
  */
 sp.ui.ext.ooui.GridTool.prototype.onUpdateState = function () {
 	var isPaused = false;
@@ -2882,8 +2734,8 @@ sp.ui.ext.ooui.GridTool.prototype.onUpdateState = function () {
 	}
 };
 
-/**
- * @inheritdoc
+<span id='sp-ui-ext-ooui-GridTool-method-onSelect'>/**
+</span> * @inheritdoc
  */
 sp.ui.ext.ooui.GridTool.prototype.onSelect = function () {
 	// toggle grid
@@ -2892,8 +2744,8 @@ sp.ui.ext.ooui.GridTool.prototype.onSelect = function () {
 
 sp.ui.toolFactory.register( sp.ui.ext.ooui.GridTool );
 
-/**
- * UserInterface zoom in tool.
+<span id='sp-ui-ext-ooui-PitchTool-method-constructor'><span id='sp-ui-ext-ooui-PitchTool'>/**
+</span></span> * UserInterface zoom in tool.
  *
  * @class
  * @extends sp.ui.ext.ooui.Tool
@@ -2905,10 +2757,10 @@ sp.ui.ext.ooui.PitchTool = function SpUiExtOouiPitchTool( toolGroup, config ) {
 	sp.ui.ext.ooui.Tool.call( this, toolGroup, config );
 };
 OO.inheritClass( sp.ui.ext.ooui.PitchTool, sp.ui.ext.ooui.Tool );
-sp.ui.ext.ooui.PitchTool.static.group = 'viewTools';
+sp.ui.ext.ooui.PitchTool.static.group = &#39;viewTools&#39;;
 sp.ui.ext.ooui.PitchTool.static.deactivateOnSelect = true;
-/**
- * @inheritdoc
+<span id='sp-ui-ext-ooui-PitchTool-method-onUpdateState'>/**
+</span> * @inheritdoc
  */
 sp.ui.ext.ooui.PitchTool.prototype.onUpdateState = function () {
 	// Parent
@@ -2916,8 +2768,8 @@ sp.ui.ext.ooui.PitchTool.prototype.onUpdateState = function () {
 	this.setDisabled( !!!this.toolbar.getContainer().getScenario() );
 };
 
-/**
- * @inheritdoc
+<span id='sp-ui-ext-ooui-PitchTool-method-onSelect'>/**
+</span> * @inheritdoc
  */
 sp.ui.ext.ooui.PitchTool.prototype.onSelect = function () {
 	var toDeg = 180 / Math.PI,
@@ -2934,8 +2786,8 @@ sp.ui.ext.ooui.PitchTool.prototype.onSelect = function () {
 	sp.ui.ext.ooui.Tool.prototype.onSelect.call( this );
 };
 
-/**
- * UserInterface tilt up tool
+<span id='sp-ui-ext-ooui-TiltUpTool-method-constructor'><span id='sp-ui-ext-ooui-TiltUpTool'>/**
+</span></span> * UserInterface tilt up tool
  *
  * @class
  * @extends sp.ui.ext.ooui.PitchTool
@@ -2947,16 +2799,16 @@ sp.ui.ext.ooui.TiltUpTool = function SpUiExtOouiZoomInTool( toolGroup, config ) 
 	sp.ui.ext.ooui.PitchTool.call( this, toolGroup, config );
 };
 OO.inheritClass( sp.ui.ext.ooui.TiltUpTool, sp.ui.ext.ooui.PitchTool );
-sp.ui.ext.ooui.TiltUpTool.static.name = 'tiltup';
-sp.ui.ext.ooui.TiltUpTool.static.icon = 'tiltup';
-sp.ui.ext.ooui.TiltUpTool.static.title = 'Tilt up';
+sp.ui.ext.ooui.TiltUpTool.static.name = &#39;tiltup&#39;;
+sp.ui.ext.ooui.TiltUpTool.static.icon = &#39;tiltup&#39;;
+sp.ui.ext.ooui.TiltUpTool.static.title = &#39;Tilt up&#39;;
 sp.ui.ext.ooui.TiltUpTool.static.changeAngle = 10;
-sp.ui.ext.ooui.TiltUpTool.static.commandName = 'tiltup';
+sp.ui.ext.ooui.TiltUpTool.static.commandName = &#39;tiltup&#39;;
 
 sp.ui.toolFactory.register( sp.ui.ext.ooui.TiltUpTool );
 
-/**
- * UserInterface tilt down tool
+<span id='sp-ui-ext-ooui-TiltDownTool-method-constructor'><span id='sp-ui-ext-ooui-TiltDownTool'>/**
+</span></span> * UserInterface tilt down tool
  *
  * @class
  * @extends sp.ui.ext.ooui.PitchTool
@@ -2968,16 +2820,16 @@ sp.ui.ext.ooui.TiltDownTool = function SpUiExtOouiZoomInTool( toolGroup, config 
 	sp.ui.ext.ooui.PitchTool.call( this, toolGroup, config );
 };
 OO.inheritClass( sp.ui.ext.ooui.TiltDownTool, sp.ui.ext.ooui.PitchTool );
-sp.ui.ext.ooui.TiltDownTool.static.name = 'tiltdown';
-sp.ui.ext.ooui.TiltDownTool.static.icon = 'tiltdown';
-sp.ui.ext.ooui.TiltDownTool.static.title = 'Tilt down';
+sp.ui.ext.ooui.TiltDownTool.static.name = &#39;tiltdown&#39;;
+sp.ui.ext.ooui.TiltDownTool.static.icon = &#39;tiltdown&#39;;
+sp.ui.ext.ooui.TiltDownTool.static.title = &#39;Tilt down&#39;;
 sp.ui.ext.ooui.TiltDownTool.static.changeAngle = -10;
-sp.ui.ext.ooui.TiltDownTool.static.commandName = 'tiltdown';
+sp.ui.ext.ooui.TiltDownTool.static.commandName = &#39;tiltdown&#39;;
 
 sp.ui.toolFactory.register( sp.ui.ext.ooui.TiltDownTool );
 
-/**
- * Label tool.
+<span id='sp-ui-ext-ooui-LabelTool-method-constructor'><span id='sp-ui-ext-ooui-LabelTool'>/**
+</span></span> * Label tool.
  *
  * @class
  * @extends OO.ui.Tool
@@ -2989,7 +2841,7 @@ sp.ui.ext.ooui.LabelTool = function SpUiExtOouiLabelTool( toolGroup, config ) {
 	// Parent constructor
 	OO.ui.Tool.call( this, toolGroup, config );
 	// Mixin constructor
-	OO.ui.LabeledElement.call( this, $( '<div>' ), config );
+	OO.ui.LabeledElement.call( this, $( &#39;&lt;div&gt;&#39; ), config );
 
 	this.$element.empty();
 	this.$element.append( this.$label.show() );
@@ -3002,15 +2854,15 @@ OO.mixinClass( sp.ui.ext.ooui.LabelTool, OO.ui.LabeledElement );
 
 /* Methods */
 
-/**
- * @inheritdoc
+<span id='sp-ui-ext-ooui-LabelTool-method-onUpdateState'>/**
+</span> * @inheritdoc
  */
 sp.ui.ext.ooui.LabelTool.prototype.onUpdateState = function () {
 	this.setDisabled( !this.toolbar.getContainer().getScenario() );
 };
 
-/**
- * UserInterface play tool.
+<span id='sp-ui-ext-ooui-ZoomLabelTool-method-constructor'><span id='sp-ui-ext-ooui-ZoomLabelTool'>/**
+</span></span> * UserInterface play tool.
  *
  * @class
  * @extends sp.ui.ext.ooui.Tool
@@ -3022,12 +2874,12 @@ sp.ui.ext.ooui.ZoomLabelTool = function SpUiExtOouiZoomLabelTool( toolGroup, con
 	sp.ui.ext.ooui.LabelTool.call( this, toolGroup, config );
 };
 OO.inheritClass( sp.ui.ext.ooui.ZoomLabelTool, sp.ui.ext.ooui.LabelTool );
-sp.ui.ext.ooui.ZoomLabelTool.static.name = 'zoomLabel';
-sp.ui.ext.ooui.ZoomLabelTool.static.group = 'zoomTools';
-sp.ui.ext.ooui.ZoomLabelTool.static.title = 'Zoom';
+sp.ui.ext.ooui.ZoomLabelTool.static.name = &#39;zoomLabel&#39;;
+sp.ui.ext.ooui.ZoomLabelTool.static.group = &#39;zoomTools&#39;;
+sp.ui.ext.ooui.ZoomLabelTool.static.title = &#39;Zoom&#39;;
 
-/**
- * @inheritdoc
+<span id='sp-ui-ext-ooui-ZoomLabelTool-method-onUpdateState'>/**
+</span> * @inheritdoc
  */
 sp.ui.ext.ooui.ZoomLabelTool.prototype.onUpdateState = function () {
 	// Parent
@@ -3038,8 +2890,8 @@ sp.ui.ext.ooui.ZoomLabelTool.prototype.onUpdateState = function () {
 	}
 };
 
-/**
- * @inheritdoc
+<span id='sp-ui-ext-ooui-ZoomLabelTool-method-onSelect'>/**
+</span> * @inheritdoc
  */
 sp.ui.ext.ooui.ZoomLabelTool.prototype.onSelect = function () {
 	return false;
@@ -3047,8 +2899,8 @@ sp.ui.ext.ooui.ZoomLabelTool.prototype.onSelect = function () {
 
 sp.ui.toolFactory.register( sp.ui.ext.ooui.ZoomLabelTool );
 
-/**
- * Regular POV list tool.
+<span id='sp-ui-ext-ooui-POVTool-method-constructor'><span id='sp-ui-ext-ooui-POVTool'>/**
+</span></span> * Regular POV list tool.
  *
  * @class
  * @extends OO.ui.Tool
@@ -3067,12 +2919,12 @@ OO.inheritClass( sp.ui.ext.ooui.POVTool, OO.ui.Tool );
 
 /* Static */
 
-sp.ui.ext.ooui.POVTool.static.group = 'povTools';
+sp.ui.ext.ooui.POVTool.static.group = &#39;povTools&#39;;
 
 /* Methods */
 
-/**
- * @inheritdoc
+<span id='sp-ui-ext-ooui-POVTool-method-onUpdateState'>/**
+</span> * @inheritdoc
  */
 sp.ui.ext.ooui.POVTool.prototype.onUpdateState = function () {
 	var currPov;
@@ -3084,8 +2936,8 @@ sp.ui.ext.ooui.POVTool.prototype.onUpdateState = function () {
 	}
 };
 
-/**
- * @inheritdoc
+<span id='sp-ui-ext-ooui-POVTool-method-onSelect'>/**
+</span> * @inheritdoc
  */
 sp.ui.ext.ooui.POVTool.prototype.onSelect = function () {
 	if ( this.toolbar.getContainer().getScenario() ) {
@@ -3095,8 +2947,8 @@ sp.ui.ext.ooui.POVTool.prototype.onSelect = function () {
 	}
 };
 
-/**
- * A slider tool
+<span id='sp-ui-ext-ooui-SliderTool-method-constructor'><span id='sp-ui-ext-ooui-SliderTool'>/**
+</span></span> * A slider tool
  *
  * @class
  * @extends OO.ui.Tool
@@ -3111,14 +2963,14 @@ sp.ui.ext.ooui.SliderTool = function SpUiExtOouiSliderTool( toolGroup, config ) 
 
 	// Initialization
 	this.$element.empty();
-	this.$slider = this.$( '<input>' )
-		.addClass( 'sp-ui-ooui-sliderHandle' )
-		.attr( 'type', 'range' )
-		.attr( 'min', '1' )
-		.attr( 'max', '100' );
+	this.$slider = this.$( &#39;&lt;input&gt;&#39; )
+		.addClass( &#39;sp-ui-ooui-sliderHandle&#39; )
+		.attr( &#39;type&#39;, &#39;range&#39; )
+		.attr( &#39;min&#39;, &#39;1&#39; )
+		.attr( &#39;max&#39;, &#39;100&#39; );
 
 	this.$element
-		.addClass( 'sp-ui-ooui-sliderTool' )
+		.addClass( &#39;sp-ui-ooui-sliderTool&#39; )
 		.append( this.$slider );
 };
 
@@ -3132,8 +2984,8 @@ sp.ui.ext.ooui.SliderTool.prototype.onUpdateState = function () {
 	sp.ui.ext.ooui.Tool.prototype.onUpdateState.apply( this, arguments );
 };
 
-/**
- * UserInterface zoom tool.
+<span id='sp-ui-ext-ooui-SpeedSliderTool-method-constructor'><span id='sp-ui-ext-ooui-SpeedSliderTool'>/**
+</span></span> * UserInterface zoom tool.
  *
  * @class
  * @extends sp.ui.ext.ooui.SliderTool
@@ -3143,27 +2995,27 @@ sp.ui.ext.ooui.SliderTool.prototype.onUpdateState = function () {
  */
 sp.ui.ext.ooui.SpeedSliderTool = function SpUiExtOouiZoomSliderTool( toolGroup, config ) {
 	sp.ui.ext.ooui.SliderTool.call( this, toolGroup, config );
-	this.$element.addClass( 'sp-ui-ooui-speedSlider' );
+	this.$element.addClass( &#39;sp-ui-ooui-speedSlider&#39; );
 };
 OO.inheritClass( sp.ui.ext.ooui.SpeedSliderTool, sp.ui.ext.ooui.Tool );
-sp.ui.ext.ooui.SpeedSliderTool.static.name = 'speed';
-sp.ui.ext.ooui.SpeedSliderTool.static.group = 'viewTools';
-sp.ui.ext.ooui.SpeedSliderTool.static.icon = 'speed';
-sp.ui.ext.ooui.SpeedSliderTool.static.title = 'speed';
-sp.ui.ext.ooui.SpeedSliderTool.static.commandName = 'speed';
+sp.ui.ext.ooui.SpeedSliderTool.static.name = &#39;speed&#39;;
+sp.ui.ext.ooui.SpeedSliderTool.static.group = &#39;viewTools&#39;;
+sp.ui.ext.ooui.SpeedSliderTool.static.icon = &#39;speed&#39;;
+sp.ui.ext.ooui.SpeedSliderTool.static.title = &#39;speed&#39;;
+sp.ui.ext.ooui.SpeedSliderTool.static.commandName = &#39;speed&#39;;
 
 sp.ui.toolFactory.register( sp.ui.ext.ooui.SpeedSliderTool );
 
-/**
- * UI jQueryUI Module namespace
+<span id='sp-ui-ext-ooui-SpeedSliderTool-property-jqueryui'>/**
+</span> * UI jQueryUI Module namespace
  * @property {Object}
  */
 sp.ui.ext.jqueryui = {
-	'Mod': {}
+	&#39;Mod&#39;: {}
 };
 
-/**
- * jQueryUI Gui module
+<span id='sp-ui-ext-jqueryui-Mod-Play'>/**
+</span> * jQueryUI Gui module
  *
  * @class sp.ui.ext.jqueryui.Mod.Play
  *
@@ -3182,7 +3034,7 @@ sp.ui.ext.jqueryui.Mod.Play = function SpUiExtJqueryUiModPlay( container, config
 	this.statusBar = new sp.ui.ext.jqueryui.Mod.StatusBar( container, config );
 
 	// Events
-	this.container.connect( this, { 'scenarioLoaded': 'onScenarioLoaded' } );
+	this.container.connect( this, { &#39;scenarioLoaded&#39;: &#39;onScenarioLoaded&#39; } );
 };
 
 /* Inheritance */
@@ -3192,40 +3044,37 @@ OO.inheritClass( sp.ui.ext.jqueryui.Mod.Play, sp.ui.ext.Play );
 
 /* Events */
 
-/**
- * Play or pause scenario
+<span id='sp-ui-ext-jqueryui-Mod-Play-event-play'>/**
+</span> * Play or pause scenario
  * @event play
  * @param {boolean} isPlay Play scenario or pause
  */
 
-/**
- * Zoom in or out
+<span id='sp-ui-ext-jqueryui-Mod-Play-event-zoom'>/**
+</span> * Zoom in or out
  * @event zoom
  * @param {number} zoomLevel How much to zoom. Negative to zoom out.
  */
 
-/**
- * Change point of view object
+<span id='sp-ui-ext-jqueryui-Mod-Play-event-pov'>/**
+</span> * Change point of view object
  * @event pov
  * @param {string} povObjName New POV object name or key
  */
 
 /* Methods */
 
-/**
- * Initialize the Gui
+<span id='sp-ui-ext-jqueryui-Mod-Play-method-initialize'>/**
+</span> * Initialize the Gui
  * @returns {sp.ui.ext.jqueryui.Mod.Play}
  */
 sp.ui.ext.jqueryui.Mod.Play.prototype.initialize = function () {
 	var tool,
-		$separator = $( '<div>' )
-			.addClass( 'sp-ui-jqueryui-sep' );
+		$separator = $( &#39;&lt;div&gt;&#39; )
+			.addClass( &#39;sp-ui-jqueryui-sep&#39; );
 
-	// Call parent
-	sp.ui.ext.Play.prototype.initialize.call( this );
-
-	this.$toolbar = $( '<div>' )
-		.addClass( 'sp-ui-jqueryui-toolbar' );
+	this.$toolbar = $( &#39;&lt;div&gt;&#39; )
+		.addClass( &#39;sp-ui-jqueryui-toolbar&#39; );
 
 	this.buttonSets = {};
 	this.buttons = {};
@@ -3233,29 +3082,29 @@ sp.ui.ext.jqueryui.Mod.Play.prototype.initialize = function () {
 
 	// Add buttons
 	this.buttons.play = new sp.ui.ext.jqueryui.CheckButtonTool( {
-		'name': 'play',
-		'icon': 'play'
+		&#39;name&#39;: &#39;play&#39;,
+		&#39;icon&#39;: &#39;play&#39;
 	} );
 
 	this.buttons.povList = new sp.ui.ext.jqueryui.SelectTool( {
-		'name': 'pov'
+		&#39;name&#39;: &#39;pov&#39;
 	} );
 
 	this.buttons.zoomin = new sp.ui.ext.jqueryui.ClickButtonTool( {
-		'name': 'zoomin',
-		'icon': 'zoomin',
-		'action': 1000
+		&#39;name&#39;: &#39;zoomin&#39;,
+		&#39;icon&#39;: &#39;zoomin&#39;,
+		&#39;action&#39;: 1000
 	} );
 
 	this.buttons.zoomout = new sp.ui.ext.jqueryui.ClickButtonTool( {
-		'name': 'zoomout',
-		'icon': 'zoomout',
-		'action': -1000
+		&#39;name&#39;: &#39;zoomout&#39;,
+		&#39;icon&#39;: &#39;zoomout&#39;,
+		&#39;action&#39;: -1000
 	} );
 
 	this.buttons.grid = new sp.ui.ext.jqueryui.CheckButtonTool( {
-		'name': 'grid',
-		'icon': 'grid'
+		&#39;name&#39;: &#39;grid&#39;,
+		&#39;icon&#39;: &#39;grid&#39;
 	} );
 
 	this.$toolbar.append( [
@@ -3273,25 +3122,25 @@ sp.ui.ext.jqueryui.Mod.Play.prototype.initialize = function () {
 
 	// Status bar
 	this.labels.zoom = new sp.ui.ext.jqueryui.LabelTool( {
-		'label': 'Zoom level'
+		&#39;label&#39;: &#39;Zoom level&#39;
 	} );
 	this.statusBar.$element.append( [
 		this.labels.zoom.$element
 	] );
 
-	this.container.addToolbar( this.statusBar.$element, 'bottom' );
+	this.container.addToolbar( this.statusBar.$element, &#39;bottom&#39; );
 
-	this.buttons.play.connect( this, { 'change': 'onPlayChange' } );
-	this.buttons.povList.connect( this, { 'change': 'onPovChange' } );
-	this.buttons.zoomin.connect( this, { 'click': 'onZoomClick' } );
-	this.buttons.zoomout.connect( this, { 'click': 'onZoomClick' } );
-	this.buttons.grid.connect( this, { 'change': 'onGridChange' } );
+	this.buttons.play.connect( this, { &#39;change&#39;: &#39;onPlayChange&#39; } );
+	this.buttons.povList.connect( this, { &#39;change&#39;: &#39;onPovChange&#39; } );
+	this.buttons.zoomin.connect( this, { &#39;click&#39;: &#39;onZoomClick&#39; } );
+	this.buttons.zoomout.connect( this, { &#39;click&#39;: &#39;onZoomClick&#39; } );
+	this.buttons.grid.connect( this, { &#39;change&#39;: &#39;onGridChange&#39; } );
 
 	return this;
 };
 
-/**
- * Respond to new scenario loaded
+<span id='sp-ui-ext-jqueryui-Mod-Play-method-onScenarioLoaded'>/**
+</span> * Respond to new scenario loaded
  * @fires updateState
  */
 sp.ui.ext.jqueryui.Mod.Play.prototype.onScenarioLoaded = function () {
@@ -3299,10 +3148,10 @@ sp.ui.ext.jqueryui.Mod.Play.prototype.onScenarioLoaded = function () {
 		this.container.getScenario().disconnect( this );
 	}
 	// Events
-	this.container.getScenario().connect( this, { 'pause': [ 'onScenarioChanged', 'pause' ] } );
-	this.container.getScenario().connect( this, { 'pov': [ 'onScenarioChanged', 'pov' ] } );
-	this.container.getScenario().connect( this, { 'grid': [ 'onScenarioChanged', 'grid' ] } );
-	this.container.getScenario().connect( this, { 'zoom': [ 'onScenarioChanged', 'zoom' ] } );
+	this.container.getScenario().connect( this, { &#39;pause&#39;: [ &#39;onScenarioChanged&#39;, &#39;pause&#39; ] } );
+	this.container.getScenario().connect( this, { &#39;pov&#39;: [ &#39;onScenarioChanged&#39;, &#39;pov&#39; ] } );
+	this.container.getScenario().connect( this, { &#39;grid&#39;: [ &#39;onScenarioChanged&#39;, &#39;grid&#39; ] } );
+	this.container.getScenario().connect( this, { &#39;zoom&#39;: [ &#39;onScenarioChanged&#39;, &#39;zoom&#39; ] } );
 
 	// Update POV
 	this.buttons.play.setValue( !this.container.getScenario().isPaused() );
@@ -3311,60 +3160,60 @@ sp.ui.ext.jqueryui.Mod.Play.prototype.onScenarioLoaded = function () {
 	this.labels.zoom.setValue( this.container.getScenario().getZoom() );
 };
 
-/**
- * Respond to change in scenario state
+<span id='sp-ui-ext-jqueryui-Mod-Play-method-onScenarioChanged'>/**
+</span> * Respond to change in scenario state
  * @fires updateState
  */
 sp.ui.ext.jqueryui.Mod.Play.prototype.onScenarioChanged = function ( action, status ) {
 	switch ( action ) {
-		case 'pause':
+		case &#39;pause&#39;:
 			this.buttons.play.setValue( !status );
 			break;
-		case 'pov':
+		case &#39;pov&#39;:
 			this.buttons.povList.setValue( status );
 			break;
-		case 'grid':
+		case &#39;grid&#39;:
 			this.buttons.grid.setValue( status );
 			break;
-		case 'zoom':
+		case &#39;zoom&#39;:
 			this.labels.zoom.setValue( this.container.getScenario().getZoom() );
 			break;
 	}
 };
 
-/**
- * Respond to play button change
+<span id='sp-ui-ext-jqueryui-Mod-Play-method-onPlayChange'>/**
+</span> * Respond to play button change
  * @param {Boolean} isPlay Play scenario
  */
 sp.ui.ext.jqueryui.Mod.Play.prototype.onPlayChange = function ( isPlay ) {
 	this.container.getScenario().togglePaused( !isPlay );
 };
 
-/**
- * Respond to zoom buttons change
+<span id='sp-ui-ext-jqueryui-Mod-Play-method-onZoomClick'>/**
+</span> * Respond to zoom buttons change
  * @param {number} zoomFactor Zoom factor
  */
 sp.ui.ext.jqueryui.Mod.Play.prototype.onZoomClick = function ( zoomFactor ) {
 	this.container.getScenario().setZoom( zoomFactor );
 };
 
-/**
- * Respond to pov change
+<span id='sp-ui-ext-jqueryui-Mod-Play-method-onPovChange'>/**
+</span> * Respond to pov change
  * @param {string} pov New POV item
  */
 sp.ui.ext.jqueryui.Mod.Play.prototype.onPovChange = function ( pov ) {
 	this.container.getScenario().setPOV( pov );
 };
 
-/**
- * Respond to grid button change
+<span id='sp-ui-ext-jqueryui-Mod-Play-method-onGridChange'>/**
+</span> * Respond to grid button change
  * @param {Boolean} isGrid Show grid
  */
 sp.ui.ext.jqueryui.Mod.Play.prototype.onGridChange = function ( isGrid ) {
 	this.container.getScenario().toggleGrid( isGrid );
 };
-/**
- * Add a tool to the POV list
+<span id='sp-ui-ext-jqueryui-Mod-Play-method-addToPOVList'>/**
+</span> * Add a tool to the POV list
  * @param {string} name Tool name
  * @param {string} title Title or alternate text
  * @param {string} [icon] Tool icon
@@ -3373,8 +3222,8 @@ sp.ui.ext.jqueryui.Mod.Play.prototype.addToPOVList = function ( name, title, ico
 	this.buttons.povList.addOption( name, title );
 };
 
-/**
- * jQueryUI Gui module
+<span id='sp-ui-ext-jqueryui-Mod-Play'>/**
+</span> * jQueryUI Gui module
  *
  * @class sp.ui.ext.jqueryui.Mod.Play
  *
@@ -3382,26 +3231,26 @@ sp.ui.ext.jqueryui.Mod.Play.prototype.addToPOVList = function ( name, title, ico
  * @param {Object} [config] Gui module definition
  */
 sp.ui.ext.jqueryui.Mod.StatusBar = function SpUiExtJqueryUiModStatusBar( container, config ) {
-	var $separator = $( '<div>' )
-			.addClass( 'sp-ui-jqueryui-sep' );
+	var $separator = $( &#39;&lt;div&gt;&#39; )
+			.addClass( &#39;sp-ui-jqueryui-sep&#39; );
 
 	config = config || {};
 
 	// Parent constructor
 	sp.ui.ext.jqueryui.Mod.StatusBar.super.call( this, container, config );
 
-	this.$element = $( '<div>' )
-		.addClass( 'sp-ui-jqueryui-statusbar' );
+	this.$element = $( &#39;&lt;div&gt;&#39; )
+		.addClass( &#39;sp-ui-jqueryui-statusbar&#39; );
 
 	// Events
-//	this.container.connect( this, { 'scenarioLoaded': 'onScenarioLoaded' } );
+//	this.container.connect( this, { &#39;scenarioLoaded&#39;: &#39;onScenarioLoaded&#39; } );
 };
 
 /* Inheritance */
 OO.inheritClass( sp.ui.ext.jqueryui.Mod.StatusBar, sp.ui.ext.StatusBar );
 
-/**
- * jQueryUI toolset.
+<span id='sp-ui-ext-jqueryui-Buttonset-method-constructor'><span id='sp-ui-ext-jqueryui-Buttonset'>/**
+</span></span> * jQueryUI toolset.
  *
  * @class
  * @constructor
@@ -3412,11 +3261,11 @@ sp.ui.ext.jqueryui.Buttonset = function SpUiExtJqueryUiButtonset( config ) {
 
 	config = config || {};
 
-	this.$element = $( '<div>' )
-		.addClass( 'sp-ui-jqueryui-toolset' );
+	this.$element = $( &#39;&lt;div&gt;&#39; )
+		.addClass( &#39;sp-ui-jqueryui-toolset&#39; );
 
 	if ( config.name ) {
-		this.$element.addClass( 'sp-ui-jqueryui-toolset-' + config.name );
+		this.$element.addClass( &#39;sp-ui-jqueryui-toolset-&#39; + config.name );
 	}
 
 	this.tools = config.tools || [];
@@ -3424,8 +3273,8 @@ sp.ui.ext.jqueryui.Buttonset = function SpUiExtJqueryUiButtonset( config ) {
 	this.$element.buttonset();
 };
 
-/**
- * Add tool to toolset
+<span id='sp-ui-ext-jqueryui-Buttonset-method-addButton'>/**
+</span> * Add tool to toolset
  * @param {[type]} tool [description]
  */
 sp.ui.ext.jqueryui.Buttonset.prototype.addButton = function ( tool ) {
@@ -3433,8 +3282,8 @@ sp.ui.ext.jqueryui.Buttonset.prototype.addButton = function ( tool ) {
 	this.$element.append( tool.$element );
 };
 
-/**
- * jQueryUI click tool.
+<span id='sp-ui-ext-jqueryui-ClickButtonTool-method-constructor'><span id='sp-ui-ext-jqueryui-ClickButtonTool'>/**
+</span></span> * jQueryUI click tool.
  *
  * @class
  * @constructor
@@ -3446,15 +3295,15 @@ sp.ui.ext.jqueryui.ClickButtonTool = function SpUiExtJqueryUiClickButtonTool( co
 	// Mixin constructors
 	OO.EventEmitter.call( this );
 
-	this.name = config.name || 'general';
+	this.name = config.name || &#39;general&#39;;
 	this.action = config.action;
 
-	this.$element = $( '<button>' )
-		.prop( 'id', 'sp-ui-jqueryui-tool-' + this.name )
-		.addClass( 'sp-ui-jqueryui-clickButtonTool' );
+	this.$element = $( &#39;&lt;button&gt;&#39; )
+		.prop( &#39;id&#39;, &#39;sp-ui-jqueryui-tool-&#39; + this.name )
+		.addClass( &#39;sp-ui-jqueryui-clickButtonTool&#39; );
 
 	if ( config.icon ) {
-		this.$element.addClass( 'sp-ui-jqueryui-tool-icon sp-ui-jqueryui-icon-' + config.icon );
+		this.$element.addClass( &#39;sp-ui-jqueryui-tool-icon sp-ui-jqueryui-icon-&#39; + config.icon );
 	}
 
 	if ( config.label ) {
@@ -3462,7 +3311,7 @@ sp.ui.ext.jqueryui.ClickButtonTool = function SpUiExtJqueryUiClickButtonTool( co
 	}
 
 	// Events
-	this.$element.on( 'click', $.proxy( this.onClick , this ) );
+	this.$element.on( &#39;click&#39;, $.proxy( this.onClick , this ) );
 
 	this.$element.button();
 };
@@ -3473,25 +3322,25 @@ OO.inheritClass( sp.ui.ext.jqueryui.ClickButtonTool, OO.EventEmitter );
 
 /* Events */
 
-/**
- * Button click
+<span id='sp-ui-ext-jqueryui-ClickButtonTool-event-click'>/**
+</span> * Button click
  * @event click
  */
 
 /* Methods */
 
-/**
- * Respond to a click event
+<span id='sp-ui-ext-jqueryui-ClickButtonTool-method-onClick'>/**
+</span> * Respond to a click event
  * @param {jQuery.event} event Click event
  * @fires click
  */
 sp.ui.ext.jqueryui.ClickButtonTool.prototype.onClick = function ( event ) {
-	this.emit( 'click', this.action );
+	this.emit( &#39;click&#39;, this.action );
 	event.preventDefault();
 };
 
-/**
- * jQueryUI check tool.
+<span id='sp-ui-ext-jqueryui-CheckButtonTool-method-constructor'><span id='sp-ui-ext-jqueryui-CheckButtonTool'>/**
+</span></span> * jQueryUI check tool.
  *
  * @class
  * @constructor
@@ -3503,29 +3352,29 @@ sp.ui.ext.jqueryui.CheckButtonTool = function SpUiExtJqueryUiCheckButtonTool( co
 	OO.EventEmitter.call( this );
 
 	this.value = false;
-	this.name = config.name || 'general';
+	this.name = config.name || &#39;general&#39;;
 
-	this.$checkbox = $( '<input>' )
-		.prop( 'type', 'checkbox' )
-		.prop( 'id', 'sp-ui-jqueryui-tool-' + this.name )
-		.prop( 'checked', false );
-	this.$label = $( '<label>' )
-		.attr( 'for', 'sp-ui-jqueryui-tool-' + this.name );
+	this.$checkbox = $( &#39;&lt;input&gt;&#39; )
+		.prop( &#39;type&#39;, &#39;checkbox&#39; )
+		.prop( &#39;id&#39;, &#39;sp-ui-jqueryui-tool-&#39; + this.name )
+		.prop( &#39;checked&#39;, false );
+	this.$label = $( &#39;&lt;label&gt;&#39; )
+		.attr( &#39;for&#39;, &#39;sp-ui-jqueryui-tool-&#39; + this.name );
 
 	if ( config.icon ) {
 		this.$label
-			.addClass( 'sp-ui-jqueryui-tool-icon sp-ui-jqueryui-icon-' + config.icon );
+			.addClass( &#39;sp-ui-jqueryui-tool-icon sp-ui-jqueryui-icon-&#39; + config.icon );
 	}
 	if ( config.label ) {
 		this.$label.text( config.label );
 	}
 
-	this.$element = $( '<div>' )
-		.addClass( 'sp-ui-jqueryui-tool sp-ui-jqueryui-tool-checkButtonTool' )
+	this.$element = $( &#39;&lt;div&gt;&#39; )
+		.addClass( &#39;sp-ui-jqueryui-tool sp-ui-jqueryui-tool-checkButtonTool&#39; )
 		.append( [ this.$checkbox, this.$label ] );
 
 	// Events
-	this.$checkbox.on( 'change', $.proxy( this.onChange , this ) );
+	this.$checkbox.on( &#39;change&#39;, $.proxy( this.onChange , this ) );
 
 	this.$checkbox.button();
 };
@@ -3536,48 +3385,48 @@ OO.inheritClass( sp.ui.ext.jqueryui.CheckButtonTool, OO.EventEmitter );
 
 /* Events */
 
-/**
- * State change from selected to released
+<span id='sp-ui-ext-jqueryui-CheckButtonTool-event-change'>/**
+</span> * State change from selected to released
  * @event change
  */
 
 /* Methods */
 
-/**
- * Respond to a change event
+<span id='sp-ui-ext-jqueryui-CheckButtonTool-method-onChange'>/**
+</span> * Respond to a change event
  * @param {jQuery.event} event Click event
  * @fires change
  */
 sp.ui.ext.jqueryui.CheckButtonTool.prototype.onChange = function ( event ) {
 	var oldValue = this.value;
 
-	this.value = this.$checkbox.prop( 'checked' );
+	this.value = this.$checkbox.prop( &#39;checked&#39; );
 	if ( this.value !== oldValue ) {
-		this.emit( 'change', this.value );
+		this.emit( &#39;change&#39;, this.value );
 	}
 	event.preventDefault();
 };
 
-/**
- * Return the current value of the button
+<span id='sp-ui-ext-jqueryui-CheckButtonTool-method-getValue'>/**
+</span> * Return the current value of the button
  * @return {boolean} Checked or unchecked
  */
 sp.ui.ext.jqueryui.CheckButtonTool.prototype.getValue = function () {
 	return this.value;
 };
 
-/**
- * Set the value of the button
+<span id='sp-ui-ext-jqueryui-CheckButtonTool-method-setValue'>/**
+</span> * Set the value of the button
  * @param {[type]} checked [description]
  */
 sp.ui.ext.jqueryui.CheckButtonTool.prototype.setValue = function ( checked ) {
 	this.value = !!checked;
-	this.$checkbox.prop( 'checked', this.value );
-	this.$checkbox.button( 'refresh' );
+	this.$checkbox.prop( &#39;checked&#39;, this.value );
+	this.$checkbox.button( &#39;refresh&#39; );
 };
 
-/**
- * jQueryUI label.
+<span id='sp-ui-ext-jqueryui-LabelTool-method-constructor'><span id='sp-ui-ext-jqueryui-LabelTool'>/**
+</span></span> * jQueryUI label.
  *
  * @class
  * @constructor
@@ -3586,23 +3435,23 @@ sp.ui.ext.jqueryui.CheckButtonTool.prototype.setValue = function ( checked ) {
 sp.ui.ext.jqueryui.LabelTool = function SpUiExtJqueryUiLabelTool( config ) {
 	config = config || {};
 
-	this.$element = $( '<div>' )
-		.addClass( 'sp-ui-jqueryui-labelTool' );
+	this.$element = $( &#39;&lt;div&gt;&#39; )
+		.addClass( &#39;sp-ui-jqueryui-labelTool&#39; );
 
 	this.value = config.value;
 
-	this.$label = $( '<span>' )
-		.addClass( 'sp-ui-jqueryui-labelTool-label' )
-		.text( config.label + ':' )
+	this.$label = $( &#39;&lt;span&gt;&#39; )
+		.addClass( &#39;sp-ui-jqueryui-labelTool-label&#39; )
+		.text( config.label + &#39;:&#39; )
 		.appendTo( this.$element );
-	this.$value = $( '<span>' )
-		.addClass( 'sp-ui-jqueryui-labelTool-value' )
+	this.$value = $( &#39;&lt;span&gt;&#39; )
+		.addClass( &#39;sp-ui-jqueryui-labelTool-value&#39; )
 		.text( config.value )
 		.appendTo( this.$element );
 };
 
-/**
- * Set value
+<span id='sp-ui-ext-jqueryui-LabelTool-method-setValue'>/**
+</span> * Set value
  * @param {string} value New presented value
  */
 sp.ui.ext.jqueryui.LabelTool.prototype.setValue = function ( value ) {
@@ -3610,15 +3459,15 @@ sp.ui.ext.jqueryui.LabelTool.prototype.setValue = function ( value ) {
 	this.$value.text( value );
 };
 
-/**
- * Get value
+<span id='sp-ui-ext-jqueryui-LabelTool-method-getValue'>/**
+</span> * Get value
  */
 sp.ui.ext.jqueryui.LabelTool.prototype.getValue = function () {
 	return this.value;
 };
 
-/**
- * jQueryUI select tool.
+<span id='sp-ui-ext-jqueryui-SelectTool-method-constructor'><span id='sp-ui-ext-jqueryui-SelectTool'>/**
+</span></span> * jQueryUI select tool.
  *
  * @class
  * @constructor
@@ -3630,26 +3479,26 @@ sp.ui.ext.jqueryui.SelectTool = function SpUiExtJqueryUiSelectTool( config ) {
 	// Mixin constructors
 	OO.EventEmitter.call( this );
 
-	this.name = config.name || 'general';
+	this.name = config.name || &#39;general&#39;;
 	this.action = config.action;
 
-	this.$element = $( '<select>' )
-		.prop( 'id', 'sp-ui-jqueryui-tool-' + this.name )
-		.addClass( 'sp-ui-jqueryui-selectTool' );
+	this.$element = $( &#39;&lt;select&gt;&#39; )
+		.prop( &#39;id&#39;, &#39;sp-ui-jqueryui-tool-&#39; + this.name )
+		.addClass( &#39;sp-ui-jqueryui-selectTool&#39; );
 
 	this.options = {};
-	this.value = '';
+	this.value = &#39;&#39;;
 
 	// Events
-	this.$element.on( 'change', $.proxy( this.onChange , this ) );
+	this.$element.on( &#39;change&#39;, $.proxy( this.onChange , this ) );
 };
 
 /* Inheritance */
 
 OO.inheritClass( sp.ui.ext.jqueryui.SelectTool, OO.EventEmitter );
 
-/**
- * Respond to change event
+<span id='sp-ui-ext-jqueryui-SelectTool-method-onChange'>/**
+</span> * Respond to change event
  * @param {jQuery.event} event Change event
  */
 sp.ui.ext.jqueryui.SelectTool.prototype.onChange = function ( event, val ) {
@@ -3657,12 +3506,12 @@ sp.ui.ext.jqueryui.SelectTool.prototype.onChange = function ( event, val ) {
 
 	this.value = this.$element.val();
 	if ( this.value !== oldValue ) {
-		this.emit( 'change', this.value );
+		this.emit( &#39;change&#39;, this.value );
 	}
 };
 
-/**
- * Select a specific value from the options
+<span id='sp-ui-ext-jqueryui-SelectTool-method-setValue'>/**
+</span> * Select a specific value from the options
  * @param {string} value The value to select
  */
 sp.ui.ext.jqueryui.SelectTool.prototype.setValue = function ( value ) {
@@ -3672,34 +3521,37 @@ sp.ui.ext.jqueryui.SelectTool.prototype.setValue = function ( value ) {
 	}
 };
 
-/**
- * Add an option to the select list
+<span id='sp-ui-ext-jqueryui-SelectTool-method-addOption'>/**
+</span> * Add an option to the select list
  * @param {string} value The value of the new option
  * @param {string} label The label of the new option
  */
 sp.ui.ext.jqueryui.SelectTool.prototype.addOption = function ( value, label ) {
-	var option = $( '<option>' )
-		.attr( 'value', value )
+	var option = $( &#39;&lt;option&gt;&#39; )
+		.attr( &#39;value&#39;, value )
 		.text( label );
 
 	this.options[name] = value;
 	this.$element.append( option );
 };
 
-/**
- * Remove an option from the select list
+<span id='sp-ui-ext-jqueryui-SelectTool-method-removeOption'>/**
+</span> * Remove an option from the select list
  * @param {string} value Value of the option to remove
  */
 sp.ui.ext.jqueryui.SelectTool.prototype.removeOption = function ( value ) {
 	if ( this.options[value] ) {
 		delete this.options[value];
-		this.$element.find( 'option[value=' + value + ']' ).remove();
+		this.$element.find( &#39;option[value=&#39; + value + &#39;]&#39; ).remove();
 	}
 };
 
-/**
- * Remove all options in the select list
+<span id='sp-ui-ext-jqueryui-SelectTool-method-empty'>/**
+</span> * Remove all options in the select list
  */
 sp.ui.ext.jqueryui.SelectTool.prototype.empty = function () {
 	this.$element.empty();
 };
+</pre>
+</body>
+</html>

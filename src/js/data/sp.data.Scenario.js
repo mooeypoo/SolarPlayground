@@ -438,3 +438,11 @@ sp.data.Scenario.prototype.setPitchAngle = function ( pitch ) {
 sp.data.Scenario.prototype.getPitchAngle = function () {
 	return this.viewConverter.getPitchAngle();
 };
+
+/**
+ * Get the scenario's view converter object
+ * @return {sp.view.Converter} View converter
+ */
+sp.data.Scenario.prototype.getViewConverter = function () {
+	return this.viewConverter;
+};
